@@ -77,6 +77,27 @@ Run everything from start to finish:
 ./run all
 ```
 
+## Verification & Testing (Local Run)
+
+For rapid verification of the pipeline logic on local hardware, a **Chromosome 21 Test Suite** is provided. This allows you to run the entire pipeline in minutes instead of hours.
+
+### 1. Overview
+The test suite utilizes a subsampled dataset and a single chromosome (Chr21) to minimize RAM and storage requirements.
+
+| Mode | Target | STAR RAM | Time |
+| :--- | :--- | :--- | :--- |
+| **Production** | Full GRCh38 | ~30GB | 8-10 Hours |
+| **Test** | [[Chr21 Only]] | ~1.5GB | ~10 Minutes |
+
+### 2. Usage
+```bash
+./test all      # Run entire verification (Upstream -> Downstream)
+./test up       # Run BASH upstream only
+./test down     # Run R analysis only
+```
+
+For more details on test thresholds and script logic, refer to the internal documentation headers in [[test_upstream/]] and [[test_downstream/]].
+
 ## Requirements
 - **Bioinformatics**: STAR, samtools, featureCounts (subread), RSeQC, MultiQC, Trimmomatic.
 - **Python**: `pandas` (required for `biotype_to_multiqc.py`). 

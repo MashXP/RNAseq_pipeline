@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# [[test]]
+# Master Execution Runner for the MiaPAca-2 Verification Suite.
+# Usage: ./test {up|down|all}
+# Divergence from Prod: Redirects all IO to test folders; enforces Chr21 mode.
+
+set -e
+
+echo "========================================================="
+echo "   MiaPAca-2 Cancer RNA-seq - TEST SUITE (Chr21)"
+echo "========================================================="
+
+# 1. Environment Check
+if [[ "$CONDA_DEFAULT_ENV" != "cancer_rnaseq" ]]; then
+    echo "ERROR: 'cancer_rnaseq' environment is not active."
+    echo "Please run: mamba activate cancer_rnaseq"
+    exit 1
+fi
+
+# 2. Argument Logic
+RUN_UPSTREAM=false
+RUN_DOWNSTREAM=false
+
+if [ "$#" -eq 0 ]; then
+    echo "Usage: ./test {up|down|all}"
+    exit 1
+fi
+
+for arg in "$@"; do
+    case $arg in
+        up) RUN_UPSTREAM=true ;;
+        down) RUN_DOWNSTREAM=true ;;
+        all) RUN_UPSTREAM=true; RUN_DOWNSTREAM=true ;;
+        *) echo "Unknown argument: $arg"; exit 1 ;;
+    esac
+done
+
+# 3. TEST UPSTREAM
+if [ "$RUN_UPSTREAM" = true ]; then
+    echo ">>> Running TEST UPSTREAM (Chr21)..."
+    (
+        cd test_upstream/
+        bash 01_genome_prep.sh
+        bash 02_star_align.sh
+        bash 03_rseqc_qc.sh
+        bash 04_quantification.sh
+        bash 05_multiqc.sh
+    )
+fi
+
+# 4. TEST DOWNSTREAM
+if [ "$RUN_DOWNSTREAM" = true ]; then
+    echo ">>> Running TEST DOWNSTREAM (Low Threshold)..."
+    (
+        cd test_downstream/
+        Rscript 01_data_prep.R
+        Rscript 02_deseq2_dge.R
+        Rscript 03_enrichment.R
+        Rscript 04_visualization.R
+    )
+fi
+
+echo "========================================================="
+echo "   TEST SUITE COMPLETED SUCCESSFULLY"
+echo "========================================================="
