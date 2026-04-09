@@ -1,0 +1,41 @@
+
+# Ignore heavy bioinformatics data files
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.bam
+*.sam
+*.sra
+*.vcf
+*.vcf.gz
+
+# Ignore large genome index files
+_data/ensembl/index/Genome
+_data/ensembl/index/SA
+_data/ensembl/index/SAindex
+
+# Ignore R intermediate data
+**/ .RData/
+**/.Rhistory
+**/.RData
+**/.Rapp.history
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# VS Code / Editor config
+.vscode/
+.idea/
+*.swp
+*~

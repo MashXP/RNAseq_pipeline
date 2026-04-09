@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# run
+# Master script for the MiaPAca-2 Cancer RNA-seq Pipeline
+
+# Exit on error
+set -e
+
+echo "========================================================="
+echo "   MiaPAca-2 Cancer RNA-seq - Pipeline Runner"
+echo "========================================================="
+
+# 1. Environment Check
+if [[ "$CONDA_DEFAULT_ENV" != "cancer_rnaseq" ]]; then
+    echo "WARNING: The 'cancer_rnaseq' environment is not active."
+    echo "It is highly recommended to use the dedicated environment."
+    echo ""
+    read -p "Do you want to proceed using system tools? [y/N]: " confirm
+    if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+        echo "Aborting. Please activate the environment or run setup_env.sh:"
+        echo "  bash setup_env.sh"
+        echo "  mamba activate cancer_rnaseq"
+        exit 1
+    fi
+    echo "Proceeding with system tools..."
+    echo ""
+fi
+
+# 2. Logic for arguments
+RUN_UPSTREAM=false
+RUN_DOWNSTREAM=false
+
+if [ "$#" -eq 0 ]; then
+    echo "Error: No arguments provided."
+    echo "Usage: ./run {up|down|all}"
+    exit 1
+fi
+
+for arg in "$@"; do
+    case $arg in
+        up) RUN_UPSTREAM=true ;;
+        down) RUN_DOWNSTREAM=true ;;
+        all) RUN_UPSTREAM=true; RUN_DOWNSTREAM=true ;;
+        *) echo "Unknown argument: $arg. Use 'up', 'down', or 'all'."; exit 1 ;;
+    esac
+done
+
+# 3. UPSTREAM (BASH)
+if [ "$RUN_UPSTREAM" = true ]; then
+    echo ">>> Running UPSTREAM Pipeline (Alignment & QC)..."
+    
+    # Check dependencies
+    command -v STAR >/dev/null 2>&1 || { echo >&2 "Error: STAR is not installed."; exit 1; }
+    command -v samtools >/dev/null 2>&1 || { echo >&2 "Error: samtools is not installed."; exit 1; }
+    command -v featureCounts >/dev/null 2>&1 || { echo >&2 "Error: featureCounts is not installed."; exit 1; }
+    command -v multiqc >/dev/null 2>&1 || { echo >&2 "Error: MultiQC is not installed."; exit 1; }
+    command -v trimmomatic >/dev/null 2>&1 || { echo >&2 "Error: trimmomatic is not installed."; exit 1; }
+
+    # Execute scripts sequentially with strict error checking
+    # (set -e at the top ensures exit on any failure)
+    (
+        cd scripts_upstream/
+        bash 01_genome_prep.sh
+        bash 02_star_align.sh
+        bash 03_rseqc_qc.sh
+        bash 04_quantification.sh
+        bash 05_multiqc.sh
+    ) || { echo "Upstream pipeline failed at some step. Exiting."; exit 1; }
+    
+    echo "UPSTREAM COMPLETE."
+    echo ""
+fi
+
+# 4. DOWNSTREAM (R)
+if [ "$RUN_DOWNSTREAM" = true ]; then
+    echo ">>> Running DOWNSTREAM Analysis (DESeq2 & Enrichment)..."
+    
+    # Check R installation
+    command -v Rscript >/dev/null 2>&1 || { echo >&2 "Error: Rscript is not installed."; exit 1; }
+
+    # Execute R scripts sequentially with strict error checking
+    (
+        cd scripts_downstream/
+        Rscript 01_data_prep.R
+        Rscript 02_deseq2_dge.R
+        Rscript 03_enrichment.R
+        Rscript 04_visualization.R
+    ) || { echo "Downstream analysis failed at some step. Exiting."; exit 1; }
+    
+    echo "DOWNSTREAM COMPLETE."
+    echo ""
+fi
+
+echo "========================================================="
+echo "   All requested tasks completed successfully."
+echo "========================================================="

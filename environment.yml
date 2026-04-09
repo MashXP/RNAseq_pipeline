@@ -1,0 +1,27 @@
+name: cancer_rnaseq
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  # Upstream Tools
+  - star
+  - samtools
+  - subread
+  - rseqc
+  - multiqc
+  - trimmomatic
+  
+  # Python Stack
+  - python=3.9
+  - pandas
+  
+  # R Stack
+  - r-base=4.3
+  - r-tidyverse
+  - r-pheatmap
+  - bioconductor-deseq2
+  - bioconductor-clusterprofiler
+  - bioconductor-org.hs.eg.db
+  - bioconductor-enhancedvolcano
+  - bioconductor-apeglm
