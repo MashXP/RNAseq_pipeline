@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 02_star_align.sh
+# [[scripts_upstream/02_star_align.sh]]
 # Performs paired-end alignment using STAR for all samples in the CSV table.
 
 # Exit on error
@@ -33,7 +33,6 @@ do
         continue
     fi
 
-    # Create sample folder
     OUT_DIR="$ALIGN_DIR/$sample"
     mkdir -p "$OUT_DIR"
 
@@ -45,12 +44,12 @@ do
          --outFileNamePrefix "$OUT_DIR/${sample}_" \
          --outSAMtype BAM SortedByCoordinate \
          --runThreadN 8 \
-         --quantMode GeneCounts
-
-    # Move the BAM to the sample root for easier access if preferred, 
-    # but STAR already puts them in the specified prefix.
+         --quantMode GeneCounts || { echo "ERROR: STAR failed for $sample. Aborting."; exit 1; }
     
     echo "Done with $sample"
+    # Report Mapping Rate
+    map_rate=$(grep "Uniquely mapped reads %" "$OUT_DIR/${sample}_Log.final.out" | cut -f2)
+    echo "STATUS: Uniquely Mapped Reads for $sample: $map_rate"
 done
 
 echo "=== STAR Alignment Complete ==="

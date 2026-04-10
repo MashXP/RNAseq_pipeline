@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 04_quantification.sh
+# [[scripts_upstream/04_quantification.sh]]
 # Quantifies reads per gene and biotype using featureCounts.
 
 # Exit on error

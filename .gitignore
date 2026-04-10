@@ -43,8 +43,12 @@ Thumbs.db
 # --- Pipeline Test Suite Rules ---
 # Ignore all test-related data generated in _data/
 _data/*_test/
-# Ignore test outputs in the scripts folders
-**/plots_test/
-**/tables_test/
+results_test/
+
 # Ignore STAR temporary folders
 *_STARtmp/
+# Ignore pipeline log files
+_data/logs/
+
+log.txt
+memo.md

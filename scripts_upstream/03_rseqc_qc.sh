@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 03_rseqc_qc.sh
+# [[scripts_upstream/03_rseqc_qc.sh]]
 # Runs RSeQC suite on aligned BAM files.
 
 # Exit on error
@@ -16,7 +16,7 @@ BED_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.113.bed"
 mkdir -p "$QC_DIR"
 
 if [ ! -f "$BED_FILE" ]; then
-    echo "Error: BED file not found at $BED_FILE. Run 01_genome_prep.sh first."
+    echo "Error: BED file not found at $BED_FILE. Run scripts_upstream/01_genome_prep.sh first."
     exit 1
 fi
 

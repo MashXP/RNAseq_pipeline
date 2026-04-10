@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 01_genome_prep.sh
+# [[scripts_upstream/01_genome_prep.sh]]
 # This script downloads the human genome (GRCh38) and creates a STAR index.
 
 # Exit on error
@@ -73,15 +73,30 @@ fi
 echo "=== Step 5: Trimming Reads ==="
 mkdir -p "$TRIM_DIR"
 
-# Locate adapters (standard conda path or fallback)
-ADAPTERS="/opt/conda/share/trimmomatic/adapters/TruSeq3-PE.fa"
+# 6.1 Defensive Check: Verify FASTQ presence before starting
+echo "Checking for required FASTQ files..."
+python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2
+do
+    if [ ! -f "$FASTQ_DIR/$r1" ] || [ ! -f "$FASTQ_DIR/$r2" ]; then
+        echo "--------------------------------------------------------------------------------"
+        echo "CRITICAL ERROR: Required FASTQ files are missing for $sample."
+        echo "ACTION REQUIRED: Please ensure all FASTQ files listed in the CSV are present"
+        echo "                 in $FASTQ_DIR before proceeding."
+        echo "--------------------------------------------------------------------------------"
+        exit 1
+    fi
+done || exit 1
+
+# Locate adapters — check active conda env first, then search conda envs
+ADAPTERS="$CONDA_PREFIX/share/trimmomatic/adapters/TruSeq3-PE.fa"
 if [ ! -f "$ADAPTERS" ]; then
-    # Search for it if conda path is different
-    ADAPTERS=$(find / -name "TruSeq3-PE.fa" 2>/dev/null | head -n 1)
+    ADAPTERS=$(find "$CONDA_PREFIX/share" -name "TruSeq3-PE.fa" 2>/dev/null | head -n 1)
 fi
 
 if [ -z "$ADAPTERS" ]; then
-    echo "WARNING: Could not find TruSeq3-PE.fa. Trimming might proceed without adapter clipping."
+    echo "ERROR: Could not find TruSeq3-PE.fa adapter file. Cannot proceed with trimming."
+    echo "Ensure Trimmomatic adapters are installed (check conda: trimmomatic/adapters/)."
+    exit 1
 fi
 
 python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2
@@ -91,7 +106,15 @@ do
     
     # Check if raw FASTQ exists
     if [ ! -f "$FASTQ_DIR/$r1" ] || [ ! -f "$FASTQ_DIR/$r2" ]; then
-        echo "Raw files for $sample not found. Skipping."
+        echo "Error: FASTQ files not found in $FASTQ_DIR:"
+        echo "  R1: $r1"
+        echo "  R2: $r2"
+        echo "Skipping sample $sample."
+        continue
+    fi
+
+    if [ -f "$TRIM_DIR/$r1" ] && [ -f "$TRIM_DIR/$r2" ]; then
+        echo "Trimmed files already exist for $sample. Skipping."
         continue
     fi
 
@@ -101,9 +124,8 @@ do
         "$TRIM_DIR/$r1" "$TRIM_DIR/${r1%.fastq.gz}_unpaired.fastq.gz" \
         "$TRIM_DIR/$r2" "$TRIM_DIR/${r2%.fastq.gz}_unpaired.fastq.gz" \
         ILLUMINACLIP:"$ADAPTERS":2:30:10 \
-        LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36
+        LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 || { echo "ERROR: Trimmomatic failed for $sample. Aborting."; exit 1; }
 
-    # Optional: remove unpaired files to save space
     rm "$TRIM_DIR/${r1%.fastq.gz}_unpaired.fastq.gz" "$TRIM_DIR/${r2%.fastq.gz}_unpaired.fastq.gz"
 done
 

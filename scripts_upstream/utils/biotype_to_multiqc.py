@@ -30,7 +30,7 @@ def parse_featurecounts(input_file, output_file):
     mqc_df = df[count_cols].copy()
     
     # Clean up sample names in columns
-    mqc_df.columns = [os.path.basename(c).replace("_sorted.bam", "") for c in mqc_df.columns]
+    mqc_df.columns = [os.path.basename(c).replace("_Aligned.sortedByCoord.out.bam", "") for c in mqc_df.columns]
     
     # Transpose so samples are rows and biotypes are columns (MultiQC format)
     mqc_df = mqc_df.transpose()

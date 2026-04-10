@@ -1,4 +1,4 @@
-# 01_data_prep.R
+# [[scripts_downstream/01_data_prep.R]]
 # Goal: Load raw counts and prepare metadata for DESeq2 analysis on MiaPAca-2 data.
 
 library(tidyverse)
@@ -6,14 +6,14 @@ library(tidyverse)
 # 1. Load Sample Metadata
 # The CSV has some header lines we need to skip or filter
 metadata_raw <- read_csv("../MiaPAca-2_Sample_Data_Table.csv", skip = 1) %>%
-  filter(!is.na(Conc.)) # Get only the data rows
-
+  filter(!is.na(Conc.))
 # Create sample names that match the column headers in gene_counts.txt
 # (Removing the R1 suffix just like we did in the alignment script)
 metadata <- metadata_raw %>%
   mutate(Sample = str_replace(File_1, "_R1_001.fastq.gz", "")) %>%
   select(Sample, Conc., Replicate) %>%
-  mutate(condition = factor(Conc., levels = c("DMSO (NG)", "0.5nM (500pM)", "1nM", "5nM")))
+  mutate(condition = factor(Conc., levels = c("DMSO (NG)", "0.5nM (500pM)", "1nM", "5nM"))) %>%
+  mutate(condition = relevel(condition, ref = "DMSO (NG)"))
 
 # 2. Load Gene Counts
 # Skip the first comment line (# program:featureCounts...)

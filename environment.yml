@@ -19,9 +19,14 @@ dependencies:
   # R Stack
   - r-base=4.3
   - r-tidyverse
-  - r-pheatmap
+  - r-ggvenndiagram
+  - r-msigdbr
+  - r-patchwork
+  - r-circlize
+  - bioconductor-complexheatmap
   - bioconductor-deseq2
   - bioconductor-clusterprofiler
   - bioconductor-org.hs.eg.db
   - bioconductor-enhancedvolcano
   - bioconductor-apeglm
+  - bioconductor-enrichplot

@@ -3,6 +3,7 @@
 # test_upstream/02_star_align.sh
 # TEST VERSION: Performs alignment using the Chr21 index.
 
+# Exit on error
 set -e
 
 # Directories
@@ -17,6 +18,7 @@ echo "=== [TEST] Starting STAR Alignment (Chr21) ==="
 mkdir -p "$ALIGN_DIR"
 
 # Parse CSV and loop through samples
+# format: sample_name r1_file r2_file
 python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2
 do
     echo "-----------------------------------------------------"
@@ -24,7 +26,10 @@ do
     
     # Check if FASTQ files exist
     if [ ! -f "$FASTQ_DIR/$r1" ] || [ ! -f "$FASTQ_DIR/$r2" ]; then
-        echo "Error: FASTQ files not found in $FASTQ_DIR. Skipping."
+        echo "Error: FASTQ files not found in $FASTQ_DIR:"
+        echo "  R1: $r1"
+        echo "  R2: $r2"
+        echo "Skipping sample $sample."
         continue
     fi
 
@@ -39,9 +44,12 @@ do
          --outFileNamePrefix "$OUT_DIR/${sample}_" \
          --outSAMtype BAM SortedByCoordinate \
          --runThreadN 4 \
-         --quantMode GeneCounts
+         --quantMode GeneCounts || { echo "ERROR: STAR failed for $sample. Aborting."; exit 1; }
 
     echo "Done with $sample"
+    # Report Mapping Rate
+    map_rate=$(grep "Uniquely mapped reads %" "$OUT_DIR/${sample}_Log.final.out" | cut -f2)
+    echo "STATUS: Uniquely Mapped Reads for $sample: $map_rate"
 done
 
 echo "=== [TEST] STAR Alignment Complete ==="

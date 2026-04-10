@@ -6,6 +6,14 @@
 # Exit on error
 set -e
 
+# --- Logging Setup ---
+LOG_DIR="$(dirname "$(realpath "$0")")/_data/logs"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/run_$(date +%Y%m%d_%H%M%S).log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+echo "Log file: $LOG_FILE"
+# ---------------------
+
 echo "========================================================="
 echo "   MiaPAca-2 Cancer RNA-seq - Pipeline Runner"
 echo "========================================================="

@@ -10,18 +10,18 @@ BASE_DIR=$(dirname "$(realpath "$0")")
 BAM_DIR="$BASE_DIR/../_data/bam_test"
 GENOME_DIR="$BASE_DIR/../_data/genome_test"
 QC_DIR="$BASE_DIR/../_data/qc_test"
-BED_FILE="$GENOME_DIR/human_eb113_chr21.bed"
+BED_FILE="$GENOME_DIR/chr21.bed"
 
 mkdir -p "$QC_DIR"
 
-# Generate BED from GTF if missing
 if [ ! -f "$BED_FILE" ]; then
-    echo "Creating BED file for RSeQC (Chr21)..."
-    python3 "$BASE_DIR/utils/gtf2bed.py" "$GENOME_DIR/chr21_annotations.gtf" > "$BED_FILE"
+    echo "Error: BED file not found at $BED_FILE. Run test_upstream/01_genome_prep.sh first."
+    exit 1
 fi
 
 echo "=== [TEST] Starting RSeQC Analysis ==="
 
+# Find all BAM files in subdirectories
 find "$BAM_DIR" -maxdepth 2 -name "*_Aligned.sortedByCoord.out.bam" | while read -r bam_file
 do
     sample_name=$(basename "$(dirname "$bam_file")")
@@ -31,7 +31,7 @@ do
     SAMPLE_QC_DIR="$QC_DIR/$sample_name"
     mkdir -p "$SAMPLE_QC_DIR"
 
-    # Index BAM if index doesn't exist (Aligned with production)
+    # Index BAM if index doesn't exist
     if [ ! -f "${bam_file}.bai" ]; then
         echo "Indexing BAM..."
         samtools index "$bam_file"
