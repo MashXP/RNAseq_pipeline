@@ -137,7 +137,7 @@ sig_list <- sig_list[sapply(sig_list, length) > 0]
 if (length(sig_list) >= 2) {
   p_venn <- ggVennDiagram(sig_list) +
     scale_fill_gradient(low = "white", high = "red") +
-    ggtitle("Overlap of DEGs across Kromastat Doses")
+    ggtitle("DEG Overlap: Kromastat Concentrations vs DMSO")
   
   ggsave("../results/figures/04_venn_diagram_doses.png", p_venn,
          width = 8, height = 8, bg = "white")
