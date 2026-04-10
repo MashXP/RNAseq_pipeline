@@ -43,7 +43,7 @@ do
          --readFilesCommand gunzip -c \
          --outFileNamePrefix "$OUT_DIR/${sample}_" \
          --outSAMtype BAM SortedByCoordinate \
-         --runThreadN 8 \
+         --runThreadN 32 \
          --quantMode GeneCounts || { echo "ERROR: STAR failed for $sample. Aborting."; exit 1; }
     
     echo "Done with $sample"

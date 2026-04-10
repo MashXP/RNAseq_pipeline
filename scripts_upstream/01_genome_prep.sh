@@ -59,7 +59,7 @@ echo "=== Step 4: Creating STAR Index ==="
 mkdir -p "$INDEX_DIR"
 if [ -z "$(ls -A "$INDEX_DIR")" ]; then
     echo "Running STAR genomeGenerate..."
-    STAR --runThreadN 8 \
+    STAR --runThreadN 32 \
          --runMode genomeGenerate \
          --genomeDir "$INDEX_DIR" \
          --genomeFastaFiles "$GENOME_DIR/Homo_sapiens.GRCh38.dna.primary_assembly.fa" \
@@ -119,7 +119,7 @@ do
     fi
 
     echo "Running Trimmomatic..."
-    trimmomatic PE -threads 8 \
+    trimmomatic PE -threads 32 \
         "$FASTQ_DIR/$r1" "$FASTQ_DIR/$r2" \
         "$TRIM_DIR/$r1" "$TRIM_DIR/${r1%.fastq.gz}_unpaired.fastq.gz" \
         "$TRIM_DIR/$r2" "$TRIM_DIR/${r2%.fastq.gz}_unpaired.fastq.gz" \
