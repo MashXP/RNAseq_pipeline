@@ -27,7 +27,7 @@ if [[ "$CONDA_DEFAULT_ENV" != "cancer_rnaseq" ]]; then
     if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
         echo "Aborting. Please activate the environment or run setup_env.sh:"
         echo "  bash setup_env.sh"
-        echo "  mamba activate cancer_rnaseq"
+        echo "  micromamba activate cancer_rnaseq  # or mamba/conda"
         exit 1
     fi
     echo "Proceeding with system tools..."

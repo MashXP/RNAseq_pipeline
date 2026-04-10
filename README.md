@@ -65,7 +65,7 @@ MiaPAca-2_pipeline/
 
 ## Prerequisites & Environment Setup
 
-It is highly recommended to use **Mamba** (or Conda) to manage the pipeline's dependencies.
+It is highly recommended to use **Micromamba** or **Mamba** (or Conda) to manage the pipeline's dependencies.
 
 1. **Initialize the Environment**:
    ```bash
@@ -73,6 +73,8 @@ It is highly recommended to use **Mamba** (or Conda) to manage the pipeline's de
    ```
 2. **Activate the Environment**:
    ```bash
+   micromamba activate cancer_rnaseq
+   # OR
    mamba activate cancer_rnaseq
    ```
 

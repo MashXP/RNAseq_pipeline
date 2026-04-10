@@ -22,7 +22,7 @@ echo "========================================================="
 # 1. Environment Check
 if [[ "$CONDA_DEFAULT_ENV" != "cancer_rnaseq" ]]; then
     echo "ERROR: 'cancer_rnaseq' environment is not active."
-    echo "Please run: mamba activate cancer_rnaseq"
+    echo "Please run: micromamba activate cancer_rnaseq  # or mamba/conda"
     exit 1
 fi
 

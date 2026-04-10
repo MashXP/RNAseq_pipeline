@@ -11,20 +11,25 @@ echo "========================================================="
 echo "   MiaPAca-2 Cancer RNA-seq - Environment Setup"
 echo "========================================================="
 
-# 1. Detect Mamba or Conda
-if command -v mamba &> /dev/null; then
+# 1. Detect Micromamba, Mamba or Conda
+if command -v micromamba &> /dev/null; then
+    CONDA_CMD="micromamba"
+elif command -v mamba &> /dev/null; then
     CONDA_CMD="mamba"
 elif command -v conda &> /dev/null; then
     CONDA_CMD="conda"
 else
-    echo "Error: Neither mamba nor conda was found."
-    echo "Please install Mambaforge or Miniconda first: https://mamba.readthedocs.io/en/latest/installation/mamba-install.html"
+    echo "Error: Neither micromamba, mamba, nor conda was found."
+    echo "Please install one of them first:"
+    echo "  - Micromamba: https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html"
+    echo "  - Mambaforge: https://mamba.readthedocs.io/en/latest/installation/mamba-install.html"
     exit 1
 fi
 
 echo "Using $CONDA_CMD to create the environment..."
 
 # 2. Create the environment
+# Note: 'env create' works for conda/mamba; micromamba supports it for compatibility.
 $CONDA_CMD env create -f environment.yml --name "$ENV_NAME"
 
 echo ""
