@@ -17,6 +17,25 @@ CSV_FILE="$BASE_DIR/../MiaPAca-2_Sample_Data_Table.csv"
 echo "=== Starting STAR Alignment ==="
 mkdir -p "$ALIGN_DIR"
 
+# --- Resource Auto-detection ---
+# Default to 32 threads or respect SLURM
+THREADS=${SLURM_CPUS_PER_TASK:-32}
+
+# Detect RAM and set limits
+if [ -n "$SLURM_MEM_PER_NODE" ]; then
+    MEM_GB=$(($SLURM_MEM_PER_NODE / 1024))
+else
+    # Fallback to system check or default to 128
+    MEM_GB=$(free -g 2>/dev/null | awk '/^Mem:/{print $2}' || echo 128)
+fi
+
+# Allocate RAM for STAR sorting (set to ~65-70% of total RAM to avoid swap)
+# Value must be in bytes. 1GB approx = 1,000,000,000 bytes
+SORT_RAM_BYTES=$(($MEM_GB * 700000000))
+
+echo "Resources: $THREADS threads, Sort RAM: $SORT_RAM_BYTES bytes (~${MEM_GB}G total)."
+# -------------------------------
+
 # Parse CSV and loop through samples
 # format: sample_name r1_file r2_file
 python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2
@@ -43,7 +62,8 @@ do
          --readFilesCommand gunzip -c \
          --outFileNamePrefix "$OUT_DIR/${sample}_" \
          --outSAMtype BAM SortedByCoordinate \
-         --runThreadN 32 \
+         --runThreadN "$THREADS" \
+         --limitBAMsortRAM "$SORT_RAM_BYTES" \
          --quantMode GeneCounts || { echo "ERROR: STAR failed for $sample. Aborting."; exit 1; }
     
     echo "Done with $sample"

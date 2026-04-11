@@ -16,6 +16,12 @@ GTF_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.113.gtf"
 
 mkdir -p "$COUNTS_DIR"
 
+# --- Resource Auto-detection ---
+# Default to 16 threads or respect SLURM
+THREADS=${SLURM_CPUS_PER_TASK:-16}
+echo "Resources: $THREADS threads."
+# -------------------------------
+
 if [ ! -f "$GTF_FILE" ]; then
     echo "Error: GTF file not found at $GTF_FILE. Run 01_genome_prep.sh first."
     exit 1
@@ -37,12 +43,12 @@ echo "=== Starting Quantification with featureCounts ==="
 # -g: attribute type (gene_id)
 echo "-----------------------------------------------------"
 echo "1. Counting Reads per Gene (gene_id)..."
-featureCounts -p -T 8 -t exon -g gene_id -a "$GTF_FILE" -o "$COUNTS_DIR/gene_counts.txt" $files
+featureCounts -p -T "$THREADS" -t exon -g gene_id -a "$GTF_FILE" -o "$COUNTS_DIR/gene_counts.txt" $files
 
 # 2. Biotype Counts (for QC)
 echo "-----------------------------------------------------"
 echo "2. Counting Reads per Biotype (gene_biotype)..."
-featureCounts -p -T 8 -t exon -g gene_biotype -a "$GTF_FILE" -o "$COUNTS_DIR/biotype_counts.txt" $files
+featureCounts -p -T "$THREADS" -t exon -g gene_biotype -a "$GTF_FILE" -o "$COUNTS_DIR/biotype_counts.txt" $files
 
 # 3. Format Biotype counts for MultiQC
 echo "-----------------------------------------------------"

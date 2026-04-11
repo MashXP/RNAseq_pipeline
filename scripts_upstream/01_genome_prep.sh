@@ -73,6 +73,25 @@ fi
 echo "=== Step 5: Trimming Reads ==="
 mkdir -p "$TRIM_DIR"
 
+# --- Resource Auto-detection ---
+# Default to 32 threads or respect SLURM
+THREADS=${SLURM_CPUS_PER_TASK:-32}
+
+# Detect RAM and set Java heap size (~90% of available)
+if [ -n "$SLURM_MEM_PER_NODE" ]; then
+    MEM_GB=$(($SLURM_MEM_PER_NODE / 1024))
+else
+    # Fallback to system check or default to 128
+    MEM_GB=$(free -g 2>/dev/null | awk '/^Mem:/{print $2}' || echo 128)
+fi
+
+# Allocate ~90% of RAM to Java, leaving some for OS/threading overhead
+JAVA_MEM=$(($MEM_GB - 12))
+[ "$JAVA_MEM" -lt 4 ] && JAVA_MEM=4 # Safety minimum
+
+echo "Resources: $THREADS threads, allocated ${JAVA_MEM}G Java Heap."
+# -------------------------------
+
 # 6.1 Defensive Check: Verify FASTQ presence before starting
 echo "Checking for required FASTQ files..."
 python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2
@@ -118,8 +137,8 @@ do
         continue
     fi
 
-    echo "Running Trimmomatic..."
-    trimmomatic PE -threads 32 \
+    echo "Running Trimmomatic (Memory: ${JAVA_MEM}G, Threads: ${THREADS})..."
+    trimmomatic -Xmx${JAVA_MEM}g PE -threads "$THREADS" \
         "$FASTQ_DIR/$r1" "$FASTQ_DIR/$r2" \
         "$TRIM_DIR/$r1" "$TRIM_DIR/${r1%.fastq.gz}_unpaired.fastq.gz" \
         "$TRIM_DIR/$r2" "$TRIM_DIR/${r2%.fastq.gz}_unpaired.fastq.gz" \
