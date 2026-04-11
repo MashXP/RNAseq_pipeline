@@ -5,6 +5,7 @@
 
 # Exit on error
 set -e
+set -o pipefail # Catch errors in piped loops
 
 # Directories
 BASE_DIR=$(dirname "$(realpath "$0")")
@@ -132,9 +133,16 @@ do
         continue
     fi
 
+    # Integrity Check: skip only if files exist AND are valid GZIPs
     if [ -f "$TRIM_DIR/$r1" ] && [ -f "$TRIM_DIR/$r2" ]; then
-        echo "Trimmed files already exist for $sample. Skipping."
-        continue
+        echo "Checking integrity of existing trimmed files for $sample..."
+        if gzip -t "$TRIM_DIR/$r1" 2>/dev/null && gzip -t "$TRIM_DIR/$r2" 2>/dev/null; then
+            echo "Trimmed files are valid. Skipping."
+            continue
+        else
+            echo "WARNING: Corrupted trimmed files detected (from a previous failed run). Deleting and re-trimming..."
+            rm -f "$TRIM_DIR/$r1" "$TRIM_DIR/$r2"
+        fi
     fi
 
     echo "Running Trimmomatic (Memory: ${JAVA_MEM}G, Threads: ${THREADS})..."
@@ -145,7 +153,7 @@ do
         ILLUMINACLIP:"$ADAPTERS":2:30:10 \
         LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36 || { echo "ERROR: Trimmomatic failed for $sample. Aborting."; exit 1; }
 
-    rm "$TRIM_DIR/${r1%.fastq.gz}_unpaired.fastq.gz" "$TRIM_DIR/${r2%.fastq.gz}_unpaired.fastq.gz"
+    rm -f "$TRIM_DIR/${r1%.fastq.gz}_unpaired.fastq.gz" "$TRIM_DIR/${r2%.fastq.gz}_unpaired.fastq.gz"
 done
 
 echo "Upstream preprocessing complete."

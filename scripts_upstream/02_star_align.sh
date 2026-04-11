@@ -5,6 +5,7 @@
 
 # Exit on error
 set -e
+set -o pipefail
 
 # Directories
 BASE_DIR=$(dirname "$(realpath "$0")")
@@ -43,13 +44,22 @@ do
     echo "-----------------------------------------------------"
     echo "Processing Sample: $sample"
     
-    # Check if FASTQ files exist
+    # Check if FASTQ files exist AND are valid GZIPs
     if [ ! -f "$FASTQ_DIR/$r1" ] || [ ! -f "$FASTQ_DIR/$r2" ]; then
         echo "Error: FASTQ files not found in $FASTQ_DIR:"
         echo "  R1: $r1"
         echo "  R2: $r2"
         echo "Skipping sample $sample."
         continue
+    fi
+
+    # Quick integrity check
+    if ! gzip -t "$FASTQ_DIR/$r1" 2>/dev/null || ! gzip -t "$FASTQ_DIR/$r2" 2>/dev/null; then
+        echo "--------------------------------------------------------------------------------"
+        echo "CRITICAL ERROR: Trimmed FASTQ files for $sample are CORRUPTED (unexpected EOF)."
+        echo "ACTION REQUIRED: Delete the corrupted files in $FASTQ_DIR and re-run trimming."
+        echo "--------------------------------------------------------------------------------"
+        exit 1
     fi
 
     OUT_DIR="$ALIGN_DIR/$sample"
