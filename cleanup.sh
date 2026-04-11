@@ -27,10 +27,11 @@ clean_dir() {
 }
 
 usage() {
-    echo "Usage: bash cleanup.sh {trimmed|bam|counts|all}"
+    echo "Usage: bash cleanup.sh {trimmed|bam|counts|test|all}"
     echo "  trimmed : Wipes the fastq_trimmed directory (useful if files are corrupted)"
     echo "  bam     : Wipes the BAM alignment directory"
     echo "  counts  : Wipes the gene quantification results"
+    echo "  test    : Wipes all test-related output directories"
     echo "  all     : Wipes everything listed above"
     exit 1
 }
@@ -48,6 +49,23 @@ case $1 in
         ;;
     counts)
         clean_dir "counts"
+        ;;
+    test)
+        echo "Cleaning all test output directories..."
+        clean_dir "bam_test"
+        clean_dir "counts_test"
+        clean_dir "fastq_trimmed_test"
+        clean_dir "genome_test"
+        clean_dir "index_test"
+        clean_dir "multiqc_test"
+        clean_dir "qc_test"
+        if [ -d "$BASE_DIR/results_test" ]; then
+            echo "Found results_test. Cleaning..."
+            rm -rf "$BASE_DIR/results_test"
+            echo "Done."
+        else
+            echo "Skipping results_test (not found)."
+        fi
         ;;
     all)
         echo "WARNING: This will wipe ALL upstream results. FASTQ raw files will be kept."
