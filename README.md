@@ -153,3 +153,9 @@ All core dependencies are managed via **Micromamba** or **Mamba**. Refer to `env
 > **Automated Install**: Run `bash setup_env.sh` to automatically detect your package manager and install all requirements listed above into the `cancer_rnaseq` environment.
 
 For technical details, see the documentation for [upstream scripts](scripts_upstream_docs.md) and [downstream analysis](scripts_downstream_docs.md).
+
+---
+
+## Inspiration & Related Projects
+
+This pipeline draws inspiration from and builds upon methodological patterns established in the [YeastAnalysis](https://github.com/MashXP/YeastAnalysis) project, reflecting a shared focus on robust, automated bioinformatic workflows.
