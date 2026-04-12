@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # run
-# Master script for the MiaPAca-2 Cancer RNA-seq Pipeline
+# Master script for the RNA-seq Pipeline
 
 # Exit on error
 set -e
@@ -15,7 +15,7 @@ echo "Log file: $LOG_FILE"
 # ---------------------
 
 echo "========================================================="
-echo "   MiaPAca-2 Cancer RNA-seq - Pipeline Runner"
+echo "   RNA-seq Pipeline - Pipeline Runner"
 echo "========================================================="
 
 # --- Resource Detection for Visibility ---

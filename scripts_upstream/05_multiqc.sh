@@ -24,7 +24,7 @@ mkdir -p "$MULTIQC_DIR"
 # 4. featureCounts summaries
 # 5. Biotype custom content
 
-multiqc "$BAM_DIR" "$QC_DIR" "$COUNTS_DIR" -o "$MULTIQC_DIR" -f -n "multiqc_report"
+multiqc "$BAM_DIR" "$QC_DIR" "$COUNTS_DIR" -o "$MULTIQC_DIR" -f -n "rna_seq_pipeline_summary"
 
 echo "=== MultiQC Complete ==="
-echo "Report generated at: $MULTIQC_DIR/multiqc_report.html"
+echo "Report generated at: $MULTIQC_DIR/rna_seq_pipeline_summary.html"

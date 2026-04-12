@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # setup_env.sh
-# Automates the creation of the MiaPAca-2 cancer RNA-seq environment.
+# Automates the creation of the RNA-seq pipeline environment.
 
 set -e
 
 ENV_NAME="cancer_rnaseq"
 
 echo "========================================================="
-echo "   MiaPAca-2 Cancer RNA-seq - Environment Setup"
+echo "   RNA-seq Pipeline - Environment Setup"
 echo "========================================================="
 
 # 1. Detect Micromamba, Mamba or Conda

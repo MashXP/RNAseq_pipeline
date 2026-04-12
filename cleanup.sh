@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # cleanup.sh
-# Utility to wipe partial or corrupted results from the MiaPAca-2 pipeline.
+# Utility to wipe partial or corrupted results from the RNA-seq pipeline.
 
 # Exit on error
 set -e
@@ -9,7 +9,7 @@ set -e
 BASE_DIR=$(dirname "$(realpath "$0")")
 DATA_DIR="$BASE_DIR/_data"
 
-echo "=== MiaPAca-2 Pipeline Cleanup Utility ==="
+echo "=== RNA-seq Pipeline Cleanup Utility ==="
 echo "Target Directory: $DATA_DIR"
 echo ""
 

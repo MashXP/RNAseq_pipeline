@@ -1,66 +1,66 @@
-# MiaPAca-2 Cancer RNA-seq Pipeline
+# RNA-seq Pipeline
 
-This directory contains the automated end-to-end pipeline for analyzing MiaPAca-2 pancreatic cancer RNA-seq data (human GRCh38).
+This directory contains the automated end-to-end pipeline for analyzing cancer RNA-seq data.
 
 ## Research Purpose
-The objective of this study is to investigate the dose-dependent transcriptomic response of **MiaPAca-2 pancreatic cancer cells** to **Kromastat** treatment (0.5nM, 1nM, and 5nM) using high-throughput RNA-seq. The pipeline is designed to:
-1.  **Identify Differentially Expressed Genes (DEGs)** for each dosage relative to a DMSO (NG) baseline.
-2.  **Compare overlapping drug effects** across concentrations using multi-way Venn Diagrams.
-3.  **Perform Functional Enrichment (GSEA & ORA)** to identify activated and suppressed signaling pathways, Hallmark gene sets, and biological processes driven by Kromastat.
+The objective of this pipeline is to investigate transcriptomic responses (e.g., drug treatments across multiple doses) using high-throughput RNA-seq. The pipeline is designed to:
+1.  **Identify Differentially Expressed Genes (DEGs)** for each condition relative to a control baseline.
+2.  **Compare overlapping effects** across treatments using multi-way Venn Diagrams.
+3.  **Perform Functional Enrichment (GSEA & ORA)** to identify activated and suppressed signaling pathways, Hallmark gene sets, and biological processes.
 
 ## Directory Structure
 
 ```text
-MiaPAca-2_pipeline/
-├── _data/                     # Upstream data files (git ignored)
-│   ├── fastq/                 # Raw .fastq.gz files
-│   ├── fastq_trimmed/         # Adapter/Quality trimmed reads (Trimmomatic)
-│   ├── genome/                # Reference genome
-│   ├── index/                 # STAR index
-│   ├── bam/                   # Aligned BAMs
-│   ├── counts/                # Production gene counts
-│   ├── counts_test/           # Test gene counts (Chr21 subsampled)
-│   ├── rseqc/                 # QC results
-│   └── multiqc/               # Aggregated report
-├── scripts_upstream/          # Upstream automation (BASH)
-│   ├── 01_genome_prep.sh      # Genome prep + Trimmomatic trimming
-│   ├── 02_star_align.sh       # STAR mapping (uses trimmed reads)
-│   ├── 03_rseqc_qc.sh
-│   ├── 04_quantification.sh
-│   ├── 05_multiqc.sh
-│   └── utils/                 # Format conversion & parsers
-├── scripts_downstream/        # Production downstream analysis (R)
-│   ├── 01_data_prep.R
-│   ├── 02_deseq2_dge.R
-│   ├── 03_enrichment.R
-│   └── 04_visualization.R
-├── test_upstream/             # Test upstream scripts (Chr21)
-│   ├── 01_genome_prep.sh
-│   ├── 02_star_align.sh
-│   ├── 03_rseqc_qc.sh
-│   ├── 04_quantification.sh
-│   ├── 05_multiqc.sh
-│   └── utils/
-├── test_downstream/           # Test downstream analysis (R, relaxed thresholds)
-│   ├── 01_data_prep.R
-│   ├── 02_deseq2_dge.R
-│   ├── 03_enrichment.R
-│   └── 04_visualization.R
-├── results/                   # Production output (git ignored)
-│   ├── figures/               # PCA, Volcano, Heatmaps, NES, GSEA Dotplots
-│   └── tables/                # DGE results, GO/KEGG/Hallmark tables
-├── results_test/              # Test output (git ignored)
-│   ├── figures/
-│   └── tables/
-├── MiaPAca-2_Sample_Data_Table.csv
-├── scripts_upstream_docs.md   # Upstream pipeline documentation
-├── scripts_downstream_docs.md # Downstream analysis documentation
-├── environment.yml            # Conda/Mamba environment definition
-├── setup_env.sh               # Environment setup script
-├── subsample_hpc.sh           # HPC subsampling utility for test data
-├── run                        # Master runner (Production)
-├── test                       # Master runner (Test/Chr21)
-└── README.md                  # This file
+RNA-seq_pipeline/
+├── _data/                       # Centralized Data Storage (git ignored)
+│   ├── fastq/                   # Raw .fastq.gz reads
+│   ├── fastq_trimmed/           # Reads after Trimmomatic (Adapter/QC)
+│   ├── genome/                  # Reference FASTA, GTF, and BED files
+│   ├── index/                   # STAR binary genome index
+│   ├── bam/                     # Aligned, Coordinate-Sorted BAM files
+│   ├── rseqc/                   # Post-alignment QC logs (Read distribution, etc.)
+│   ├── counts/                  # Raw gene counts (featureCounts)
+│   ├── multiqc/                 # Aggregated quality reports (HTML)
+│   └── logs/                    # Comprehensive pipeline run logs
+├── scripts_upstream/            # Upstream Automation (BASH)
+│   ├── 01_genome_prep.sh        # Build index & Trim reads
+│   ├── 02_star_align.sh         # Map reads using STAR
+│   ├── 03_rseqc_qc.sh           # Calculate mapping statistics
+│   ├── 04_quantification.sh     # Gene-level quantification
+│   ├── 05_multiqc.sh            # Generate aggregated HTML report
+│   └── utils/                   # Shared utility scripts
+│       ├── parse_samples.py     # Metadata CSV parser
+│       ├── gtf2bed.py           # Format conversion for RSeQC
+│       └── biotype_to_multiqc.py # Custom MultiQC content generator
+├── scripts_downstream/          # Downstream Analysis Suite (R)
+│   ├── 01_data_prep.R           # Metadata & Count filtering
+│   ├── 02_deseq2_dge.R          # Diff expression (Wald test/Shrinkage)
+│   ├── 03_enrichment.R          # ORA & GSEA (GO/Hallmark)
+│   ├── 04_01_pca.R              # Cluster analysis (PCA)
+│   ├── 04_02_volcano.R          # DEG significance (Volcano)
+│   ├── 04_03_venn.R             # Multi-contrast overlap (Venn)
+│   ├── 04_04_heatmap_pathway.R  # Pathway-specific expression maps
+│   ├── 04_05_heatmap_variable.R # High-variance gene discovery
+│   ├── 04_06_enrichment_nes.R    # Hallmark enrichment barplots
+│   └── 04_07_enrichment_dotplot.R # GSEA summary dotplots
+├── test_upstream/               # Verification Suite: Upstream (Chr21)
+│   ├── test_01-04.sh            # Prefixed test scripts (mapped to prod)
+│   └── utils/                   # Test-specific metadata parsers
+├── test_downstream/             # Verification Suite: Downstream (Mock)
+│   ├── test_01-03.R             # Prefixed data & enrichment tests
+│   └── test_04_01-07.R          # Prefixed modular visualization tests
+├── _hpc/                        # Cluster Environment Management (Slurm)
+│   ├── hpc_run.sbatch           # Production run template (32 CPU, 128G)
+│   ├── hpc_test_micro.sbatch    # Quick test template (4 CPU, 16G)
+│   └── hpc_subsample.sbatch     # Data subsetting utility
+├── Sample_Data_Table.csv        # Metadata template for the study
+├── scripts_upstream_docs.md     # Upstream pipeline documentation
+├── scripts_downstream_docs.md   # Downstream analysis documentation
+├── environment.yml              # Conda/Mamba environment definition
+├── setup_env.sh                 # Environment automation script
+├── run                          # Master Production Runner
+├── test                         # Master Verification Runner
+└── README.md                    # Primary documentation
 ```
 
 ## Prerequisites & Environment Setup
@@ -74,8 +74,6 @@ It is highly recommended to use **Micromamba** or **Mamba** (or Conda) to manage
 2. **Activate the Environment**:
    ```bash
    micromamba activate cancer_rnaseq
-   # OR
-   mamba activate cancer_rnaseq
    ```
 
 ## Quick Start
@@ -100,50 +98,58 @@ Run everything from start to finish:
 
 ## Verification & Testing (Local Run)
 
-For rapid verification of the pipeline logic on local hardware, a **Chromosome 21 Test Suite** is provided. This allows you to run the entire pipeline in minutes instead of hours.
+For rapid verification of the pipeline logic on local hardware, a **Chromosome 21 Test Suite** is provided.
 
 ### 1. Overview
-The test suite utilizes a subsampled dataset and a single chromosome (Chr21) to minimize RAM and storage requirements. Test scripts use relaxed statistical thresholds to ensure meaningful output from the limited gene set.
+The test suite utilizes a subsampled dataset and a single chromosome (Chr21) to minimize RAM and storage requirements.
 
 | Mode | Target | STAR RAM | Time |
 | :--- | :--- | :--- | :--- |
-| **Production** | Full GRCh38 | ~30GB | 8-10 Hours |
+| **Production** | Full Genome | ~30GB | 8-10 Hours |
 | **Test** | Chr21 Only | ~1.5GB | ~10 Minutes |
 
 ### 2. Usage
 ```bash
 ./test all      # Run entire verification (Upstream -> Downstream)
-./test up       # Run BASH upstream only
-./test down     # Run R analysis only
 ```
 
-For more details on test thresholds and script logic, refer to the internal documentation headers in `test_upstream/` and `test_downstream/`.
+## Downstream Outputs (Module 04)
 
-## Downstream Outputs
+The modular visualization suite generates the following figures:
 
-The visualization script (`04_visualization.R`) generates the following figures:
-
-| Figure | Description |
-| :--- | :--- |
-| PCA Plot | Sample clustering by drug dose |
-| Volcano Plots | Individual + combined per-dose DEG plots |
-| Venn Diagram | DEG overlap: Kromastat concentrations vs DMSO |
-| Pathway Heatmap | Top enriched GO pathways with gene expression |
-| Top Variable Heatmap | Top 30 (test) / 50 (prod) most variable genes |
-| Hallmark NES Barplots | Individual + combined Hallmark enrichment scores |
-| GSEA Dotplots | Individual + combined GO GSEA enrichment |
+| Figure | Script | Description |
+| :--- | :--- | :--- |
+| PCA Plot | `04_01_pca.R` | Sample clustering |
+| Volcano Plots | `04_02_volcano.R` | Individual + combined DEG plots |
+| Venn Diagram | `04_03_venn.R` | DEG overlap between doses |
+| Pathway Heatmap | `04_04_heatmap_pathway.R` | Top enriched pathways gene expression |
+| Variable Heatmap | `04_05_heatmap_variable.R` | Top 50 most variable genes |
+| Hallmark NES | `04_06_enrichment_nes.R` | Hallmark enrichment scores |
+| GSEA Dotplots | `04_07_enrichment_dotplot.R` | GSEA GO enrichment dots |
 
 ## Requirements
 
+All core dependencies are managed via **Micromamba** or **Mamba**. Refer to `environment.yml` for exact pinned versions.
+
 ### Bioinformatics Tools
-STAR, samtools, featureCounts (subread), RSeQC, MultiQC, Trimmomatic.
+- **STAR**: Ultra-fast RNA-seq aligner (requires ~32GB RAM for Human genome).
+- **samtools**: Alignment indexing and processing.
+- **featureCounts (subread)**: Gene-level quantification.
+- **RSeQC**: Post-alignment quality metrics (Read distribution, Junctions).
+- **MultiQC**: Aggregated visual reporting.
+- **Trimmomatic**: Adapter and quality trimming.
 
-### Python
-`pandas` (required for `biotype_to_multiqc.py`).
+### Python Environment (3.9+)
+- **pandas**: Required for metadata parsing and biotype summary generation.
 
-### R Libraries
-`DESeq2`, `tidyverse`, `ggplot2`, `clusterProfiler`, `org.Hs.eg.db`, `EnhancedVolcano`, `ComplexHeatmap`, `circlize`, `ggVennDiagram`, `patchwork`, `msigdbr`, `enrichplot`, `apeglm`.
+### R/Bioconductor Libraries
+- **Differential Expression**: `DESeq2`, `apeglm`.
+- **Annotation & Databases**: `org.Hs.eg.db` (Human), `org.Cf.eg.db` (Dog), `msigdbr`.
+- **Enrichment Analysis**: `clusterProfiler`, `enrichplot`.
+- **Visualization Core**: `ggplot2`, `ComplexHeatmap`, `circlize`, `EnhancedVolcano`.
+- **Layout & Interaction**: `tidyverse`, `patchwork`, `ggVennDiagram`.
 
-> All R/Python dependencies are managed via `environment.yml`. Run `bash setup_env.sh` to install everything.
+> [!TIP]
+> **Automated Install**: Run `bash setup_env.sh` to automatically detect your package manager and install all requirements listed above into the `cancer_rnaseq` environment.
 
 For technical details, see the documentation for [upstream scripts](scripts_upstream_docs.md) and [downstream analysis](scripts_downstream_docs.md).

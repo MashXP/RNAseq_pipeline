@@ -8,15 +8,15 @@ This document provides a technical breakdown of the automation scripts used for 
 
 ## 01_genome_prep.sh
 
-**Purpose:** Prepares the human genome reference (GRCh38) and performs adapter/quality trimming on raw reads.
+**Purpose:** Prepares the reference genome (e.g., GRCh38) and performs adapter/quality trimming on raw reads.
 
 **Key Actions:**
-- Downloads FASTA and GTF files from Ensembl 113.
+- Downloads reference FASTA and GTF files (defaults to Human GRCh38).
 - Generates a STAR genome index in `_data/index/`.
-- Trimming with Trimmomatic: Uses `TruSeq3-PE.fa` adapters to remove contamination and low-quality bases from all samples defined in the metadata.
+- Trimming with Trimmomatic: Uses adapter definitions (e.g., `TruSeq3-PE.fa`) to remove contamination and low-quality bases from all samples defined in the metadata.
 
 **Inputs:**
-- [None] (Uses hardcoded Ensembl URLs for genome).
+- [None] (Uses URLs defined in the script for genome downloading).
 - `_data/fastq/*.fastq.gz`: Raw reads for all samples.
 
 **Outputs:**
@@ -31,13 +31,13 @@ This document provides a technical breakdown of the automation scripts used for 
 **Purpose:** Performs read alignment to the reference genome for paired-end samples.
 
 **Key Actions:**
-- Parses `MiaPAca-2_Sample_Data_Table.csv` via `utils/parse_samples.py`.
+- Parses the provided Sample Metadata CSV via `utils/parse_samples.py`.
 - Runs STAR in paired-end mode.
 - Outputs coordinate-sorted BAM files for each sample.
 
 **Inputs:**
 - `_data/fastq_trimmed/*.fastq.gz`: Trimmed, high-quality reads.
-- `MiaPAca-2_Sample_Data_Table.csv`: Sample metadata.
+- `[Sample_Data_Table].csv`: Sample metadata.
 - `_data/index/`: Reference index.
 
 **Outputs:**
@@ -91,7 +91,7 @@ This document provides a technical breakdown of the automation scripts used for 
 - Generates a standalone HTML report.
 
 **Outputs:**
-- `_data/multiqc/MiaPAca-2_pipeline_summary_report.html`: Final aggregated report.
+- `_data/multiqc/rna_seq_pipeline_summary.html`: Final aggregated report.
 
 ---
 

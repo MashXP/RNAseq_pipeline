@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=MiaPAca_Prod_Run
+#SBATCH --job-name=RNAseq_Prod_Run
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
@@ -20,5 +20,5 @@ micromamba activate cancer_rnaseq
 ./run all
 
 echo "========================================================="
-echo "   MiaPAca-2 Production Run COMPLETED SUCCESSFULLY"
+echo "   RNA-seq Production Run COMPLETED SUCCESSFULLY"
 echo "========================================================="
