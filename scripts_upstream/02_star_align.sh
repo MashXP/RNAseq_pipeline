@@ -13,7 +13,7 @@ FASTQ_DIR="$BASE_DIR/../_data/fastq_trimmed"
 INDEX_DIR="$BASE_DIR/../_data/index"
 ALIGN_DIR="$BASE_DIR/../_data/bam"
 UTILS_DIR="$BASE_DIR/utils"
-CSV_FILE="$BASE_DIR/../MiaPAca-2_Sample_Data_Table.csv"
+CSV_FILE="$BASE_DIR/../drPhuong_Sample_Data_Table.csv"
 
 echo "=== Starting STAR Alignment ==="
 mkdir -p "$ALIGN_DIR"
@@ -39,7 +39,7 @@ echo "Resources: $THREADS threads, Sort RAM: $SORT_RAM_BYTES bytes (~${MEM_GB}G 
 
 # Parse CSV and loop through samples
 # format: sample_name r1_file r2_file
-python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2
+python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2 species group
 do
     echo "-----------------------------------------------------"
     echo "Processing Sample: $sample"
@@ -66,8 +66,8 @@ do
     mkdir -p "$OUT_DIR"
 
     # Run STAR
-    echo "Running STAR..."
-    STAR --genomeDir "$INDEX_DIR" \
+    echo "Running STAR for $species..."
+    STAR --genomeDir "$INDEX_DIR/$species" \
          --readFilesIn "$FASTQ_DIR/$r1" "$FASTQ_DIR/$r2" \
          --readFilesCommand gunzip -c \
          --outFileNamePrefix "$OUT_DIR/${sample}_" \

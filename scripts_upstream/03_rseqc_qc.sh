@@ -11,14 +11,9 @@ BASE_DIR=$(dirname "$(realpath "$0")")
 BAM_DIR="$BASE_DIR/../_data/bam"
 GENOME_DIR="$BASE_DIR/../_data/genome"
 QC_DIR="$BASE_DIR/../_data/rseqc"
-BED_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.113.bed"
+CSV_FILE="$BASE_DIR/../drPhuong_Sample_Data_Table.csv"
 
 mkdir -p "$QC_DIR"
-
-if [ ! -f "$BED_FILE" ]; then
-    echo "Error: BED file not found at $BED_FILE. Run scripts_upstream/01_genome_prep.sh first."
-    exit 1
-fi
 
 echo "=== Starting RSeQC Analysis ==="
 
@@ -31,6 +26,19 @@ do
     
     SAMPLE_QC_DIR="$QC_DIR/$sample_name"
     mkdir -p "$SAMPLE_QC_DIR"
+
+    # Determine species
+    sample_species=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | grep "^$sample_name " | awk '{print $4}')
+    if [ "$sample_species" == "Human" ]; then
+        BED_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.113.bed"
+    else
+        BED_FILE="$GENOME_DIR/Canis_lupus_familiaris.ROS_Cfam_1.0.113.bed"
+    fi
+
+    if [ ! -f "$BED_FILE" ]; then
+        echo "Error: BED file not found at $BED_FILE for $sample_name ($sample_species)."
+        continue
+    fi
 
     # Index BAM if index doesn't exist
     if [ ! -f "${bam_file}.bai" ]; then

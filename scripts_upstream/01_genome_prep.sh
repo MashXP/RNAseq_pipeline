@@ -14,61 +14,63 @@ INDEX_DIR="$BASE_DIR/../_data/index"
 FASTQ_DIR="$BASE_DIR/../_data/fastq"
 TRIM_DIR="$BASE_DIR/../_data/fastq_trimmed"
 UTILS_DIR="$BASE_DIR/utils"
-CSV_FILE="$BASE_DIR/../MiaPAca-2_Sample_Data_Table.csv"
+CSV_FILE="$BASE_DIR/../drPhuong_Sample_Data_Table.csv"
 
-# 1. Ensembl 113 URLs (based on CSV info)
-FASTA_URL="https://ftp.ensembl.org/pub/release-113/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz"
-GTF_URL="https://ftp.ensembl.org/pub/release-113/gtf/homo_sapiens/Homo_sapiens.GRCh38.113.gtf.gz"
+# 1. Ensembl 113 URLs
+declare -A FASTA_URLS
+declare -A GTF_URLS
+FASTA_URLS[Human]="https://ftp.ensembl.org/pub/release-113/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz"
+GTF_URLS[Human]="https://ftp.ensembl.org/pub/release-113/gtf/homo_sapiens/Homo_sapiens.GRCh38.113.gtf.gz"
+FASTA_URLS[Dog]="https://ftp.ensembl.org/pub/release-113/fasta/canis_lupus_familiaris/dna/Canis_lupus_familiaris.ROS_Cfam_1.0.dna.primary_assembly.fa.gz"
+GTF_URLS[Dog]="https://ftp.ensembl.org/pub/release-113/gtf/canis_lupus_familiaris/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf.gz"
 
 # 2. Downloading Genome Files
-echo "=== Step 1: Downloading Genome Files ==="
+echo "=== Step 1-4: Downloading, Extracting, BED, and STAR Indexing for Species ==="
 mkdir -p "$GENOME_DIR"
 
-if [ ! -f "$GENOME_DIR/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz" ]; then
-    echo "Downloading FASTA..."
-    wget -P "$GENOME_DIR" "$FASTA_URL"
-else
-    echo "FASTA already exists. Skipping."
-fi
-
-if [ ! -f "$GENOME_DIR/Homo_sapiens.GRCh38.113.gtf.gz" ]; then
-    echo "Downloading GTF..."
-    wget -P "$GENOME_DIR" "$GTF_URL"
-else
-    echo "GTF already exists. Skipping."
-fi
-
-# 3. Extracting Files
-echo "=== Step 2: Extracting Files ==="
-# Decompressing (required for STAR and gtf2bed)
-if [ ! -f "$GENOME_DIR/Homo_sapiens.GRCh38.dna.primary_assembly.fa" ]; then
-    gunzip -c "$GENOME_DIR/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz" > "$GENOME_DIR/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
-fi
-
-if [ ! -f "$GENOME_DIR/Homo_sapiens.GRCh38.113.gtf" ]; then
-    gunzip -c "$GENOME_DIR/Homo_sapiens.GRCh38.113.gtf.gz" > "$GENOME_DIR/Homo_sapiens.GRCh38.113.gtf"
-fi
-
-# 4. Generating BED12 for RSeQC
-echo "=== Step 3: Generating BED12 for RSeQC ==="
-if [ ! -f "$GENOME_DIR/Homo_sapiens.GRCh38.113.bed" ]; then
-    python3 "$UTILS_DIR/gtf2bed.py" "$GENOME_DIR/Homo_sapiens.GRCh38.113.gtf" > "$GENOME_DIR/Homo_sapiens.GRCh38.113.bed"
-fi
-
-# 5. Creating STAR Index
-echo "=== Step 4: Creating STAR Index ==="
-mkdir -p "$INDEX_DIR"
-if [ -z "$(ls -A "$INDEX_DIR")" ]; then
-    echo "Running STAR genomeGenerate..."
-    STAR --runThreadN 32 \
-         --runMode genomeGenerate \
-         --genomeDir "$INDEX_DIR" \
-         --genomeFastaFiles "$GENOME_DIR/Homo_sapiens.GRCh38.dna.primary_assembly.fa" \
-         --sjdbGTFfile "$GENOME_DIR/Homo_sapiens.GRCh38.113.gtf" \
-         --sjdbOverhang 99
-else
-    echo "STAR index already exists. Skipping."
-fi
+for species in Human Dog; do
+    echo "Processing Genome for: $species"
+    
+    fasta_url=${FASTA_URLS[$species]}
+    gtf_url=${GTF_URLS[$species]}
+    fasta_gz=$(basename "$fasta_url")
+    gtf_gz=$(basename "$gtf_url")
+    fasta_unzipped="${fasta_gz%.gz}"
+    gtf_unzipped="${gtf_gz%.gz}"
+    bed_file="${gtf_unzipped%.gtf}.bed"
+    
+    # Download
+    if [ ! -f "$GENOME_DIR/$fasta_gz" ]; then
+        echo "Downloading FASTA for $species..."
+        wget -P "$GENOME_DIR" "$fasta_url"
+    fi
+    if [ ! -f "$GENOME_DIR/$gtf_gz" ]; then
+        echo "Downloading GTF for $species..."
+        wget -P "$GENOME_DIR" "$gtf_url"
+    fi
+    
+    # Extract
+    if [ ! -f "$GENOME_DIR/$fasta_unzipped" ]; then gunzip -c "$GENOME_DIR/$fasta_gz" > "$GENOME_DIR/$fasta_unzipped"; fi
+    if [ ! -f "$GENOME_DIR/$gtf_unzipped" ]; then gunzip -c "$GENOME_DIR/$gtf_gz" > "$GENOME_DIR/$gtf_unzipped"; fi
+    
+    # BED12
+    if [ ! -f "$GENOME_DIR/$bed_file" ]; then python3 "$UTILS_DIR/gtf2bed.py" "$GENOME_DIR/$gtf_unzipped" > "$GENOME_DIR/$bed_file"; fi
+    
+    # STAR Index
+    species_index="$INDEX_DIR/$species"
+    mkdir -p "$species_index"
+    if [ -z "$(ls -A "$species_index")" ]; then
+        echo "Running STAR genomeGenerate for $species..."
+        STAR --runThreadN 32 \
+             --runMode genomeGenerate \
+             --genomeDir "$species_index" \
+             --genomeFastaFiles "$GENOME_DIR/$fasta_unzipped" \
+             --sjdbGTFfile "$GENOME_DIR/$gtf_unzipped" \
+             --sjdbOverhang 99
+    else
+        echo "STAR index for $species already exists. Skipping."
+    fi
+done
 
 # 6. Trimming with Trimmomatic
 echo "=== Step 5: Trimming Reads ==="
@@ -95,7 +97,7 @@ echo "Resources: $THREADS threads, allocated ${JAVA_MEM}G Java Heap."
 
 # 6.1 Defensive Check: Verify FASTQ presence before starting
 echo "Checking for required FASTQ files..."
-python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2
+python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2 species group
 do
     if [ ! -f "$FASTQ_DIR/$r1" ] || [ ! -f "$FASTQ_DIR/$r2" ]; then
         echo "--------------------------------------------------------------------------------"
@@ -119,7 +121,7 @@ if [ -z "$ADAPTERS" ]; then
     exit 1
 fi
 
-python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2
+python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2 species group
 do
     echo "-----------------------------------------------------"
     echo "Trimming Sample: $sample"

@@ -99,10 +99,28 @@ if [ "$RUN_DOWNSTREAM" = true ]; then
     # Execute R scripts sequentially with strict error checking
     (
         cd scripts_downstream/
-        Rscript 01_data_prep.R
-        Rscript 02_deseq2_dge.R
-        Rscript 03_enrichment.R
-        Rscript 04_visualization.R
+        
+        CSV_FILE="../drPhuong_Sample_Data_Table.csv"
+        # Extract groups from CSV
+        groups=$(python3 "../scripts_upstream/utils/parse_samples.py" "$CSV_FILE" | awk '{print $5}' | sort -u)
+
+        for group in $groups; do
+            echo "========================================================="
+            echo "Running downstream analysis for Group: $group"
+            echo "========================================================="
+
+            # Get species for this group
+            species=$(python3 "../scripts_upstream/utils/parse_samples.py" "$CSV_FILE" | awk -v grp="$group" '$5 == grp {print $4}' | head -n 1)
+            
+            echo "-> Species detected: $species"
+
+            Rscript 01_data_prep.R "$group" "$species"
+            Rscript 02_deseq2_dge.R "$group" "$species"
+            Rscript 03_enrichment.R "$group" "$species"
+            Rscript 04_visualization.R "$group" "$species"
+
+            echo "Done with Group: $group"
+        done
     ) || { echo "Downstream analysis failed at some step. Exiting."; exit 1; }
     
     echo "DOWNSTREAM COMPLETE."

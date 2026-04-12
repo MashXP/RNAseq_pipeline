@@ -12,54 +12,61 @@ BAM_DIR="$BASE_DIR/../_data/bam"
 GENOME_DIR="$BASE_DIR/../_data/genome"
 COUNTS_DIR="$BASE_DIR/../_data/counts"
 UTILS_DIR="$BASE_DIR/utils"
-GTF_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.113.gtf"
+CSV_FILE="$BASE_DIR/../drPhuong_Sample_Data_Table.csv"
 
 mkdir -p "$COUNTS_DIR"
 
 # --- Resource Auto-detection ---
-# Default to 16 threads or respect SLURM
 THREADS=${SLURM_CPUS_PER_TASK:-16}
 echo "Resources: $THREADS threads."
 # -------------------------------
 
-if [ ! -f "$GTF_FILE" ]; then
-    echo "Error: GTF file not found at $GTF_FILE. Run 01_genome_prep.sh first."
-    exit 1
-fi
+echo "=== Starting Quantification with featureCounts (per Group) ==="
 
-# Find all BAM files
-files=$(find "$BAM_DIR" -maxdepth 2 -name "*_Aligned.sortedByCoord.out.bam")
-if [ -z "$files" ]; then
-    echo "Error: No BAM files found in $BAM_DIR."
-    exit 1
-fi
+groups=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | awk '{print $5}' | sort -u)
 
-echo "=== Starting Quantification with featureCounts ==="
+for group in $groups; do
+    echo "-----------------------------------------------------"
+    echo "Processing Group: $group"
 
-# 1. Gene Counts (for Differential Expression)
-# -p: paired-end
-# -T: threads
-# -t: feature type (exon)
-# -g: attribute type (gene_id)
-echo "-----------------------------------------------------"
-echo "1. Counting Reads per Gene (gene_id)..."
-featureCounts -p -T "$THREADS" -t exon -g gene_id -a "$GTF_FILE" -o "$COUNTS_DIR/gene_counts.txt" $files
+    # Get species for this group
+    species=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | awk -v grp="$group" '$5 == grp {print $4}' | head -n 1)
+    
+    if [ "$species" == "Human" ]; then
+        GTF_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.113.gtf"
+    else
+        GTF_FILE="$GENOME_DIR/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf"
+    fi
 
-# 2. Biotype Counts (for QC)
-echo "-----------------------------------------------------"
-echo "2. Counting Reads per Biotype (gene_biotype)..."
-featureCounts -p -T "$THREADS" -t exon -g gene_biotype -a "$GTF_FILE" -o "$COUNTS_DIR/biotype_counts.txt" $files
+    if [ ! -f "$GTF_FILE" ]; then
+        echo "Error: GTF file not found at $GTF_FILE."
+        exit 1
+    fi
 
-# 3. Format Biotype counts for MultiQC
-echo "-----------------------------------------------------"
-echo "3. Formatting biotype results for MultiQC..."
+    # Get all sample names for this group
+    group_samples=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | awk -v grp="$group" '$5 == grp {print $1}')
+    
+    files=""
+    for s in $group_samples; do
+        if [ -f "$BAM_DIR/$s/${s}_Aligned.sortedByCoord.out.bam" ]; then
+            files="$files $BAM_DIR/$s/${s}_Aligned.sortedByCoord.out.bam"
+        fi
+    done
 
-# Pre-check for pandas dependency
-if ! python3 -c "import pandas" &> /dev/null; then
-    echo "Warning: Python 'pandas' library not found."
-    echo "Skipping biotype formatting. To enable this, run: pip install pandas"
-else
-    python3 "$UTILS_DIR/biotype_to_multiqc.py" "$COUNTS_DIR/biotype_counts.txt" "$COUNTS_DIR/biotype_counts_mqc.txt"
-fi 
+    if [ -z "$files" ]; then
+        echo "Warning: No BAM files found for group $group."
+        continue
+    fi
+
+    echo "1. Counting Reads per Gene (gene_id)..."
+    featureCounts -p -T "$THREADS" -t exon -g gene_id -a "$GTF_FILE" -o "$COUNTS_DIR/gene_counts_${group}.txt" $files
+
+    echo "2. Counting Reads per Biotype (gene_biotype)..."
+    featureCounts -p -T "$THREADS" -t exon -g gene_biotype -a "$GTF_FILE" -o "$COUNTS_DIR/biotype_counts_${group}.txt" $files
+
+    if python3 -c "import pandas" &> /dev/null; then
+        python3 "$UTILS_DIR/biotype_to_multiqc.py" "$COUNTS_DIR/biotype_counts_${group}.txt" "$COUNTS_DIR/biotype_counts_mqc_${group}.txt"
+    fi 
+done
 
 echo "=== Quantification Complete ==="
