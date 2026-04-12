@@ -49,10 +49,10 @@ if [ "$RUN_UPSTREAM" = true ]; then
     echo ">>> Running TEST UPSTREAM (Chr21)..."
     (
         cd test_upstream/
-        bash 01_genome_prep.sh
-        bash 02_star_align.sh
-        bash 03_rseqc_qc.sh
-        bash 04_quantification.sh
+        bash test_01_genome_prep.sh
+        bash test_02_star_align.sh
+        bash test_03_rseqc_qc.sh
+        bash test_04_quantification.sh
         bash 05_multiqc.sh
     )
 fi
@@ -77,10 +77,18 @@ if [ "$RUN_DOWNSTREAM" = true ]; then
             
             echo "-> Species detected: $species"
 
-            Rscript 01_data_prep.R "$group" "$species"
-            Rscript 02_deseq2_dge.R "$group" "$species"
-            Rscript 03_enrichment.R "$group" "$species"
-            Rscript 04_visualization.R "$group" "$species"
+            Rscript test_01_data_prep.R "$group" "$species"
+            Rscript test_02_deseq2_dge.R "$group" "$species"
+            Rscript test_03_enrichment.R "$group" "$species"
+            
+            # Module 04: Visualizations
+            Rscript test_04_01_pca.R "$group" "$species"
+            Rscript test_04_02_volcano.R "$group" "$species"
+            Rscript test_04_03_venn.R "$group" "$species"
+            Rscript test_04_04_heatmap_pathway.R "$group" "$species"
+            Rscript test_04_05_heatmap_variable.R "$group" "$species"
+            Rscript test_04_06_enrichment_nes.R "$group" "$species"
+            Rscript test_04_07_enrichment_dotplot.R "$group" "$species"
 
             echo "Done with Group: $group"
         done

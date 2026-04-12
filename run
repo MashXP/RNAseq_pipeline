@@ -117,7 +117,14 @@ if [ "$RUN_DOWNSTREAM" = true ]; then
             Rscript 01_data_prep.R "$group" "$species"
             Rscript 02_deseq2_dge.R "$group" "$species"
             Rscript 03_enrichment.R "$group" "$species"
-            Rscript 04_visualization.R "$group" "$species"
+            
+            Rscript 04_01_pca.R "$group" "$species"
+            Rscript 04_02_volcano.R "$group" "$species"
+            Rscript 04_03_venn.R "$group" "$species"
+            Rscript 04_04_heatmap_pathway.R "$group" "$species"
+            Rscript 04_05_heatmap_variable.R "$group" "$species"
+            Rscript 04_06_enrichment_nes.R "$group" "$species"
+            Rscript 04_07_enrichment_dotplot.R "$group" "$species"
 
             echo "Done with Group: $group"
         done
