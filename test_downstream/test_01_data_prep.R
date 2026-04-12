@@ -25,8 +25,8 @@ metadata_raw <- metadata_raw %>% filter(Group == group_name)
 metadata <- metadata_raw %>%
   mutate(Sample = str_replace(File1, "_R1_001.fastq.gz", "")) %>%
   select(Sample, Treatment, Group) %>%
-  mutate(condition = factor(Treatment, levels = c("DMSO", "Romi (6 nM)", "GNL", "NanoRomi (6 nM)"))) %>%
-  mutate(condition = relevel(condition, ref = "DMSO"))
+  mutate(condition = factor(Treatment, levels = c("DMSO_Romi", "Romi_6nM", "DMSO_Kromastat", "Kromastat_6nM"))) %>%
+  mutate(condition = relevel(condition, ref = "DMSO_Romi"))
 
 # 2. Load Gene Counts
 # Count file is now group-specific

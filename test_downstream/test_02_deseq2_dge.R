@@ -32,34 +32,43 @@ dds <- DESeqDataSetFromMatrix(countData = counts_filtered,
 # 3. Process
 dds <- DESeq(dds)
 
-# 4. Extract results for all doses vs DMSO
-doses <- c("Romi (6 nM)", "GNL", "NanoRomi (6 nM)")
+# 4. Extract results for specific comparisons
+# Mapping: Treatment vs its specific Control
+comparisons <- list(
+  "Romi_6nM"       = "DMSO_Romi",
+  "Kromastat_6nM"  = "DMSO_Kromastat",
+  "DMSO_Kromastat" = "DMSO_Romi"
+)
+
 results_list <- list()
 
-for (dose in doses) {
-  message("Processing contrast: ", dose, " vs DMSO")
+for (dose in names(comparisons)) {
+  ref <- comparisons[[dose]]
+  message("Processing contrast: ", dose, " vs ", ref)
   
-  res <- results(dds, contrast = c("condition", dose, "DMSO"))
+  res <- results(dds, contrast = c("condition", dose, ref))
   
   all_coefs <- resultsNames(dds)
   clean_dose <- make.names(dose)
-  clean_ref  <- make.names("DMSO")
+  clean_ref  <- make.names(ref)
   
+  # Try to find exactly matching coefficient for apeglm shrinkage
   target_pattern <- paste0("condition_", clean_dose, "_vs_", clean_ref)
   coef_name <- all_coefs[grepl(target_pattern, all_coefs, fixed = TRUE)]
   
   if (length(coef_name) == 1) {
     res_shrunk <- lfcShrink(dds, coef = coef_name, type = "apeglm")
   } else {
-    message("Warning: apeglm coefficient not found exactly. Falling back to 'normal' shrinkage.")
-    res_shrunk <- lfcShrink(dds, contrast = c("condition", dose, "DMSO"), type = "normal")
+    message("Warning: apeglm coefficient not found exactly for ", dose, " vs ", ref, ". Falling back to 'normal' shrinkage.")
+    res_shrunk <- lfcShrink(dds, contrast = c("condition", dose, ref), type = "normal")
   }
   
   results_list[[dose]] <- list(res = res, shrunk = res_shrunk)
   
   safe_name <- str_replace_all(dose, "[^a-zA-Z0-9]", "_")
+  safe_ref  <- str_replace_all(ref, "[^a-zA-Z0-9]", "_")
   write.csv(as.data.frame(res_shrunk), 
-            file = paste0(res_dir, "/tables/02_dge_", safe_name, "_vs_DMSO.csv"))
+            file = paste0(res_dir, "/tables/02_dge_", safe_name, "_vs_", safe_ref, ".csv"))
 }
 
 # 5. Save comprehensive results
