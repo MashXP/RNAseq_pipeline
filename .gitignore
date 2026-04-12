@@ -51,4 +51,5 @@ results_test/
 _data/logs/
 
 log.txt
-memo.md
+memo*
+GEMINI.md

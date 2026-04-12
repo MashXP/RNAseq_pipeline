@@ -1,25 +1,23 @@
 #!/bin/bash
 
-# test_upstream/03_rseqc_qc.sh
-# TEST VERSION: Performs full QC on test BAM files (aligned with production).
+# [[test_upstream/test_03_rseqc_qc.sh]]
+# Runs RSeQC suite on aligned BAM files.
 
+# Exit on error
 set -e
 
 # Directories
 BASE_DIR=$(dirname "$(realpath "$0")")
+# --- DEVIATION: Output to test-specific directories
 BAM_DIR="$BASE_DIR/../_data/bam_test"
 GENOME_DIR="$BASE_DIR/../_data/genome_test"
-QC_DIR="$BASE_DIR/../_data/qc_test"
-BED_FILE="$GENOME_DIR/chr21.bed"
+QC_DIR="$BASE_DIR/../_data/rseqc_test"
+CSV_FILE="$BASE_DIR/../drPhuong_Sample_Data_Table.csv"
+UTILS_DIR="$BASE_DIR/utils"
 
 mkdir -p "$QC_DIR"
 
-if [ ! -f "$BED_FILE" ]; then
-    echo "Error: BED file not found at $BED_FILE. Run test_upstream/01_genome_prep.sh first."
-    exit 1
-fi
-
-echo "=== [TEST] Starting RSeQC Analysis ==="
+echo "=== Starting RSeQC Analysis ==="
 
 # Find all BAM files in subdirectories
 find "$BAM_DIR" -maxdepth 2 -name "*_Aligned.sortedByCoord.out.bam" | while read -r bam_file
@@ -30,6 +28,21 @@ do
     
     SAMPLE_QC_DIR="$QC_DIR/$sample_name"
     mkdir -p "$SAMPLE_QC_DIR"
+
+    # Determine species
+    sample_species=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | grep "^$sample_name " | awk '{print $4}')
+    if [ "$sample_species" == "Human" ]; then
+        # --- DEVIATION: Select test subset BED instead of primary assembly
+        BED_FILE="$GENOME_DIR/Human/chr21.bed"
+    else
+        # --- DEVIATION: Select test subset BED instead of primary assembly
+        BED_FILE="$GENOME_DIR/Dog/chr38.bed"
+    fi
+
+    if [ ! -f "$BED_FILE" ]; then
+        echo "Error: BED file not found at $BED_FILE for $sample_name ($sample_species)."
+        continue
+    fi
 
     # Index BAM if index doesn't exist
     if [ ! -f "${bam_file}.bai" ]; then
@@ -52,4 +65,4 @@ do
     echo "Done with QC for $sample_name"
 done
 
-echo "=== [TEST] QC Complete ==="
+echo "=== RSeQC Analysis Complete ==="
