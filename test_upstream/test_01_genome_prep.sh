@@ -23,7 +23,7 @@ declare -A GTF_URLS
 # --- DEVIATION: Test script downloads Chromosome 21 and 38 FASTA instead of primary assembly
 FASTA_URLS[Human]="https://ftp.ensembl.org/pub/release-113/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.21.fa.gz"
 GTF_URLS[Human]="https://ftp.ensembl.org/pub/release-113/gtf/homo_sapiens/Homo_sapiens.GRCh38.113.gtf.gz"
-FASTA_URLS[Dog]="https://ftp.ensembl.org/pub/release-113/fasta/canis_lupus_familiaris/dna/Canis_lupus_familiaris.ROS_Cfam_1.0.dna.chromosome.38.fa.gz"
+FASTA_URLS[Dog]="https://ftp.ensembl.org/pub/release-113/fasta/canis_lupus_familiaris/dna/Canis_lupus_familiaris.ROS_Cfam_1.0.dna.primary_assembly.38.fa.gz"
 GTF_URLS[Dog]="https://ftp.ensembl.org/pub/release-113/gtf/canis_lupus_familiaris/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf.gz"
 
 # 2. Downloading Genome Files
