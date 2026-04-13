@@ -5,12 +5,14 @@
 
 # Exit on error
 set -e
+set -o pipefail
 
 # Directories
 BASE_DIR=$(dirname "$(realpath "$0")")
 BAM_DIR="$BASE_DIR/../_data/bam"
 GENOME_DIR="$BASE_DIR/../_data/genome"
 QC_DIR="$BASE_DIR/../_data/rseqc"
+UTILS_DIR="$BASE_DIR/utils"
 CSV_FILE="$BASE_DIR/../drPhuong_Sample_Data_Table.csv"
 
 mkdir -p "$QC_DIR"
@@ -29,6 +31,10 @@ do
 
     # Determine species
     sample_species=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | grep "^$sample_name " | awk '{print $4}')
+    if [ -z "$sample_species" ]; then
+        echo "Error: Could not determine species for sample $sample_name."
+        exit 1
+    fi
     if [ "$sample_species" == "Human" ]; then
         BED_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.113.bed"
     else

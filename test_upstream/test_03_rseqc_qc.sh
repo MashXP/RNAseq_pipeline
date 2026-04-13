@@ -5,6 +5,7 @@
 
 # Exit on error
 set -e
+set -o pipefail
 
 # Directories
 BASE_DIR=$(dirname "$(realpath "$0")")
@@ -31,6 +32,10 @@ do
 
     # Determine species
     sample_species=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | grep "^$sample_name " | awk '{print $4}')
+    if [ -z "$sample_species" ]; then
+        echo "Error: Could not determine species for sample $sample_name."
+        exit 1
+    fi
     if [ "$sample_species" == "Human" ]; then
         # --- DEVIATION: Select test subset BED instead of primary assembly
         BED_FILE="$GENOME_DIR/Human/chr21.bed"
