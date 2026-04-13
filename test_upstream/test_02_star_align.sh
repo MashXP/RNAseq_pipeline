@@ -67,6 +67,13 @@ do
     OUT_DIR="$ALIGN_DIR/$sample"
     mkdir -p "$OUT_DIR"
 
+    # Skip if BAM already exists to save time/resources
+    BAM_OUT="$OUT_DIR/${sample}_Aligned.sortedByCoord.out.bam"
+    if [ -f "$BAM_OUT" ]; then
+        echo "BAM for $sample already exists ($BAM_OUT). Skipping."
+        continue
+    fi
+
     # Run STAR
     echo "Running STAR for $species..."
     STAR --genomeDir "$INDEX_DIR/$species" \
@@ -78,6 +85,19 @@ do
          --limitBAMsortRAM "$SORT_RAM_BYTES" \
          --quantMode GeneCounts || { echo "ERROR: STAR failed for $sample. Aborting."; exit 1; }
     
+    # Verification of BAM generation
+    BAM_OUT="$OUT_DIR/${sample}_Aligned.sortedByCoord.out.bam"
+    if [ ! -f "$BAM_OUT" ]; then
+        echo "ERROR: STAR failed to generate BAM file for $sample: $BAM_OUT"
+        exit 1
+    fi
+    
+    # Check if BAM is non-empty
+    if [ ! -s "$BAM_OUT" ]; then
+        echo "ERROR: Generated BAM file for $sample is EMPTY."
+        exit 1
+    fi
+
     echo "Done with $sample"
     # Report Mapping Rate
     map_rate=$(grep "Uniquely mapped reads %" "$OUT_DIR/${sample}_Log.final.out" | cut -f2)
