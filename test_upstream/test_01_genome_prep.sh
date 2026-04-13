@@ -33,38 +33,49 @@ mkdir -p "$GENOME_DIR"
 for species in Human Dog; do
     echo "Processing Genome for: $species"
     
+    # --- DEVIATION: Organize genome files into species subdirectories with short names for tests
+    SPECIES_GENOME_DIR="$GENOME_DIR/$species"
+    mkdir -p "$SPECIES_GENOME_DIR"
+    
     fasta_url=${FASTA_URLS[$species]}
     gtf_url=${GTF_URLS[$species]}
     fasta_gz=$(basename "$fasta_url")
     gtf_gz=$(basename "$gtf_url")
-    fasta_unzipped="${fasta_gz%.gz}"
-    gtf_unzipped="${gtf_gz%.gz}"
-    bed_file="${gtf_unzipped%.gtf}.bed"
+    
+    if [ "$species" == "Human" ]; then
+        fasta_unzipped="chr21.fa"
+        gtf_unzipped="chr21_annotations.gtf"
+        bed_file="chr21.bed"
+    else
+        fasta_unzipped="chr38.fa"
+        gtf_unzipped="chr38_annotations.gtf"
+        bed_file="chr38.bed"
+    fi
     
     # Download
-    if [ ! -f "$GENOME_DIR/$fasta_gz" ]; then
+    if [ ! -f "$SPECIES_GENOME_DIR/$fasta_gz" ]; then
         echo "Downloading FASTA for $species..."
-        wget -P "$GENOME_DIR" "$fasta_url"
+        wget -P "$SPECIES_GENOME_DIR" "$fasta_url"
     fi
-    if [ ! -f "$GENOME_DIR/$gtf_gz" ]; then
+    if [ ! -f "$SPECIES_GENOME_DIR/$gtf_gz" ]; then
         echo "Downloading GTF for $species..."
-        wget -P "$GENOME_DIR" "$gtf_url"
+        wget -P "$SPECIES_GENOME_DIR" "$gtf_url"
     fi
     
     # Extract
-    if [ ! -f "$GENOME_DIR/$fasta_unzipped" ]; then gunzip -c "$GENOME_DIR/$fasta_gz" > "$GENOME_DIR/$fasta_unzipped"; fi
+    if [ ! -f "$SPECIES_GENOME_DIR/$fasta_unzipped" ]; then gunzip -c "$SPECIES_GENOME_DIR/$fasta_gz" > "$SPECIES_GENOME_DIR/$fasta_unzipped"; fi
     
     # --- DEVIATION: Test GTF must be filtered to keep only subset Chr 21/38 annotations to match FASTA
-    if [ ! -f "$GENOME_DIR/$gtf_unzipped" ]; then
+    if [ ! -f "$SPECIES_GENOME_DIR/$gtf_unzipped" ]; then
         if [ "$species" == "Human" ]; then
-            gunzip -c "$GENOME_DIR/$gtf_gz" | grep "^21\|^#" > "$GENOME_DIR/$gtf_unzipped"
+            gunzip -c "$SPECIES_GENOME_DIR/$gtf_gz" | grep "^21\|^#" > "$SPECIES_GENOME_DIR/$gtf_unzipped"
         else
-            gunzip -c "$GENOME_DIR/$gtf_gz" | grep "^38\|^#" > "$GENOME_DIR/$gtf_unzipped"
+            gunzip -c "$SPECIES_GENOME_DIR/$gtf_gz" | grep "^38\|^#" > "$SPECIES_GENOME_DIR/$gtf_unzipped"
         fi
     fi
     
     # BED12
-    if [ ! -f "$GENOME_DIR/$bed_file" ]; then python3 "$UTILS_DIR/gtf2bed.py" "$GENOME_DIR/$gtf_unzipped" > "$GENOME_DIR/$bed_file"; fi
+    if [ ! -f "$SPECIES_GENOME_DIR/$bed_file" ]; then python3 "$UTILS_DIR/gtf2bed.py" "$SPECIES_GENOME_DIR/$gtf_unzipped" > "$SPECIES_GENOME_DIR/$bed_file"; fi
     
     # STAR Index
     species_index="$INDEX_DIR/$species"
@@ -76,8 +87,8 @@ for species in Human Dog; do
         STAR --runThreadN 10 \
              --runMode genomeGenerate \
              --genomeDir "$species_index" \
-             --genomeFastaFiles "$GENOME_DIR/$fasta_unzipped" \
-             --sjdbGTFfile "$GENOME_DIR/$gtf_unzipped" \
+             --genomeFastaFiles "$SPECIES_GENOME_DIR/$fasta_unzipped" \
+             --sjdbGTFfile "$SPECIES_GENOME_DIR/$gtf_unzipped" \
              --sjdbOverhang 99 \
              --genomeSAindexNbases 11
     else
