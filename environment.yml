@@ -27,6 +27,7 @@ dependencies:
   - bioconductor-deseq2
   - bioconductor-clusterprofiler
   - bioconductor-org.hs.eg.db
+  - bioconductor-org.cf.eg.db
   - bioconductor-enhancedvolcano
   - bioconductor-apeglm
   - bioconductor-enrichplot
