@@ -98,15 +98,20 @@ for (dose in names(results_list)) {
   ranked_genes <- sort(ranked_genes, decreasing = TRUE)
 
   message("Running GSEA (fgsea engine)...")
-  # --- DEVIATION: Relaxed minGSSize/pvalueCutoff for GSEA to run on small Chromosome subsets
-  ego_gsea <- gseGO(geneList     = ranked_genes,
-                    OrgDb        = org_db,
-                    keyType      = "ENSEMBL",
-                    ont          = "BP",
-                    minGSSize    = 2,
-                    maxGSSize    = 500,
-                    pvalueCutoff = 1.0,
-                    verbose      = FALSE)
+  # --- DEVIATION: Wrap GSEA in tryCatch to handle sparse chromosome subsets without crashing
+  ego_gsea <- tryCatch({
+    gseGO(geneList     = ranked_genes,
+          OrgDb        = org_db,
+          keyType      = "ENSEMBL",
+          ont          = "BP",
+          minGSSize    = 2,
+          maxGSSize    = 500,
+          pvalueCutoff = 1.0,
+          verbose      = FALSE)
+  }, error = function(e) {
+    message("  [CAUTION] GSEA GO failed for ", dose, ": ", e$message)
+    return(NULL)
+  })
   
   # Save GSEA results (including activated/suppressed)
   if (!is.null(ego_gsea) && nrow(as.data.frame(ego_gsea)) > 0) {
@@ -123,8 +128,13 @@ for (dose in names(results_list)) {
 
   # 4. GSEA Hallmark
   message("Running GSEA Hallmark for: ", dose)
-  # --- DEVIATION: Relaxed minGSSize/pvalueCutoff for GSEA to run on small Chromosome subsets
-  egsea_hallmark <- GSEA(ranked_genes, TERM2GENE = h_t2g, minGSSize = 2, pvalueCutoff = 1.0)
+  # --- DEVIATION: Wrap GSEA in tryCatch to handle sparse chromosome subsets without crashing
+  egsea_hallmark <- tryCatch({
+    GSEA(ranked_genes, TERM2GENE = h_t2g, minGSSize = 2, pvalueCutoff = 1.0)
+  }, error = function(e) {
+    message("  [CAUTION] GSEA Hallmark failed for ", dose, ": ", e$message)
+    return(NULL)
+  })
   if (!is.null(egsea_hallmark) && nrow(as.data.frame(egsea_hallmark)) > 0) {
     write.csv(as.data.frame(egsea_hallmark),
               file = paste0(res_dir, "/tables/03_gsea_hallmark_", safe_name, ".csv"))

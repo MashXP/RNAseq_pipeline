@@ -33,7 +33,8 @@ load(paste0("./.RData_test/", group_name, "/02_deseq_results.RData"))
 dir.create(paste0(res_dir, "/figures"), showWarnings = FALSE, recursive = TRUE)
 
 # Transform counts (VST)
-vsd <- vst(dds, blind=FALSE)
+# --- DEVIATION: Use varianceStabilizingTransformation directly for small mock datasets
+vsd <- varianceStabilizingTransformation(dds, blind = FALSE)
 
 # 1.6 Create clean Sample Names for display
 colData(vsd)$display_name <- rownames(colData(vsd))

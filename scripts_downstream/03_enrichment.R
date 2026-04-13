@@ -95,14 +95,20 @@ for (dose in names(results_list)) {
   ranked_genes <- sort(ranked_genes, decreasing = TRUE)
 
   message("Running GSEA (fgsea engine)...")
-  ego_gsea <- gseGO(geneList     = ranked_genes,
-                    OrgDb        = org_db,
-                    keyType      = "ENSEMBL",
-                    ont          = "BP",
-                    minGSSize    = 10,
-                    maxGSSize    = 500,
-                    pvalueCutoff = 0.05,
-                    verbose      = FALSE)
+  # Standard GSEA wrapper for production
+  ego_gsea <- tryCatch({
+    gseGO(geneList     = ranked_genes,
+          OrgDb        = org_db,
+          keyType      = "ENSEMBL",
+          ont          = "BP",
+          minGSSize    = 10,
+          maxGSSize    = 500,
+          pvalueCutoff = 0.05,
+          verbose      = FALSE)
+  }, error = function(e) {
+    message("  [CAUTION] GSEA GO failed for ", dose, ": ", e$message)
+    return(NULL)
+  })
   
   # Save GSEA results (including activated/suppressed)
   if (!is.null(ego_gsea) && nrow(as.data.frame(ego_gsea)) > 0) {
@@ -119,7 +125,13 @@ for (dose in names(results_list)) {
 
   # 4. GSEA Hallmark
   message("Running GSEA Hallmark for: ", dose)
-  egsea_hallmark <- GSEA(ranked_genes, TERM2GENE = h_t2g, minGSSize = 10, pvalueCutoff = 0.05)
+  # Standard GSEA wrapper for production
+  egsea_hallmark <- tryCatch({
+    GSEA(ranked_genes, TERM2GENE = h_t2g, minGSSize = 10, pvalueCutoff = 0.05)
+  }, error = function(e) {
+    message("  [CAUTION] GSEA Hallmark failed for ", dose, ": ", e$message)
+    return(NULL)
+  })
   if (!is.null(egsea_hallmark) && nrow(as.data.frame(egsea_hallmark)) > 0) {
     write.csv(as.data.frame(egsea_hallmark),
               file = paste0(res_dir, "/tables/03_gsea_hallmark_", safe_name, ".csv"))

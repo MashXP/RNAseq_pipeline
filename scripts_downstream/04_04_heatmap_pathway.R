@@ -59,14 +59,27 @@ dose_palette_shared <- setNames(
 )
 
 # 5. Pathway-specific Heatmap
-# Pull from 5nM (or dynamic last dose) ORA GO results
-# Identifying all doses in enrichment results to find a valid one
 enrichment_doses <- names(enrichment_results_all)
 target_dose <- if("5nM" %in% enrichment_doses) "5nM" else tail(enrichment_doses, 1)
 
-top_go <- enrichment_results_all[[target_dose]]$ora_go
-if (!is.null(top_go)) {
-  top_pathways <- top_go@result %>%
+# Robust selection fallback (ORA GO -> GSEA GO -> GSEA Hallmark)
+res_obj <- enrichment_results_all[[target_dose]]
+top_go_df <- if(!is.null(res_obj$ora_go) && nrow(as.data.frame(res_obj$ora_go)) > 0) {
+  message("Using ORA GO for heatmap.")
+  as.data.frame(res_obj$ora_go)
+} else if (!is.null(res_obj$gsea_go) && nrow(as.data.frame(res_obj$gsea_go)) > 0) {
+  message("ORA GO empty. Using GSEA GO for heatmap.")
+  as.data.frame(res_obj$gsea_go)
+} else if (!is.null(res_obj$gsea_hallmark) && nrow(as.data.frame(res_obj$gsea_hallmark)) > 0) {
+  message("ORA/GSEA GO empty. Using GSEA Hallmark for heatmap.")
+  as.data.frame(res_obj$gsea_hallmark)
+} else {
+  NULL
+}
+
+if (!is.null(top_go_df)) {
+  top_pathways <- top_go_df %>%
+    # Standard significance filtering for production
     filter(p.adjust < 0.05) %>%
     head(6)
 
@@ -76,7 +89,16 @@ if (!is.null(top_go)) {
   for (i in seq_len(nrow(top_pathways))) {
     path_name  <- top_pathways$Description[i]
     safe_path  <- str_trunc(str_replace_all(path_name, "[^a-zA-Z0-9]", "_"), 30)
-    genes_path <- str_split(top_pathways$geneID[i], "/")[[1]]
+
+    # Dynamic column detection (ORA uses geneID, GSEA uses core_enrichment)
+    gene_col <- if("geneID" %in% colnames(top_pathways)) "geneID" else "core_enrichment"
+
+    if (!gene_col %in% colnames(top_pathways) || is.na(top_pathways[[gene_col]][i])) {
+      message("Skipping pathway '", path_name, "': No gene column found.")
+      next
+    }
+
+    genes_path <- str_split(top_pathways[[gene_col]][i], "/")[[1]]
     genes_path <- intersect(genes_path, rownames(vsd))
     message("Pathway '", path_name, "': ", length(genes_path), " genes found in VSD.")
 

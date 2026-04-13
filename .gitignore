@@ -18,7 +18,7 @@ _data/ensembl/index/SAindex
 # Ignore R intermediate data
 **/ .RData/
 **/.Rhistory
-**/.RData
+**/.RData*
 **/.Rapp.history
 
 # Python cache
@@ -54,3 +54,11 @@ log.txt
 memo*
 GEMINI.md
 TODO.md
+
+_data_neo
+results_neo
+.Rdata_neo
+test_script_downstream_neo
+test_script_upstream_neo
+environment_neo.yml
+test_neo

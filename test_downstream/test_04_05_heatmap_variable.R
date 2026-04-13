@@ -43,7 +43,8 @@ row.names(gene_map) <- gene_map$ENSEMBL
 dir.create(paste0(res_dir, "/figures"), showWarnings = FALSE, recursive = TRUE)
 
 # Transform counts (VST)
-vsd <- vst(dds, blind=FALSE)
+# --- DEVIATION: Use varianceStabilizingTransformation directly for small mock datasets
+vsd <- varianceStabilizingTransformation(dds, blind = FALSE)
 
 # 1.6 Create clean Sample Names for display
 colData(vsd)$display_name <- rownames(colData(vsd))
