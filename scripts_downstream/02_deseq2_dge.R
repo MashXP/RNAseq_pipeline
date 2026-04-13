@@ -21,7 +21,7 @@ dir.create(paste0(res_dir, "/tables"), showWarnings = FALSE, recursive = TRUE)
 load(paste0("./.RData/", group_name, "/01_processed_counts.RData"))
 
 # 2. Construct DESeqDataSet
-metadata$condition <- relevel(metadata$condition, ref = "DMSO")
+metadata$condition <- relevel(metadata$condition, ref = "DMSO_Romi")
 
 dds <- DESeqDataSetFromMatrix(countData = counts_filtered,
                               colData = metadata,
