@@ -10,10 +10,14 @@
 *.vcf
 *.vcf.gz
 
-# Ignore large genome index files
-_data/ensembl/index/Genome
-_data/ensembl/index/SA
-_data/ensembl/index/SAindex
+# Ignore production upstream output folders
+_data/bam/
+_data/qc/
+_data/counts/
+_data/fastq_trimmed/
+_data/genome/
+_data/index/
+_data/ensembl/
 
 # Ignore R intermediate data
 **/ .RData/
