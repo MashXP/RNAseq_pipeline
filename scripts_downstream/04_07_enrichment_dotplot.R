@@ -25,17 +25,17 @@ dir.create(paste0(res_dir, "/figures"), showWarnings = FALSE, recursive = TRUE)
 # 8. GSEA Dotplots -- individual per dose + stitched combined
 message("Building GSEA dotplots...")
 
-# Collect GSEA results across all doses
+# Collect GSEA results across all contrasts
 gsea_combined <- map2_dfr(
   enrichment_results_all,
   names(enrichment_results_all),
-  function(res, dose_name) {
+  function(res, contrast_name) {
     gsea_res <- res$gsea_go
     if (!is.null(gsea_res) && nrow(as.data.frame(gsea_res)) > 0) {
       as.data.frame(gsea_res) %>%
         dplyr::select(Description, NES, pvalue, p.adjust, setSize) %>%
         mutate(
-          Dose = dose_name,
+          Contrast = contrast_name,
           Response = ifelse(NES > 0, "activated", "suppressed")
         )
     }
@@ -78,25 +78,40 @@ make_gsea_plot <- function(df_dose, dose_label, top_paths_wrapped) {
 }
 
 if (!is.null(gsea_combined) && nrow(gsea_combined) > 0) {
-  # Get globally consistent top pathways (union across all doses)
-  top_paths <- gsea_combined %>%
-    group_by(Description) %>%
-    summarise(min_pval = min(pvalue)) %>%
-    arrange(min_pval) %>%
-    head(25) %>%
-    pull(Description)
+  # Balance Selection: Take Top 10 Activated and Top 10 Suppressed per Contrast
+  # To ensure weaker signals (like SUPM2 activation) are not drowned out by global significance
+  top_paths_balanced <- gsea_combined %>%
+    group_by(Contrast, Response) %>%
+    slice_min(order_by = pvalue, n = 10) %>%
+    ungroup() %>%
+    pull(Description) %>%
+    unique()
+  
+  # Limit to a reasonable number for the Y-axis if the set is too large
+  if (length(top_paths_balanced) > 40) {
+     # If too many, prioritize by global significance but keep at least some from each contrast
+     top_paths <- gsea_combined %>%
+        filter(Description %in% top_paths_balanced) %>%
+        group_by(Description) %>%
+        summarise(min_p = min(pvalue)) %>%
+        arrange(min_p) %>%
+        head(40) %>%
+        pull(Description)
+  } else {
+     top_paths <- top_paths_balanced
+  }
   top_paths_wrapped <- str_wrap(top_paths, width = 35)
   
   gsea_combined <- gsea_combined %>%
     mutate(Description = str_wrap(Description, width = 35))
   
   gsea_plots <- list()
-  for (dose in names(enrichment_results_all)) {
-    df_dose <- gsea_combined %>% filter(Dose == dose)
+  for (contrast in names(enrichment_results_all)) {
+    df_dose <- gsea_combined %>% filter(Contrast == contrast)
     if (nrow(df_dose) > 0) {
-      safe_name <- str_replace_all(dose, "[^a-zA-Z0-9]", "_")
-      p <- make_gsea_plot(df_dose, dose, top_paths_wrapped)
-      gsea_plots[[dose]] <- p
+      safe_name <- str_replace_all(contrast, "[^a-zA-Z0-9]", "_")
+      p <- make_gsea_plot(df_dose, contrast, top_paths_wrapped)
+      gsea_plots[[contrast]] <- p
       
       # Save individual plot
       ggsave(
@@ -108,7 +123,7 @@ if (!is.null(gsea_combined) && nrow(gsea_combined) > 0) {
   
   # Save stitched combined GSEA plot
   if (length(gsea_plots) > 1) {
-    combined_gsea <- wrap_plots(gsea_plots, nrow = 1, guides = "collect") +
+    combined_gsea <- wrap_plots(gsea_plots, nrow = 1) +
       plot_annotation(
         title = "GSEA: Multi-Dose Comparison",
         theme = theme(plot.title = element_text(face = "bold", hjust = 0.5))
@@ -116,7 +131,7 @@ if (!is.null(gsea_combined) && nrow(gsea_combined) > 0) {
     ggsave(
       paste0(res_dir, "/figures/04_gsea_dotplot_combined.png"),
       combined_gsea,
-      width = 7 * length(gsea_plots) + 2,
+      width = 8 * length(gsea_plots) + 1,
       height = max(8, length(top_paths) * 0.45)
     )
     message("[OK] Combined GSEA dotplot -> 04_gsea_dotplot_combined.png")

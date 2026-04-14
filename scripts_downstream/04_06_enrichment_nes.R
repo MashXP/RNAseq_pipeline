@@ -29,6 +29,9 @@ message("Building Hallmark NES plots...")
 make_nes_plot <- function(hallmark_res, dose_label) {
   hall_df <- as.data.frame(hallmark_res) %>%
     mutate(Response = ifelse(NES > 0, "Activated", "Suppressed")) %>%
+    group_by(Response) %>%
+    slice_max(order_by = abs(NES), n = 10) %>%
+    ungroup() %>%
     arrange(Response, ifelse(Response == "Activated", NES, -NES)) %>%
     mutate(Description = factor(Description, levels = unique(Description)))
   
@@ -49,18 +52,18 @@ make_nes_plot <- function(hallmark_res, dose_label) {
       plot.title = element_text(size = 11, face = "bold", hjust = 0.5)
     ) +
     labs(
-      title = dose_label,
+      title = paste0("Contrast: ", dose_label),
       x = "Normalized Enrichment Score (NES)", y = NULL
     )
 }
 
 nes_plots <- list()
-for (dose in names(enrichment_results_all)) {
-  hallmark_res <- enrichment_results_all[[dose]]$gsea_hallmark
+for (contrast in names(enrichment_results_all)) {
+  hallmark_res <- enrichment_results_all[[contrast]]$gsea_hallmark
   if (!is.null(hallmark_res) && nrow(as.data.frame(hallmark_res)) > 0) {
-    safe_name <- str_replace_all(dose, "[^a-zA-Z0-9]", "_")
-    p <- make_nes_plot(hallmark_res, paste0("Hallmark NES: ", dose))
-    nes_plots[[dose]] <- p
+    safe_name <- str_replace_all(contrast, "[^a-zA-Z0-9]", "_")
+    p <- make_nes_plot(hallmark_res, contrast)
+    nes_plots[[contrast]] <- p
     
     # Save individual plot
     n_rows <- nrow(as.data.frame(hallmark_res))

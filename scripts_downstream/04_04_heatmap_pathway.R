@@ -102,6 +102,18 @@ if (!is.null(top_go_df)) {
     genes_path <- intersect(genes_path, rownames(vsd))
     message("Pathway '", path_name, "': ", length(genes_path), " genes found in VSD.")
 
+    # Limit to top 15 genes by absolute log2FoldChange
+    res_lfc <- as.data.frame(results_list[[target_dose]]$shrunk)
+    genes_path <- intersect(genes_path, rownames(res_lfc))
+    if (length(genes_path) > 15) {
+      genes_path <- res_lfc[genes_path, ] %>%
+        mutate(gene = rownames(.)) %>%
+        arrange(desc(abs(log2FoldChange))) %>%
+        head(15) %>%
+        pull(gene)
+      message("  -> Limited to top 15 genes by |log2FC|")
+    }
+
     if (length(genes_path) > 0) {
       mat_slice <- assay(vsd)[genes_path, , drop = FALSE]
       rownames(mat_slice) <- paste0(genes_path, "__", safe_path)
@@ -115,7 +127,9 @@ if (!is.null(top_go_df)) {
   if (length(expanded_matrix_list) > 0) {
     mat_pathway  <- do.call(rbind, expanded_matrix_list)
     df_annot_row <- do.call(rbind, annotation_row_list)
-    mat_pathway  <- mat_pathway - rowMeans(mat_pathway)
+    # Intensify colors: Full Z-score scaling (center and scale by SD)
+    # This makes expression patterns much higher contrast
+    mat_pathway  <- t(scale(t(mat_pathway))) 
     mat_pathway  <- pmin(pmax(mat_pathway, -2), 2)
 
     orig_ensg       <- str_split_i(rownames(mat_pathway), "__", 1)

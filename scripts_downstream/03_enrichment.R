@@ -40,11 +40,11 @@ h_t2g <- msigdbr(species = msig_species, category = "H") %>%
 
 enrichment_results_all <- list()
 
-for (dose in names(results_list)) {
-  message("--- Running Enrichment for: ", dose, " ---")
+for (contrast in names(results_list)) {
+  message("--- Running Enrichment for: ", contrast, " ---")
   
-  res_shrunk <- results_list[[dose]]$shrunk
-  safe_name <- str_replace_all(dose, "[^a-zA-Z0-9]", "_")
+  res_shrunk <- results_list[[contrast]]$shrunk
+  safe_name <- str_replace_all(contrast, "[^a-zA-Z0-9]", "_")
   
   # 2. ORA (Over-Representation Analysis)
   sig_genes <- as.data.frame(res_shrunk) %>%
@@ -72,7 +72,7 @@ for (dose in names(results_list)) {
     write.csv(as.data.frame(ego), file = paste0(res_dir, "/tables/03_go_ora_", safe_name, ".csv"))
     write.csv(as.data.frame(ekegg), file = paste0(res_dir, "/tables/03_kegg_ora_", safe_name, ".csv"))
   } else {
-    message("Too few significant genes for ORA in ", dose)
+    message("Too few significant genes for ORA in ", contrast)
     ego <- NULL
     ekegg <- NULL
   }
@@ -81,7 +81,7 @@ for (dose in names(results_list)) {
   # rank = sign(log2FC) * -log10(pvalue)
   message("Preparing ranked list for GSEA...")
 
-  res_df <- as.data.frame(results_list[[dose]]$res)
+  res_df <- as.data.frame(results_list[[contrast]]$res)
   res_df$ranking_metric <- sign(res_df$log2FoldChange) * -log10(res_df$pvalue)
 
   # Cap Infinite values
@@ -106,7 +106,7 @@ for (dose in names(results_list)) {
           pvalueCutoff = 0.05,
           verbose      = FALSE)
   }, error = function(e) {
-    message("  [CAUTION] GSEA GO failed for ", dose, ": ", e$message)
+    message("  [CAUTION] GSEA GO failed for ", contrast, ": ", e$message)
     return(NULL)
   })
   
@@ -124,12 +124,12 @@ for (dose in names(results_list)) {
   }
 
   # 4. GSEA Hallmark
-  message("Running GSEA Hallmark for: ", dose)
+  message("Running GSEA Hallmark for: ", contrast)
   # Standard GSEA wrapper for production
   egsea_hallmark <- tryCatch({
     GSEA(ranked_genes, TERM2GENE = h_t2g, minGSSize = 10, pvalueCutoff = 0.05)
   }, error = function(e) {
-    message("  [CAUTION] GSEA Hallmark failed for ", dose, ": ", e$message)
+    message("  [CAUTION] GSEA Hallmark failed for ", contrast, ": ", e$message)
     return(NULL)
   })
   if (!is.null(egsea_hallmark) && nrow(as.data.frame(egsea_hallmark)) > 0) {
@@ -137,7 +137,7 @@ for (dose in names(results_list)) {
               file = paste0(res_dir, "/tables/03_gsea_hallmark_", safe_name, ".csv"))
   }
 
-  enrichment_results_all[[dose]] <- list(
+  enrichment_results_all[[contrast]] <- list(
     ora_go = ego,
     ora_kegg = ekegg,
     gsea_go = ego_gsea,

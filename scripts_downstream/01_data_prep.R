@@ -20,29 +20,37 @@ metadata_raw <- read_csv("../drPhuong_Sample_Data_Table.csv", skip = 1) %>%
 # Filter to only the group requested
 metadata_raw <- metadata_raw %>% filter(Group == group_name)
 
-# Create sample names that match the column headers in gene_counts.txt
-# Data has File1, File2, Treatment, Cell line, Group
+# 2. Rename Samples Descriptively
+# Logic: create a display_name as [Group]_[Treatment]_[Rep]
 metadata <- metadata_raw %>%
-  mutate(Sample = str_replace(File1, "_R1_001.fastq.gz", "")) %>%
-  select(Sample, Treatment, Group) %>%
-  mutate(condition = factor(Treatment, levels = c("DMSO_Romi", "Romi_6nM", "DMSO_Kromastat", "Kromastat_6nM"))) %>%
-  mutate(condition = relevel(condition, ref = "DMSO_Romi"))
+  mutate(OriginalSample = str_replace(File1, "_R1_001.fastq.gz", "")) %>%
+  group_by(Group, Treatment) %>%
+  mutate(Rep = row_number()) %>%
+  ungroup() %>%
+  mutate(display_name = paste0(Group, "_", Treatment, "_", Rep)) %>%
+  select(OriginalSample, display_name, Treatment, Group) %>%
+  mutate(condition = factor(Treatment, levels = c("DMSO_Romi", "Romi_6nM", "DMSO_Kromastat", "Kromastat_6nM")))
 
 # 2. Load Gene Counts
 # Count file is now group-specific
 count_file <- paste0("../_data/counts/gene_counts_", group_name, ".txt")
 raw_counts <- read_delim(count_file, delim = "\t", skip = 1)
 
-# Clean column names to match the Sample column in metadata
-# featureCounts uses file paths, we want the sample name
+# Clean column names and switch to descriptive display_names
 counts_matrix <- raw_counts %>%
   rename_with(~basename(.) %>% str_remove("_Aligned.sortedByCoord.out.bam"), 7:last_col()) %>%
-  select(Geneid, any_of(metadata$Sample)) %>%
+  select(Geneid, any_of(metadata$OriginalSample)) %>%
   column_to_rownames("Geneid")
 
-# Ensure ordering matches
-metadata <- metadata %>% filter(Sample %in% colnames(counts_matrix))
-counts_matrix <- counts_matrix[, metadata$Sample]
+# Ensure ordering and rename to display_name
+counts_matrix <- counts_matrix[, metadata$OriginalSample]
+colnames(counts_matrix) <- metadata$display_name
+
+# Update metadata to use display_name as the primary key
+metadata <- metadata %>%
+  select(-OriginalSample) %>%
+  rename(Sample = display_name) %>%
+  column_to_rownames("Sample")
 
 # 3. Pre-filtering
 # Keep genes with at least 10 reads in 3 or more samples (one treatment group size)

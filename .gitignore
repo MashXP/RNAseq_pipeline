@@ -18,6 +18,7 @@ _data/fastq_trimmed/
 _data/genome/
 _data/index/
 _data/ensembl/
+_data/multiqc
 
 # Ignore R intermediate data
 **/ .RData/
@@ -58,6 +59,7 @@ log.txt
 memo*
 GEMINI.md
 TODO.md
+results
 
 _data_neo
 results_neo
