@@ -8,8 +8,9 @@ dependencies:
   - star
   - samtools
   - subread
-  - rseqc
   - multiqc
+  - picard
+  - ucsc-gtftogenepred
   - trimmomatic
   
   # Python Stack

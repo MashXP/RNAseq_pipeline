@@ -51,7 +51,7 @@ if [ "$RUN_UPSTREAM" = true ]; then
         cd test_upstream/
         bash test_01_genome_prep.sh
         bash test_02_star_align.sh
-        bash test_03_rseqc_qc.sh
+        bash test_03_alignment_qc.sh
         bash test_04_quantification.sh
         bash test_05_multiqc.sh
     )

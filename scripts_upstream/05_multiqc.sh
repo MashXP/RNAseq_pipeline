@@ -11,7 +11,7 @@ BASE_DIR=$(dirname "$(realpath "$0")")
 DATA_DIR="$BASE_DIR/../_data"
 MULTIQC_DIR="$DATA_DIR/multiqc"
 BAM_DIR="$DATA_DIR/bam"
-QC_DIR="$DATA_DIR/rseqc"
+QC_DIR="$DATA_DIR/qc"
 COUNTS_DIR="$DATA_DIR/counts"
 
 echo "=== Running MultiQC ==="

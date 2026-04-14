@@ -45,22 +45,21 @@ This document provides a technical breakdown of the automation scripts used for 
 
 ---
 
-## 03_rseqc_qc.sh
+## 03_alignment_qc.sh
 
-**Purpose:** Calculates post-alignment quality metrics.
+**Purpose:** Calculates comprehensive post-alignment and RNA-seq quality metrics using Picard.
 
 **Key Actions:**
-- Indexes BAM files using `samtools`.
-- **Gene Body Coverage:** Checks for 5' or 3' bias.
-- **Junction Annotation:** Analyzes splice junctions.
-- **Read Distribution:** Reports mapping to exons, introns, and intergenic regions.
+- **Picard CollectRnaSeqMetrics:** Reports detailed mapping stats (exonic, intronic, UTR) and 5'/3' bias.
+- **Parallel Processing:** Handles multiple samples concurrently (standard: 4 at a time) to optimize HPC resources.
+- **Log Isolation:** Captures per-sample stdout/stderr in the output directory.
 
 **Inputs:**
 - `_data/bam/*/`: Sorted BAM files.
-- `_data/genome/*.bed`: Genome annotation in BED format.
+- `_data/genome/*.refFlat`: Genome annotation in Picard RefFlat format.
 
 **Outputs:**
-- `_data/rseqc/[SampleName]/`: Text and plot data for each QC metric.
+- `_data/qc/[SampleName]/`: Metrics files and coverage plots (PDF).
 
 ---
 
@@ -104,7 +103,7 @@ These helper scripts perform specialized data parsing and format conversions.
 
 ## gtf2bed.py
 - **Function:** Converts Ensembl GTF files to BED12 format.
-- **Why:** Required by RSeQC tools (`geneBody_coverage.py`) which do not accept GTF directly.
+- **Why:** Useful for legacy tools that require BED12 format instead of GTF.
 - **Usage:** `python3 gtf2bed.py input.gtf > output.bed`
 
 ## biotype_to_multiqc.py

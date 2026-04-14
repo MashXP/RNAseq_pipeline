@@ -1,7 +1,7 @@
 import sys
 
 # Usage: python gtf2bed.py input.gtf > output.bed
-# A simple script to convert GTF to BED12 for RSeQC
+# A simple script to convert GTF to BED12.
 
 def parse_gtf(gtf_file):
     transcripts = {}

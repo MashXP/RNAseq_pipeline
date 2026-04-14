@@ -56,6 +56,16 @@ for species in Human Dog; do
     # BED12
     if [ ! -f "$GENOME_DIR/$bed_file" ]; then python3 "$UTILS_DIR/gtf2bed.py" "$GENOME_DIR/$gtf_unzipped" > "$GENOME_DIR/$bed_file"; fi
     
+    # 5. Picard RefFlat (required for CollectRnaSeqMetrics)
+    refflat_file="${gtf_unzipped%.gtf}.refFlat"
+    if [ ! -f "$GENOME_DIR/$refflat_file" ]; then
+        echo "Generating Picard refFlat for $species..."
+        gtfToGenePred -genePredExt -geneNameAsName2 "$GENOME_DIR/$gtf_unzipped" "$GENOME_DIR/refflat.tmp.txt"
+        # Columns: geneName, name, chrom, strand, txStart, txEnd, cdsStart, cdsEnd, exonCount, exonStarts, exonEnds
+        awk 'BEGIN { OFS="\t"} {print $12, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10}' "$GENOME_DIR/refflat.tmp.txt" > "$GENOME_DIR/$refflat_file"
+        rm -f "$GENOME_DIR/refflat.tmp.txt"
+    fi
+    
     # STAR Index
     species_index="$INDEX_DIR/$species"
     mkdir -p "$species_index"

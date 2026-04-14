@@ -18,19 +18,19 @@ RNA-seq_pipeline/
 │   ├── genome/                  # Reference FASTA, GTF, and BED files
 │   ├── index/                   # STAR binary genome index
 │   ├── bam/                     # Aligned, Coordinate-Sorted BAM files
-│   ├── rseqc/                   # Post-alignment QC logs (Read distribution, etc.)
+│   ├── qc/                      # Post-alignment QC logs (Picard metrics, etc.)
 │   ├── counts/                  # Raw gene counts (featureCounts)
 │   ├── multiqc/                 # Aggregated quality reports (HTML)
 │   └── logs/                    # Comprehensive pipeline run logs
 ├── scripts_upstream/            # Upstream Automation (BASH)
 │   ├── 01_genome_prep.sh        # Build index & Trim reads
 │   ├── 02_star_align.sh         # Map reads using STAR
-│   ├── 03_rseqc_qc.sh           # Calculate mapping statistics
+│   ├── 03_alignment_qc.sh       # Alignment & RNA-seq Metrics (Picard)
 │   ├── 04_quantification.sh     # Gene-level quantification
 │   ├── 05_multiqc.sh            # Generate aggregated HTML report
 │   └── utils/                   # Shared utility scripts
 │       ├── parse_samples.py     # Metadata CSV parser
-│       ├── gtf2bed.py           # Format conversion for RSeQC
+│       ├── gtf2bed.py           # Format conversion utility (GTF to BED12)
 │       └── biotype_to_multiqc.py # Custom MultiQC content generator
 ├── scripts_downstream/          # Downstream Analysis Suite (R)
 │   ├── 01_data_prep.R           # Metadata & Count filtering
@@ -135,7 +135,7 @@ All core dependencies are managed via **Micromamba** or **Mamba**. Refer to `env
 - **STAR**: Ultra-fast RNA-seq aligner (requires ~32GB RAM for Human genome).
 - **samtools**: Alignment indexing and processing.
 - **featureCounts (subread)**: Gene-level quantification.
-- **RSeQC**: Post-alignment quality metrics (Read distribution, Junctions).
+- **Picard**: Post-alignment quality metrics (Exon/Intron/UTR distribution, 5'/3' bias).
 - **MultiQC**: Aggregated visual reporting.
 - **Trimmomatic**: Adapter and quality trimming.
 

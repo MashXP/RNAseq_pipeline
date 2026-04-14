@@ -77,6 +77,15 @@ for species in Human Dog; do
     # BED12
     if [ ! -f "$SPECIES_GENOME_DIR/$bed_file" ]; then python3 "$UTILS_DIR/gtf2bed.py" "$SPECIES_GENOME_DIR/$gtf_unzipped" > "$SPECIES_GENOME_DIR/$bed_file"; fi
     
+    # --- DEVIATION: Generate Picard RefFlat for test chromosome subsets
+    refflat_file="${bed_file%.bed}.refFlat"
+    if [ ! -f "$SPECIES_GENOME_DIR/$refflat_file" ]; then
+        echo "Generating Picard refFlat for test $species..."
+        gtfToGenePred -genePredExt -geneNameAsName2 "$SPECIES_GENOME_DIR/$gtf_unzipped" "$SPECIES_GENOME_DIR/refflat.tmp.txt"
+        awk 'BEGIN { OFS="\t"} {print $12, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10}' "$SPECIES_GENOME_DIR/refflat.tmp.txt" > "$SPECIES_GENOME_DIR/$refflat_file"
+        rm -f "$SPECIES_GENOME_DIR/refflat.tmp.txt"
+    fi
+    
     # STAR Index
     species_index="$INDEX_DIR/$species"
     mkdir -p "$species_index"
