@@ -63,10 +63,10 @@ for group in $groups; do
     fi
 
     echo "1. Counting Reads per Gene (gene_id)..."
-    featureCounts -p -T "$THREADS" -t exon -g gene_id -a "$GTF_FILE" -o "$COUNTS_DIR/gene_counts_${group}.txt" $files
+    featureCounts -p -s 2 -T "$THREADS" -t exon -g gene_id -a "$GTF_FILE" -o "$COUNTS_DIR/gene_counts_${group}.txt" $files
 
     echo "2. Counting Reads per Biotype (gene_biotype)..."
-    featureCounts -p -T "$THREADS" -t exon -g gene_biotype -a "$GTF_FILE" -o "$COUNTS_DIR/biotype_counts_${group}.txt" $files
+    featureCounts -p -s 2 -T "$THREADS" -t exon -g gene_biotype -a "$GTF_FILE" -o "$COUNTS_DIR/biotype_counts_${group}.txt" $files
 
     if python3 -c "import pandas" &> /dev/null; then
         python3 "$UTILS_DIR/biotype_to_multiqc.py" "$COUNTS_DIR/biotype_counts_${group}.txt" "$COUNTS_DIR/biotype_counts_mqc_${group}.txt"
