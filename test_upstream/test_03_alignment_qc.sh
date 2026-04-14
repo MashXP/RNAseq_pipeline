@@ -71,7 +71,7 @@ run_qc() {
         I="$bam_file" \
         O="$SAMPLE_QC_DIR/${sample_name}.metrics.tmp" \
         REF_FLAT="$REFFLAT" \
-        STRAND=FIRST_READ_TRANSCRIPTION_STRAND \
+        STRAND=SECOND_READ_TRANSCRIPTION_STRAND \
         RIBOSOMAL_INTERVALS=null \
         CHART_OUTPUT="$SAMPLE_QC_DIR/${sample_name}.coverage.pdf.tmp"
 
