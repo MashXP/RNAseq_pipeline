@@ -60,7 +60,8 @@ dose_palette_shared <- setNames(
 # 6. Default Heatmap (Top 50 Variable) with ComplexHeatmap
 top_genes_idx <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 50)
 mat_var       <- assay(vsd)[top_genes_idx, ]
-mat_var       <- mat_var - rowMeans(mat_var)
+# Intensify colors: Full Z-score scaling (center and scale by SD)
+mat_var       <- t(scale(t(mat_var))) 
 mat_var       <- pmin(pmax(mat_var, -2), 2)
 
 symbols_var       <- gene_map[rownames(mat_var), "SYMBOL"]

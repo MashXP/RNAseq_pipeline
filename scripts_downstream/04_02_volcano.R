@@ -77,7 +77,7 @@ for (dose in names(results_list)) {
                                lab = sym_labels,
                                x = 'log2FoldChange',
                                y = 'padj',
-                               title = paste(dose, 'vs DMSO'),
+                               title = str_replace(dose, "_vs_", " vs "),
                                subtitle = count_subtitle,
                                ylab = "-log10(Adjusted p-value)",
                                pCutoff = pCut,
@@ -96,7 +96,7 @@ for (dose in names(results_list)) {
 if (length(volcano_plots) > 1) {
   combined_volcano <- wrap_plots(volcano_plots, nrow = 1) +
     plot_annotation(
-      title = paste0("Volcano Plots: ", group_name, " vs DMSO"),
+      title = paste0("Volcano Plots: ", group_name),
       theme = theme(plot.title = element_text(face = "bold", hjust = 0.5))
     )
   ggsave(paste0(res_dir, "/figures/04_volcano_combined.png"),

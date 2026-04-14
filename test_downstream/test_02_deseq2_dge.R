@@ -33,18 +33,21 @@ dds <- DESeqDataSetFromMatrix(countData = counts_filtered,
 dds <- DESeq(dds)
 
 # 4. Extract results for specific comparisons
-# Mapping: Treatment vs its specific Control
+# Mapping: list(c(Treatment, Control))
 comparisons <- list(
-  "Romi_6nM"       = "DMSO_Romi",
-  "Kromastat_6nM"  = "DMSO_Kromastat",
-  "DMSO_Kromastat" = "DMSO_Romi"
+  c("Romi_6nM",       "DMSO_Romi"),
+  c("Kromastat_6nM",  "DMSO_Kromastat"),
+  c("Romi_6nM",       "Kromastat_6nM"),
+  c("DMSO_Kromastat", "DMSO_Romi")
 )
 
 results_list <- list()
 
-for (dose in names(comparisons)) {
-  ref <- comparisons[[dose]]
-  message("Processing contrast: ", dose, " vs ", ref)
+for (comp in comparisons) {
+  dose <- comp[1]
+  ref  <- comp[2]
+  contrast_name <- paste0(dose, "_vs_", ref)
+  message("Processing contrast: ", contrast_name)
   
   res <- results(dds, contrast = c("condition", dose, ref))
   
@@ -59,16 +62,15 @@ for (dose in names(comparisons)) {
   if (length(coef_name) == 1) {
     res_shrunk <- lfcShrink(dds, coef = coef_name, type = "apeglm")
   } else {
-    message("Warning: apeglm coefficient not found exactly for ", dose, " vs ", ref, ". Falling back to 'normal' shrinkage.")
+    message("Warning: apeglm coefficient not found exactly for ", contrast_name, ". Falling back to 'normal' shrinkage.")
     res_shrunk <- lfcShrink(dds, contrast = c("condition", dose, ref), type = "normal")
   }
   
-  results_list[[dose]] <- list(res = res, shrunk = res_shrunk)
+  results_list[[contrast_name]] <- list(res = res, shrunk = res_shrunk)
   
-  safe_name <- str_replace_all(dose, "[^a-zA-Z0-9]", "_")
-  safe_ref  <- str_replace_all(ref, "[^a-zA-Z0-9]", "_")
+  safe_contrast <- str_replace_all(contrast_name, "[^a-zA-Z0-9]", "_")
   write.csv(as.data.frame(res_shrunk), 
-            file = paste0(res_dir, "/tables/02_dge_", safe_name, "_vs_", safe_ref, ".csv"))
+            file = paste0(res_dir, "/tables/02_dge_", safe_contrast, ".csv"))
 }
 
 # 5. Save comprehensive results

@@ -1,5 +1,5 @@
 # [[test_downstream/test_04_05_heatmap_variable.R]]
-# Goal: Generate Top 50 Most Variable Genes Heatmap for specific group. (TEST)
+# Goal: Generate Top 50 Most Variable Genes Heatmap for specific group.
 
 library(DESeq2)
 library(ggplot2)
