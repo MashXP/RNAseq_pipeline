@@ -14,7 +14,7 @@ MULTIQC_DIR="$DATA_DIR/multiqc_test"
 # --- DEVIATION: Points to test BAM directory
 BAM_DIR="$DATA_DIR/bam_test"
 # --- DEVIATION: Points to test QC directory
-QC_DIR="$DATA_DIR/rseqc_test"
+QC_DIR="$DATA_DIR/qc_test"
 # --- DEVIATION: Points to test Counts directory
 COUNTS_DIR="$DATA_DIR/counts_test"
  
@@ -24,7 +24,7 @@ mkdir -p "$MULTIQC_DIR"
 # Run MultiQC on specific result directories to catch:
 # 1. FastQC (if run)
 # 2. STAR alignment logs
-# 3. RSeQC logs
+# 3. Picard logs (Alignment QC)
 # 4. featureCounts summaries
 # 5. Biotype custom content
  

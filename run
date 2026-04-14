@@ -80,7 +80,7 @@ if [ "$RUN_UPSTREAM" = true ]; then
         cd scripts_upstream/
         bash 01_genome_prep.sh
         bash 02_star_align.sh
-        bash 03_rseqc_qc.sh
+        bash 03_alignment_qc.sh
         bash 04_quantification.sh
         bash 05_multiqc.sh
     ) || { echo "Upstream pipeline failed at some step. Exiting."; exit 1; }
