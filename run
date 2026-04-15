@@ -70,6 +70,7 @@ if [ "$RUN_UPSTREAM" = true ]; then
     # Check dependencies
     command -v STAR >/dev/null 2>&1 || { echo >&2 "Error: STAR is not installed."; exit 1; }
     command -v samtools >/dev/null 2>&1 || { echo >&2 "Error: samtools is not installed."; exit 1; }
+    command -v fastqc >/dev/null 2>&1 || { echo >&2 "Error: fastqc is not installed."; exit 1; }
     command -v featureCounts >/dev/null 2>&1 || { echo >&2 "Error: featureCounts is not installed."; exit 1; }
     command -v multiqc >/dev/null 2>&1 || { echo >&2 "Error: MultiQC is not installed."; exit 1; }
     command -v trimmomatic >/dev/null 2>&1 || { echo >&2 "Error: trimmomatic is not installed."; exit 1; }

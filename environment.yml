@@ -12,6 +12,7 @@ dependencies:
   - picard
   - ucsc-gtftogenepred
   - trimmomatic
+  - fastqc
   
   # Python Stack
   - python=3.9
