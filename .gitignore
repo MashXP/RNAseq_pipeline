@@ -71,3 +71,4 @@ test_neo
 *.log
 *.err
 *.txt
+*.out
