@@ -70,3 +70,4 @@ test_neo
 # Ignore logs
 *.log
 *.err
+*.txt
