@@ -33,7 +33,7 @@ mkdir -p "$MULTIQC_DIR"
 # 5. Biotype custom content
 
 # --- DEVIATION: Report filename includes _test suffix
-multiqc "$BAM_DIR" "$QC_DIR" "$QC_RAW_DIR" "$COUNTS_DIR" -o "$MULTIQC_DIR" -f -n "rna_seq_pipeline_summary_test" 
+multiqc "$BAM_DIR" "$QC_DIR" "$QC_RAW_DIR" "$COUNTS_DIR" -o "$MULTIQC_DIR" -f -n "rna_seq_pipeline_summary_test" -c "$BASE_DIR/../multiqc_config.yaml" 
 echo "=== MultiQC Complete ==="
 # --- DEVIATION: Report filename includes _test suffix
 echo "Report generated at: $MULTIQC_DIR/rna_seq_pipeline_summary_test.html"

@@ -1,0 +1,22 @@
+report_section_order:
+    fastqc:
+        order: -10
+    star:
+        order: -20
+    picard:
+        order: -30
+    featurecounts:
+        order: -40
+    biotype_counts:
+        order: -50
+
+# Customizing the appearance
+section_comments:
+    biotype_counts: "Detailed breakdown of read counts across different genomic biotypes."
+
+# Ensure the custom biotype plot is easily visible
+custom_content_header_config:
+    biotype_counts:
+        parent_id: 'quantification_summary'
+        parent_name: 'Quantification'
+        parent_description: 'Summary of read counting and biotype distribution.'
