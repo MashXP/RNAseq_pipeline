@@ -13,6 +13,7 @@
 # Ignore production upstream output folders
 _data/bam/
 _data/qc/
+_data/qc_raw
 _data/counts/
 _data/fastq_trimmed/
 _data/genome/
