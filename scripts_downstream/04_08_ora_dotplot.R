@@ -30,7 +30,7 @@ ora_combined <- map2_dfr(
   enrichment_results_all,
   names(enrichment_results_all),
   function(res, contrast_name) {
-    ora_res <- res$go_ora
+    ora_res <- res$ora_go
     if (!is.null(ora_res) && nrow(as.data.frame(ora_res)) > 0) {
       as.data.frame(ora_res) %>%
         dplyr::select(Description, pvalue, p.adjust, Count, GeneRatio) %>%
