@@ -12,19 +12,23 @@ DATA_DIR="$BASE_DIR/../_data"
 MULTIQC_DIR="$DATA_DIR/multiqc"
 BAM_DIR="$DATA_DIR/bam"
 QC_DIR="$DATA_DIR/qc"
+QC_RAW_DIR="$DATA_DIR/qc_raw"
 COUNTS_DIR="$DATA_DIR/counts"
 
-echo "=== Running MultiQC ==="
+echo ""
+echo "================================================================================"
+echo "   SUMMARY: Running MultiQC"
+echo "================================================================================"
 mkdir -p "$MULTIQC_DIR"
 
 # Run MultiQC on specific result directories to catch:
-# 1. FastQC (if run)
+# 1. FastQC (raw and trimmed if run)
 # 2. STAR alignment logs
 # 3. RSeQC logs
 # 4. featureCounts summaries
 # 5. Biotype custom content
 
-multiqc "$BAM_DIR" "$QC_DIR" "$COUNTS_DIR" -o "$MULTIQC_DIR" -f -n "rna_seq_pipeline_summary"
+multiqc "$BAM_DIR" "$QC_DIR" "$QC_RAW_DIR" "$COUNTS_DIR" -o "$MULTIQC_DIR" -f -n "rna_seq_pipeline_summary"
 
 echo "=== MultiQC Complete ==="
 echo "Report generated at: $MULTIQC_DIR/rna_seq_pipeline_summary.html"

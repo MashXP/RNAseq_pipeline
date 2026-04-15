@@ -21,7 +21,10 @@ THREADS=${SLURM_CPUS_PER_TASK:-16}
 echo "Resources: $THREADS threads."
 # -------------------------------
 
-echo "=== Starting Quantification with featureCounts (per Group) ==="
+echo ""
+echo "================================================================================"
+echo "   QUANTIFICATION: Starting featureCounts (per Group)"
+echo "================================================================================"
 
 groups=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | awk '{print $5}' | sort -u)
 
@@ -33,9 +36,9 @@ for group in $groups; do
     species=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | awk -v grp="$group" '$5 == grp {print $4}' | head -n 1)
     
     if [ "$species" == "Human" ]; then
-        GTF_FILE="$GENOME_DIR/Homo_sapiens.GRCh38.113.gtf"
+        GTF_FILE="$GENOME_DIR/Human/Homo_sapiens.GRCh38.113.gtf"
     else
-        GTF_FILE="$GENOME_DIR/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf"
+        GTF_FILE="$GENOME_DIR/Dog/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf"
     fi
 
     if [ ! -f "$GTF_FILE" ]; then

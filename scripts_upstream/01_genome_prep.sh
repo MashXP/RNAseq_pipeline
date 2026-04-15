@@ -25,11 +25,17 @@ FASTA_URLS[Dog]="https://ftp.ensembl.org/pub/release-113/fasta/canis_lupus_famil
 GTF_URLS[Dog]="https://ftp.ensembl.org/pub/release-113/gtf/canis_lupus_familiaris/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf.gz"
 
 # 2. Downloading Genome Files
-echo "=== Step 1-4: Downloading, Extracting, BED, and STAR Indexing for Species ==="
+echo "================================================================================"
+echo "   GENOME PREPARATION: Downloading, Extracting, and Indexing"
+echo "================================================================================"
 mkdir -p "$GENOME_DIR"
 
 for species in Human Dog; do
     echo "Processing Genome for: $species"
+    
+    # Organize genome files into species subdirectories
+    SPECIES_GENOME_DIR="$GENOME_DIR/$species"
+    mkdir -p "$SPECIES_GENOME_DIR"
     
     fasta_url=${FASTA_URLS[$species]}
     gtf_url=${GTF_URLS[$species]}
@@ -40,30 +46,29 @@ for species in Human Dog; do
     bed_file="${gtf_unzipped%.gtf}.bed"
     
     # Download
-    if [ ! -f "$GENOME_DIR/$fasta_gz" ]; then
+    if [ ! -f "$SPECIES_GENOME_DIR/$fasta_gz" ]; then
         echo "Downloading FASTA for $species..."
-        wget -P "$GENOME_DIR" "$fasta_url"
+        wget -P "$SPECIES_GENOME_DIR" "$fasta_url"
     fi
-    if [ ! -f "$GENOME_DIR/$gtf_gz" ]; then
+    if [ ! -f "$SPECIES_GENOME_DIR/$gtf_gz" ]; then
         echo "Downloading GTF for $species..."
-        wget -P "$GENOME_DIR" "$gtf_url"
+        wget -P "$SPECIES_GENOME_DIR" "$gtf_url"
     fi
     
     # Extract
-    if [ ! -f "$GENOME_DIR/$fasta_unzipped" ]; then gunzip -c "$GENOME_DIR/$fasta_gz" > "$GENOME_DIR/$fasta_unzipped"; fi
-    if [ ! -f "$GENOME_DIR/$gtf_unzipped" ]; then gunzip -c "$GENOME_DIR/$gtf_gz" > "$GENOME_DIR/$gtf_unzipped"; fi
+    if [ ! -f "$SPECIES_GENOME_DIR/$fasta_unzipped" ]; then gunzip -c "$SPECIES_GENOME_DIR/$fasta_gz" > "$SPECIES_GENOME_DIR/$fasta_unzipped"; fi
+    if [ ! -f "$SPECIES_GENOME_DIR/$gtf_unzipped" ]; then gunzip -c "$SPECIES_GENOME_DIR/$gtf_gz" > "$SPECIES_GENOME_DIR/$gtf_unzipped"; fi
     
     # BED12
-    if [ ! -f "$GENOME_DIR/$bed_file" ]; then python3 "$UTILS_DIR/gtf2bed.py" "$GENOME_DIR/$gtf_unzipped" > "$GENOME_DIR/$bed_file"; fi
+    if [ ! -f "$SPECIES_GENOME_DIR/$bed_file" ]; then python3 "$UTILS_DIR/gtf2bed.py" "$SPECIES_GENOME_DIR/$gtf_unzipped" > "$SPECIES_GENOME_DIR/$bed_file"; fi
     
-    # 5. Picard RefFlat (required for CollectRnaSeqMetrics)
+    # Picard RefFlat (required for CollectRnaSeqMetrics)
     refflat_file="${gtf_unzipped%.gtf}.refFlat"
-    if [ ! -f "$GENOME_DIR/$refflat_file" ]; then
+    if [ ! -f "$SPECIES_GENOME_DIR/$refflat_file" ]; then
         echo "Generating Picard refFlat for $species..."
-        gtfToGenePred -genePredExt -geneNameAsName2 "$GENOME_DIR/$gtf_unzipped" "$GENOME_DIR/refflat.tmp.txt"
-        # Columns: geneName, name, chrom, strand, txStart, txEnd, cdsStart, cdsEnd, exonCount, exonStarts, exonEnds
-        awk 'BEGIN { OFS="\t"} {print $12, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10}' "$GENOME_DIR/refflat.tmp.txt" > "$GENOME_DIR/$refflat_file"
-        rm -f "$GENOME_DIR/refflat.tmp.txt"
+        gtfToGenePred -genePredExt -geneNameAsName2 "$SPECIES_GENOME_DIR/$gtf_unzipped" "$SPECIES_GENOME_DIR/refflat.tmp.txt"
+        awk 'BEGIN { OFS="\t"} {print $12, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10}' "$SPECIES_GENOME_DIR/refflat.tmp.txt" > "$SPECIES_GENOME_DIR/$refflat_file"
+        rm -f "$SPECIES_GENOME_DIR/refflat.tmp.txt"
     fi
     
     # STAR Index
@@ -74,21 +79,43 @@ for species in Human Dog; do
         STAR --runThreadN 32 \
              --runMode genomeGenerate \
              --genomeDir "$species_index" \
-             --genomeFastaFiles "$GENOME_DIR/$fasta_unzipped" \
-             --sjdbGTFfile "$GENOME_DIR/$gtf_unzipped" \
+             --genomeFastaFiles "$SPECIES_GENOME_DIR/$fasta_unzipped" \
+             --sjdbGTFfile "$SPECIES_GENOME_DIR/$gtf_unzipped" \
              --sjdbOverhang 99
     else
         echo "STAR index for $species already exists. Skipping."
     fi
 done
 
-# 6. Trimming with Trimmomatic
-echo "=== Step 5: Trimming Reads ==="
-mkdir -p "$TRIM_DIR"
+# 3. FastQC on Raw Reads
+echo ""
+echo "================================================================================"
+echo "   QUALITY CONTROL: Running FastQC on Raw Reads"
+echo "================================================================================"
+RAW_QC_DIR="$BASE_DIR/../_data/qc_raw"
+mkdir -p "$RAW_QC_DIR"
 
 # --- Resource Auto-detection ---
 # Default to 32 threads or respect SLURM
 THREADS=${SLURM_CPUS_PER_TASK:-32}
+
+python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2 species group
+do
+    echo "Running FastQC for Sample: $sample"
+    # Skip if both FastQC reports exist
+    if [ ! -f "$RAW_QC_DIR/${r1%.fastq.gz}_fastqc.html" ] || [ ! -f "$RAW_QC_DIR/${r2%.fastq.gz}_fastqc.html" ]; then
+        fastqc -t "$THREADS" "$FASTQ_DIR/$r1" "$FASTQ_DIR/$r2" -o "$RAW_QC_DIR"
+    else
+        echo "FastQC results for $sample already exist. Skipping."
+    fi
+done
+
+# 4. Trimming with Trimmomatic
+echo ""
+echo "================================================================================"
+echo "   PREPROCESSING: Trimming Reads with Trimmomatic"
+echo "================================================================================"
+mkdir -p "$TRIM_DIR"
 
 # Detect RAM and set Java heap size (~90% of available)
 if [ -n "$SLURM_MEM_PER_NODE" ]; then

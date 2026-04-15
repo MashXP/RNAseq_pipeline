@@ -27,7 +27,10 @@ CPUS_PER_SAMPLE=$((TOTAL_CPUS / PARALLEL_SAMPLES))
 # --- DEVIATION: Lower memory allocation for local test environment
 JAVA_MEM_PER_SAMPLE=4
 
-echo "=== Starting Alignment QC (Picard) ==="
+echo ""
+echo "================================================================================"
+echo "   ALIGNMENT QC: Starting Picard CollectRnaSeqMetrics"
+echo "================================================================================"
 echo "Resources: $PARALLEL_SAMPLES concurrent samples, ${JAVA_MEM_PER_SAMPLE}G RAM per Picard job."
 
 # Function to run QC for a single sample

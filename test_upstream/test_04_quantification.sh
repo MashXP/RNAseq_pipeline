@@ -23,7 +23,10 @@ THREADS=${SLURM_CPUS_PER_TASK:-10}
 echo "Resources: $THREADS threads."
 # -------------------------------
 
-echo "=== Starting Quantification with featureCounts (per Group) ==="
+echo ""
+echo "================================================================================"
+echo "   QUANTIFICATION: Starting featureCounts (per Group)"
+echo "================================================================================"
 
 groups=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | awk '{print $5}' | sort -u)
 

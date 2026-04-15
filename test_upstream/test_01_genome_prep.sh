@@ -26,8 +26,10 @@ GTF_URLS[Human]="https://ftp.ensembl.org/pub/release-113/gtf/homo_sapiens/Homo_s
 FASTA_URLS[Dog]="https://ftp.ensembl.org/pub/release-113/fasta/canis_lupus_familiaris/dna/Canis_lupus_familiaris.ROS_Cfam_1.0.dna.primary_assembly.38.fa.gz"
 GTF_URLS[Dog]="https://ftp.ensembl.org/pub/release-113/gtf/canis_lupus_familiaris/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf.gz"
 
-# 2. Downloading Genome Files
-echo "=== Step 1-4: Downloading, Extracting, BED, and STAR Indexing for Species ==="
+# Downloading Genome Files
+echo "================================================================================"
+echo "   GENOME PREPARATION: Downloading and Indexing"
+echo "================================================================================"
 mkdir -p "$GENOME_DIR"
 
 for species in Human Dog; do
@@ -105,14 +107,39 @@ for species in Human Dog; do
     fi
 done
 
-# 6. Trimming with Trimmomatic
-echo "=== Step 5: Trimming Reads ==="
-mkdir -p "$TRIM_DIR"
+# FastQC on Raw Reads (Test Mode)
+echo ""
+echo "================================================================================"
+echo "   QUALITY CONTROL: Running FastQC on Raw Reads"
+echo "================================================================================"
+RAW_QC_DIR="$BASE_DIR/../_data/qc_raw_test"
+mkdir -p "$RAW_QC_DIR"
 
 # --- Resource Auto-detection ---
-# Default to respect SLURM
-# --- DEVIATION: Fallback changed from 32 to 10 threads to match local machine specs
+# Default to 10 threads or respect SLURM
 THREADS=${SLURM_CPUS_PER_TASK:-10}
+
+python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2 species group
+do
+    echo "Running FastQC for Sample: $sample"
+    if [ ! -f "$RAW_QC_DIR/${r1%.fastq.gz}_fastqc.html" ] || [ ! -f "$RAW_QC_DIR/${r2%.fastq.gz}_fastqc.html" ]; then
+        # In test mode, we only run on Sample 27 to save time
+        if [[ "$sample" == "27" ]]; then
+            fastqc -t "$THREADS" "$FASTQ_DIR/$r1" "$FASTQ_DIR/$r2" -o "$RAW_QC_DIR"
+        else
+            echo "Skipping FastQC for $sample in test mode."
+        fi
+    else
+        echo "FastQC results for $sample already exist. Skipping."
+    fi
+done
+
+# Trimming with Trimmomatic
+echo ""
+echo "================================================================================"
+echo "   PREPROCESSING: Trimming Reads with Trimmomatic"
+echo "================================================================================"
+mkdir -p "$TRIM_DIR"
 
 # Detect RAM and set Java heap size (~90% of available)
 if [ -n "$SLURM_MEM_PER_NODE" ]; then
@@ -129,7 +156,7 @@ JAVA_MEM=$(($MEM_GB - 12))
 echo "Resources: $THREADS threads, allocated ${JAVA_MEM}G Java Heap."
 # -------------------------------
 
-# 6.1 Defensive Check: Verify FASTQ presence before starting
+# Defensive Check: Verify FASTQ presence before starting
 echo "Checking for required FASTQ files..."
 python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | while read -r sample r1 r2 species group
 do

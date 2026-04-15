@@ -16,7 +16,10 @@ ALIGN_DIR="$BASE_DIR/../_data/bam_test"
 UTILS_DIR="$BASE_DIR/utils"
 CSV_FILE="$BASE_DIR/../drPhuong_Sample_Data_Table.csv"
 
-echo "=== Starting STAR Alignment ==="
+echo ""
+echo "================================================================================"
+echo "   ALIGNMENT: Starting STAR Alignment"
+echo "================================================================================"
 mkdir -p "$ALIGN_DIR"
 
 # --- Resource Auto-detection ---

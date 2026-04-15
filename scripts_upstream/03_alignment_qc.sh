@@ -26,7 +26,10 @@ CPUS_PER_SAMPLE=$((TOTAL_CPUS / PARALLEL_SAMPLES))
 JAVA_MEM_PER_SAMPLE=$((128 / PARALLEL_SAMPLES - 4))
 [ "$JAVA_MEM_PER_SAMPLE" -lt 4 ] && JAVA_MEM_PER_SAMPLE=4
 
-echo "=== Starting Alignment QC (Picard) ==="
+echo ""
+echo "================================================================================"
+echo "   ALIGNMENT QC: Starting Picard CollectRnaSeqMetrics"
+echo "================================================================================"
 echo "Resources: $PARALLEL_SAMPLES concurrent samples, ${JAVA_MEM_PER_SAMPLE}G RAM per Picard job."
 
 # Function to run QC for a single sample
@@ -52,9 +55,9 @@ run_qc() {
 
     # Select Reference files
     if [ "$sample_species" == "Human" ]; then
-        REFFLAT="$GENOME_DIR/Homo_sapiens.GRCh38.113.refFlat"
+        REFFLAT="$GENOME_DIR/Human/Homo_sapiens.GRCh38.113.refFlat"
     else
-        REFFLAT="$GENOME_DIR/Canis_lupus_familiaris.ROS_Cfam_1.0.113.refFlat"
+        REFFLAT="$GENOME_DIR/Dog/Canis_lupus_familiaris.ROS_Cfam_1.0.113.refFlat"
     fi
 
     if [ ! -f "$REFFLAT" ]; then
