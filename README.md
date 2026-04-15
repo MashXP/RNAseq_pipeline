@@ -42,13 +42,14 @@ RNA-seq_pipeline/
 │   ├── 04_04_heatmap_pathway.R  # Pathway-specific expression maps
 │   ├── 04_05_heatmap_variable.R # High-variance gene discovery
 │   ├── 04_06_enrichment_nes.R    # Hallmark enrichment barplots
-│   └── 04_07_enrichment_dotplot.R # GSEA summary dotplots
+│   ├── 04_07_enrichment_dotplot.R # GSEA summary dotplots
+│   └── 04_08_ora_dotplot.R       # ORA summary dotplots
 ├── test_upstream/               # Verification Suite: Upstream (Chr21)
-│   ├── test_01-04.sh            # Prefixed test scripts (mapped to prod)
+│   ├── test_01-05.sh            # Prefixed test scripts (mapped to prod)
 │   └── utils/                   # Test-specific metadata parsers
 ├── test_downstream/             # Verification Suite: Downstream (Mock)
 │   ├── test_01-03.R             # Prefixed data & enrichment tests
-│   └── test_04_01-07.R          # Prefixed modular visualization tests
+│   └── test_04_01-08.R          # Prefixed modular visualization tests
 ├── _hpc/                        # Cluster Environment Management (Slurm)
 │   ├── hpc_run.sbatch           # Production run template (32 CPU, 128G)
 │   ├── hpc_test_micro.sbatch    # Quick test template (4 CPU, 16G)
@@ -126,6 +127,7 @@ The modular visualization suite generates the following figures:
 | Variable Heatmap | `04_05_heatmap_variable.R` | Top 50 most variable genes |
 | Hallmark NES | `04_06_enrichment_nes.R` | Hallmark enrichment scores |
 | GSEA Dotplots | `04_07_enrichment_dotplot.R` | GSEA GO enrichment dots |
+| ORA Dotplots | `04_08_ora_dotplot.R` | ORA GO enrichment dots |
 
 ## Requirements
 

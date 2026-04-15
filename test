@@ -89,6 +89,7 @@ if [ "$RUN_DOWNSTREAM" = true ]; then
             Rscript test_04_05_heatmap_variable.R "$group" "$species"
             Rscript test_04_06_enrichment_nes.R "$group" "$species"
             Rscript test_04_07_enrichment_dotplot.R "$group" "$species"
+            Rscript test_04_08_ora_dotplot.R "$group" "$species"
 
             echo "Done with Group: $group"
         done
