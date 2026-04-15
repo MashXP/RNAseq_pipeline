@@ -65,3 +65,7 @@ test_script_downstream_neo
 test_script_upstream_neo
 environment_neo.yml
 test_neo
+
+# Ignore logs
+*.log
+*.err
