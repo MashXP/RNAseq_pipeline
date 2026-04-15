@@ -71,3 +71,7 @@ The visualization step is modularized into specialized scripts to allow for targ
 ### 04_07_enrichment_dotplot.R
 - **Goal:** GSEA Dotplots.
 - **Description:** Generates dotplots summarizing GSEA GO enrichment results across all treatment doses for comparative analysis.
+
+### 04_08_ora_dotplot.R
+- **Goal:** ORA Dotplots.
+- **Description:** Visualizes Over-Representation Analysis (ORA) results, showing the Ratio of significant genes found in specific GO pathways.
