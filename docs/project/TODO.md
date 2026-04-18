@@ -10,3 +10,8 @@
 - Add more documentation.
     - Results sample
     - Project creation date
+
+## URGENT
+- Align Dr VuHuynh scripts to current pipeline.
+    - Currently, Dr. VuHuynh's upstream scripts have different alignment outputs than the current pipeline: The only difference is the trimming process, which might not be an issue.  
+    - Need to investigate and make them consistent for paper publification. Then restructure code to merge downstream "bridge" script for less confusion.
