@@ -1,62 +1,88 @@
 # [[scripts_downstream/04_01_pca.R]]
-# Goal: Generate PCA plot for specific group.
+# Goal: Generate PCA plots at the species level (combined) and cell-line level.
+# Aligned with mentor's multifactorial design principles.
 
 library(DESeq2)
 library(ggplot2)
 library(tidyverse)
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 2) {
-  stop("Usage: Rscript 04_01_pca.R <Group> <Species>")
+if (length(args) == 0) {
+  stop("Usage: Rscript 04_01_pca.R <Group> [Species]")
 }
 group_name <- args[1]
-species_name <- args[2]
-
-if (species_name == "Human") {
-  library(org.Hs.eg.db)
-  org_db <- org.Hs.eg.db
-} else if (species_name == "Dog") {
-  library(org.Cf.eg.db)
-  org_db <- org.Cf.eg.db
-} else {
-  stop("Unsupported species: ", species_name)
-}
+species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
 
 res_dir <- paste0("../results/", group_name)
+dir.create(file.path(res_dir, "figures"), showWarnings = FALSE, recursive = TRUE)
 
 # 1. Load data
+# We load the results from step 02 as it contains the dds object
 load(paste0("./.RData/", group_name, "/02_deseq_results.RData"))
 
-# Ensure output directories exist
-dir.create(paste0(res_dir, "/figures"), showWarnings = FALSE, recursive = TRUE)
+message("--- Generating Multifactorial PCA for ", group_name, " ---")
 
-# Transform counts (VST)
-vsd <- vst(dds, blind=FALSE)
+# 2. Transform counts (VST) 
+# blind = TRUE is standard for QC PCA plots per mentor's script
+vsd <- vst(dds, blind = TRUE)
 
-# 1.6 Create clean Sample Names for display
-colData(vsd)$display_name <- rownames(colData(vsd))
-colnames(vsd) <- colData(vsd)$display_name
+# 3. Combined PCA (Species Level)
+pca_data <- plotPCA(vsd, intgroup = c("cell_line", "condition"), returnData = TRUE)
+percent_var <- round(100 * attr(pca_data, "percentVar"))
 
-# Order VSD columns by condition
-vsd <- vsd[, order(vsd$condition)]
-
-# Shared dose colour palette
-cond_levels   <- unique(as.character(colData(vsd)$condition))
-dose_palette_shared <- setNames(
-  colorRampPalette(RColorBrewer::brewer.pal(min(length(cond_levels), 8), "Set2"))(length(cond_levels)),
-  cond_levels
+# Shared dose colour palette (Intuitive Distinct Palette)
+dose_palette <- c(
+  "DMSO_Romi"      = "grey85",
+  "Romi_6nM"       = "#E41A1C", # Brighter Red
+  "DMSO_Kromastat" = "grey70",
+  "Kromastat_6nM"  = "#377EB8"  # Brighter Blue
 )
 
-p_pca <- plotPCA(vsd, intgroup = "condition") +
-  scale_color_manual(values = dose_palette_shared) +
-  theme_classic() +
-  theme(
-    panel.background  = element_rect(fill = "white", color = NA),
-    plot.background   = element_rect(fill = "white", color = NA),
-    panel.grid.major  = element_line(color = "grey88", linewidth = 0.4),
-    panel.grid.minor  = element_line(color = "grey93", linewidth = 0.2)
+# Combined Plot logic
+p_combined <- ggplot(pca_data, aes(PC1, PC2, color = condition, shape = cell_line)) +
+  geom_point(size = 4, alpha = 0.8) +
+  scale_color_manual(values = dose_palette) +
+  theme_bw(base_size = 14) +
+  labs(
+    title = paste0("Species-Level PCA: ", species_name),
+    subtitle = "Color = Treatment | Shape = Cell Line",
+    x = paste0("PC1: ", percent_var[1], "% variance"),
+    y = paste0("PC2: ", percent_var[2], "% variance")
   ) +
-  ggtitle(paste0("PCA Plot: ", group_name, " Drug Response"))
+  theme(panel.grid.minor = element_blank())
 
-ggsave(paste0(res_dir, "/figures/04_pca_plot.png"), p_pca, width = 8, height = 6, bg = "white")
-message("[OK] PCA plot saved -> 04_pca_plot.png  (8x6 in, ", length(cond_levels), " conditions)")
+ggsave(file.path(res_dir, "figures/04_01_pca_combined.png"), p_combined, width = 10, height = 7, bg = "white")
+message("[OK] Saved Combined PCA: 04_01_pca_combined.png")
+
+# 4. Individual Cell-Line PCAs
+cell_lines <- unique(as.character(colData(vsd)$cell_line))
+
+for (cl in cell_lines) {
+  message("Processing sub-PCA for cell line: ", cl)
+  
+  vsd_cell <- vsd[, colData(vsd)$cell_line == cl]
+  
+  # plotPCA requires at least 2 samples, usually 3+ for meaningful plot
+  if (ncol(vsd_cell) >= 2) {
+    pca_cell_data <- plotPCA(vsd_cell, intgroup = "condition", returnData = TRUE)
+    percent_var_cell <- round(100 * attr(pca_cell_data, "percentVar"))
+    
+    p_cell <- ggplot(pca_cell_data, aes(PC1, PC2, color = condition)) +
+      geom_point(size = 5) +
+      scale_color_manual(values = dose_palette) +
+      theme_bw(base_size = 14) +
+      labs(
+        title = paste0("Cell-Line PCA: ", cl),
+        subtitle = paste0("Species: ", species_name),
+        x = paste0("PC1: ", percent_var_cell[1], "% variance"),
+        y = paste0("PC2: ", percent_var_cell[2], "% variance")
+      ) +
+      theme(panel.grid.minor = element_blank())
+    
+    filename_cl <- paste0("04_01_pca_", cl, ".png")
+    ggsave(file.path(res_dir, "figures", filename_cl), p_cell, width = 8, height = 6, bg = "white")
+    message("  [OK] Saved Sub-PCA: ", filename_cl)
+  }
+}
+
+message("PCA Step Complete for ", group_name)

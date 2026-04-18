@@ -1,5 +1,5 @@
 # [[scripts_downstream/04_07_enrichment_dotplot.R]]
-# Goal: Generate GSEA Dotplots for specific group.
+# Goal: Generate GSEA Hallmark Dotplots for specific group.
 
 library(DESeq2)
 library(ggplot2)
@@ -7,11 +7,11 @@ library(tidyverse)
 library(patchwork)
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 2) {
-  stop("Usage: Rscript 04_07_enrichment_dotplot.R <Group> <Species>")
+if (length(args) == 0) {
+  stop("Usage: Rscript 04_07_enrichment_dotplot.R <Group> [Species]")
 }
 group_name <- args[1]
-species_name <- args[2]
+species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
 
 res_dir <- paste0("../results/", group_name)
 
@@ -22,120 +22,175 @@ load(paste0("./.RData/", group_name, "/03_enrichment_results.RData"))
 # Ensure output directories exist
 dir.create(paste0(res_dir, "/figures"), showWarnings = FALSE, recursive = TRUE)
 
-# 8. GSEA Dotplots -- individual per dose + stitched combined
+# 8. GSEA Dotplots -- individual per dose + single faceted combined
 message("Building GSEA dotplots...")
 
-# Collect GSEA results across all contrasts
+# Helper: clean Hallmark names for professional display (Mentor style)
+clean_pathway_name <- function(pathway_name) {
+  x <- sub("^HALLMARK_", "", pathway_name)
+  x <- gsub("_", " ", x)
+  tools::toTitleCase(tolower(x))
+}
+
+# Collect GSEA results (Hallmark) across all contrasts
 gsea_combined <- map2_dfr(
   enrichment_results_all,
   names(enrichment_results_all),
   function(res, contrast_name) {
-    gsea_res <- res$gsea_go
+    gsea_res <- res$gsea_hallmark
     if (!is.null(gsea_res) && nrow(as.data.frame(gsea_res)) > 0) {
       as.data.frame(gsea_res) %>%
-        dplyr::select(Description, NES, pvalue, p.adjust, setSize) %>%
+        dplyr::select(Description, NES, pvalue, p.adjust, core_enrichment) %>%
         mutate(
           Contrast = contrast_name,
-          Response = ifelse(NES > 0, "activated", "suppressed")
+          Response = ifelse(NES > 0, "activated", "suppressed"),
+          # Mirror logic: -1 for activated (Left), 1 for suppressed (Right)
+          PlotX = ifelse(NES > 0, -1, 1),
+          # Leading edge count (biological relevance)
+          Count = vapply(str_split(core_enrichment, "/"), length, integer(1)),
+          neg_log10_padj = -log10(p.adjust),
+          Description = vapply(Description, clean_pathway_name, character(1))
         )
     }
   }
 )
 
-# Helper: build a single GSEA dotplot for one dose
-make_gsea_plot <- function(df_dose, dose_label, top_paths_wrapped) {
-  df_dose <- df_dose %>%
-    filter(Description %in% top_paths_wrapped) %>%
-    mutate(
-      Description = factor(Description, levels = rev(top_paths_wrapped)),
-      Response = factor(Response, levels = c("activated", "suppressed"))
-    )
-  
-  ggplot(df_dose, aes(x = Response, y = Description,
-                      color = pvalue, size = setSize)) +
-    geom_point(alpha = 0.9) +
-    scale_color_gradient(
-      low = "#D62728", high = "#1F77B4",
-      name = "pvalue"
+# Helper: build a single per-contrast dotplot (independent Y-axis, for individual saves)
+make_gsea_plot_single <- function(df_dose, dose_label, top_n = 10) {
+  hall_df <- df_dose %>%
+    group_by(Response) %>%
+    slice_min(order_by = p.adjust, n = top_n) %>%
+    ungroup() %>%
+    mutate(neg_log10_padj = -log10(p.adjust))
+
+  ggplot(hall_df, aes(x = PlotX, y = reorder(Description, NES))) +
+    geom_vline(xintercept = 0, color = "grey30", linewidth = 0.5) +
+    geom_point(aes(size = Count, color = Response, alpha = neg_log10_padj), shape = 16) +
+    scale_x_continuous(
+      breaks = c(-1, 1),
+      labels = c("Activated", "Suppressed"),
+      limits = c(-1.5, 1.5)
     ) +
-    scale_size_continuous(name = "Count", range = c(3, 11)) +
-    geom_vline(xintercept = 1.5, color = "grey40", linewidth = 0.6) +
-    theme_bw(base_size = 10) +
+    scale_color_manual(
+      values = c("activated" = "#D62728", "suppressed" = "#1F77B4"),
+      name = "Direction"
+    ) +
+    scale_alpha_continuous(name = "-log10(padj)", range = c(0.4, 1)) +
+    scale_size_continuous(name = "Leading Edge", range = c(3, 10)) +
+    theme_bw(base_size = 11) +
     theme(
-      axis.text.x = element_text(size = 9),
-      axis.text.y = element_text(size = 9, hjust = 1),
-      strip.background = element_rect(fill = "#2F6F8E"),
-      strip.text = element_text(color = "white", face = "bold", size = 11),
-      panel.grid.major.x = element_blank(),
+      axis.text.x = element_text(size = 10, face = "bold"),
+      axis.text.y = element_text(size = 9, face = "bold"),
+      panel.grid.major.y = element_line(linewidth = 0.2, color = "grey90"),
       plot.title = element_text(hjust = 0.5, face = "bold", size = 11)
     ) +
-    labs(title = paste0("Enrichment GSEA: ", dose_label),
-         x = NULL, y = NULL) +
+    labs(title = paste0("GSEA Hallmark: ", dose_label), x = NULL, y = NULL) +
     guides(
-      color = guide_colorbar(order = 1, title = "pvalue"),
-      size  = guide_legend(order = 2, title = "Count")
+      color = guide_legend(order = 1, title = "Direction", override.aes = list(size = 5)),
+      alpha = guide_legend(order = 2, title = "-log10(padj)"),
+      size  = guide_legend(order = 3, title = "Leading Edge")
     )
 }
 
 if (!is.null(gsea_combined) && nrow(gsea_combined) > 0) {
-  # Balance Selection: Take Top 10 Activated and Top 10 Suppressed per Contrast
-  # To ensure weaker signals (like SUPM2 activation) are not drowned out by global significance
-  top_paths_balanced <- gsea_combined %>%
-    group_by(Contrast, Response) %>%
-    slice_min(order_by = pvalue, n = 10) %>%
-    ungroup() %>%
-    pull(Description) %>%
-    unique()
-  
-  # Limit to a reasonable number for the Y-axis if the set is too large
-  if (length(top_paths_balanced) > 40) {
-     # If too many, prioritize by global significance but keep at least some from each contrast
-     top_paths <- gsea_combined %>%
-        filter(Description %in% top_paths_balanced) %>%
-        group_by(Description) %>%
-        summarise(min_p = min(pvalue)) %>%
-        arrange(min_p) %>%
-        head(40) %>%
-        pull(Description)
-  } else {
-     top_paths <- top_paths_balanced
-  }
-  top_paths_wrapped <- str_wrap(top_paths, width = 35)
-  
-  gsea_combined <- gsea_combined %>%
-    mutate(Description = str_wrap(Description, width = 35))
-  
-  gsea_plots <- list()
+
+  # --- INDIVIDUAL PLOTS (per contrast, independent Y-axis) ---
   for (contrast in names(enrichment_results_all)) {
     df_dose <- gsea_combined %>% filter(Contrast == contrast)
     if (nrow(df_dose) > 0) {
       safe_name <- str_replace_all(contrast, "[^a-zA-Z0-9]", "_")
-      p <- make_gsea_plot(df_dose, contrast, top_paths_wrapped)
-      gsea_plots[[contrast]] <- p
-      
-      # Save individual plot
+      p <- make_gsea_plot_single(df_dose, contrast)
       ggsave(
-        paste0(res_dir, "/figures/04_gsea_dotplot_", safe_name, ".png"),
-        p, width = 7, height = max(6, length(top_paths) * 0.45)
+        paste0(res_dir, "/figures/04_07_gsea_dotplot_", safe_name, ".png"),
+        p, width = 8, height = 9, limitsize = FALSE
       )
     }
   }
-  
-  # Save stitched combined GSEA plot
-  if (length(gsea_plots) > 1) {
-    combined_gsea <- wrap_plots(gsea_plots, nrow = 1) +
-      plot_annotation(
-        title = "GSEA: Multi-Dose Comparison",
-        theme = theme(plot.title = element_text(face = "bold", hjust = 0.5))
-      )
-    ggsave(
-      paste0(res_dir, "/figures/04_gsea_dotplot_combined.png"),
-      combined_gsea,
-      width = 8 * length(gsea_plots) + 1,
-      height = max(8, length(top_paths) * 0.45)
+
+  # --- COMBINED FACET PLOT (single ggplot, global Y-axis, mentor style) ---
+  # Curated combined dotplot -- exclude statistically weaker and QC-only contrasts:
+  #   - DMSO_Kromastat_vs_DMSO_Romi: vehicle QC baseline, near-empty by design
+  #   - Romi_6nM_vs_DMSO_Romi: global pooled across both cell lines, weaker signal
+  #   - Kromastat_6nM_vs_DMSO_Kromastat: global pooled, same reason
+  # These are preserved as individual saves above for reference.
+  COMBINED_EXCLUDE <- c(
+    "DMSO_Kromastat_vs_DMSO_Romi",
+    "Romi_6nM_vs_DMSO_Romi",
+    "Kromastat_6nM_vs_DMSO_Kromastat"
+  )
+  gsea_combined_curated <- gsea_combined %>%
+    filter(!Contrast %in% COMBINED_EXCLUDE)
+
+  # Select top_n pathways per contrast by padj (not balanced, to avoid empty rows)
+  TOP_N <- 12
+  top_paths_per_contrast <- gsea_combined_curated %>%
+    group_by(Contrast) %>%
+    slice_min(order_by = p.adjust, n = TOP_N) %>%
+    ungroup() %>%
+    pull(Description) %>%
+    unique()
+
+  # Build combined data: only pathways in the global selection
+  dotplot_df <- gsea_combined_curated %>%
+    filter(Description %in% top_paths_per_contrast)
+
+  # Global Y-axis: order by NES across all contrasts (descending = activated on top)
+  global_order <- dotplot_df %>%
+    group_by(Description) %>%
+    summarise(mean_NES = mean(NES), .groups = "drop") %>%
+    arrange(mean_NES) %>%
+    pull(Description)
+
+  dotplot_df <- dotplot_df %>%
+    mutate(Description = factor(Description, levels = global_order))
+
+  combined_p <- ggplot(dotplot_df, aes(x = PlotX, y = Description)) +
+    geom_vline(xintercept = 0, color = "grey30", linewidth = 0.5) +
+    geom_point(aes(size = Count, color = Response, alpha = neg_log10_padj), shape = 16) +
+    scale_x_continuous(
+      breaks = c(-1, 1),
+      labels = c("Activated", "Suppressed"),
+      limits = c(-1.5, 1.5)
+    ) +
+    scale_color_manual(
+      values = c("activated" = "#D62728", "suppressed" = "#1F77B4"),
+      name = "Direction"
+    ) +
+    scale_alpha_continuous(name = "-log10(padj)", range = c(0.4, 1)) +
+    scale_size_continuous(name = "Leading Edge", range = c(3, 10)) +
+    facet_wrap(~ Contrast, nrow = 1) +
+    theme_bw(base_size = 11) +
+    theme(
+      strip.text = element_text(face = "bold", size = 9),
+      strip.background = element_rect(fill = "grey92"),
+      axis.text.x = element_text(size = 9, face = "bold"),
+      axis.text.y = element_text(size = 9, face = "bold"),
+      panel.grid.major.y = element_line(linewidth = 0.2, color = "grey90"),
+      panel.spacing = unit(0.5, "lines"),
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 13)
+    ) +
+    labs(
+      title = paste0("GSEA Hallmark Comparison: ", species_name),
+      x = NULL, y = "Hallmark Pathway"
+    ) +
+    guides(
+      color = guide_legend(order = 1, title = "Direction", override.aes = list(size = 5)),
+      alpha = guide_legend(order = 2, title = "-log10(padj)"),
+      size  = guide_legend(order = 3, title = "Leading Edge")
     )
-    message("[OK] Combined GSEA dotplot -> 04_gsea_dotplot_combined.png")
-  }
+
+  n_contrasts <- length(unique(dotplot_df$Contrast))
+  n_paths     <- length(global_order)
+
+  ggsave(
+    paste0(res_dir, "/figures/04_07_gsea_dotplot_combined.png"),
+    combined_p,
+    width  = 5 * n_contrasts + 3,
+    height = max(8, n_paths * 0.45),
+    limitsize = FALSE
+  )
+  message("[OK] Combined Hallmark GSEA dotplot -> 04_07_gsea_dotplot_combined.png")
+
 } else {
-  message("Skipping GSEA dotplots: No GSEA GO results found.")
+  message("Skipping GSEA dotplots: No Hallmark GSEA results found.")
 }

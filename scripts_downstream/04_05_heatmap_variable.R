@@ -9,11 +9,11 @@ library(tidyverse)
 library(clusterProfiler)
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 2) {
-  stop("Usage: Rscript 04_05_heatmap_variable.R <Group> <Species>")
+if (length(args) == 0) {
+  stop("Usage: Rscript 04_05_heatmap_variable.R <Group> [Species]")
 }
 group_name <- args[1]
-species_name <- args[2]
+species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
 
 if (species_name == "Human") {
   library(org.Hs.eg.db)
@@ -44,17 +44,37 @@ dir.create(paste0(res_dir, "/figures"), showWarnings = FALSE, recursive = TRUE)
 vsd <- vst(dds, blind=FALSE)
 
 # 1.6 Create clean Sample Names for display
-colData(vsd)$display_name <- rownames(colData(vsd))
-colnames(vsd) <- colData(vsd)$display_name
+# --- DEVIATION: Standardize naming with pathway heatmap logic (04_04)
+display_names <- rownames(colData(vsd)) %>%
+  str_remove_all("human_|dog_") %>% 
+  str_replace_all("DMSO", "D") %>%
+  str_replace_all("Romidepsin|Romi", "R") %>%
+  str_replace_all("Kromastat|Kroma", "K") %>%
+  str_replace_all("6nM", "") %>%
+  str_replace_all("(?i)replicate|rep", "") %>%
+  str_replace_all("_+", "_") %>%
+  str_remove("^_|_$")
 
-# Order VSD columns by condition
-vsd <- vsd[, order(vsd$condition)]
+colData(vsd)$display_name <- display_names
+colnames(vsd) <- display_names
 
-# Shared dose colour palette
-cond_levels   <- unique(as.character(colData(vsd)$condition))
-dose_palette_shared <- setNames(
-  colorRampPalette(RColorBrewer::brewer.pal(min(length(cond_levels), 8), "Set2"))(length(cond_levels)),
-  cond_levels
+# Order VSD columns by cell_line then condition
+vsd <- vsd[, order(vsd$cell_line, vsd$condition)]
+
+# Color palettes (Intuitive Distinct Palette)
+conditions <- colData(vsd)$condition
+cell_lines <- colData(vsd)$cell_line
+
+dose_palette <- c(
+  "DMSO_Romi"      = "grey85",
+  "Romi_6nM"       = "#E41A1C", # Brighter Red
+  "DMSO_Kromastat" = "grey70",
+  "Kromastat_6nM"  = "#377EB8"  # Brighter Blue
+)
+
+cl_palette <- setNames(
+  RColorBrewer::brewer.pal(max(3, length(unique(cell_lines))), "Accent")[seq_along(unique(cell_lines))], 
+  unique(cell_lines)
 )
 
 # 6. Default Heatmap (Top 50 Variable) with ComplexHeatmap
@@ -67,19 +87,26 @@ mat_var       <- pmin(pmax(mat_var, -2), 2)
 symbols_var       <- gene_map[rownames(mat_var), "SYMBOL"]
 rownames(mat_var) <- ifelse(is.na(symbols_var), rownames(mat_var), symbols_var)
 
-col_fun_var <- colorRamp2(c(-2, 0, 2), c("navy", "white", "firebrick3"))
+col_fun_var <- colorRamp2(c(-2, 0, 2), c("#3B4CC0", "white", "#B40426"))
 
 conditions_var <- as.character(colData(vsd)$condition)
+cell_lines_var <- as.character(colData(vsd)$cell_line)
+
 top_ha_var <- HeatmapAnnotation(
-  Dose = conditions_var,
-  col  = list(Dose = dose_palette_shared),
-  show_annotation_name = FALSE,
-  show_legend          = FALSE
+  Dose     = conditions_var,
+  CellLine = cell_lines_var,
+  col      = list(
+    Dose     = dose_palette,
+    CellLine = cl_palette
+  ),
+  show_annotation_name = TRUE,
+  annotation_name_gp   = gpar(fontsize = 8, fontface = "bold"),
+  show_legend          = TRUE
 )
 
 ht_var <- Heatmap(
   mat_var,
-  name              = "log2FC",
+  name              = "Z-score",
   col               = col_fun_var,
   cluster_rows      = TRUE,
   cluster_columns   = FALSE,
@@ -96,7 +123,7 @@ ht_var <- Heatmap(
   height            = unit(nrow(mat_var) * 6, "mm"),
   width             = unit(ncol(mat_var) * 10, "mm"),
   heatmap_legend_param = list(
-    title          = "log2(FC)",
+    title          = "Z-score",
     title_position = "leftcenter-rot",
     at             = c(-2, -1, 0, 1, 2),
     labels         = c("-2", "-1", "0", "1", "2"),
@@ -108,14 +135,14 @@ ht_var <- Heatmap(
 px_per_mm_v    <- 150 / 25.4
 mm_title_v     <- 22
 mm_col_title_v <- 12
-mm_dose_bar_v  <- 8
+mm_dose_bar_v  <- 12  # Increased for dual annotation
 mm_col_names_v <- 40
-mm_padding_v   <- 5
+mm_padding_v   <- 10
 mm_rows_v      <- nrow(mat_var) * 6
 canvas_h_var   <- round((mm_title_v + mm_col_title_v + mm_dose_bar_v + mm_col_names_v + mm_padding_v + mm_rows_v) * px_per_mm_v)
 
-png(paste0(res_dir, "/figures/04_heatmap_top_variable.png"),
-    width = 1280, height = canvas_h_var, res = 150)
+png(paste0(res_dir, "/figures/04_05_heatmap_top_variable.png"),
+    width = 1800, height = canvas_h_var, res = 150)
 ht_opt(TITLE_PADDING = unit(c(2, 8), "mm"))
 draw(ht_var,
      heatmap_legend_side    = "left",
@@ -125,6 +152,6 @@ draw(ht_var,
      column_title           = "Top 50 Most Variable Genes",
      column_title_gp        = gpar(fontsize = 12, fontface = "bold"))
 dev.off()
-message("[OK] Top-var heatmap  -> 04_heatmap_top_variable.png",
+message("[OK] Top-var heatmap  -> 04_05_heatmap_top_variable.png",
         "  (", nrow(mat_var), " rows x ", ncol(mat_var), " cols",
         "  |  canvas: 1280x", canvas_h_var, "px)")

@@ -72,3 +72,6 @@ test_neo
 *.err
 *.txt
 *.out
+
+verify_discrepancy.R
+cancer_downstream

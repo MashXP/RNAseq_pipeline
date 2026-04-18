@@ -43,7 +43,6 @@ for species in Human Dog; do
     gtf_gz=$(basename "$gtf_url")
     fasta_unzipped="${fasta_gz%.gz}"
     gtf_unzipped="${gtf_gz%.gz}"
-    bed_file="${gtf_unzipped%.gtf}.bed"
     
     # Download
     if [ ! -f "$SPECIES_GENOME_DIR/$fasta_gz" ]; then
@@ -58,9 +57,6 @@ for species in Human Dog; do
     # Extract
     if [ ! -f "$SPECIES_GENOME_DIR/$fasta_unzipped" ]; then gunzip -c "$SPECIES_GENOME_DIR/$fasta_gz" > "$SPECIES_GENOME_DIR/$fasta_unzipped"; fi
     if [ ! -f "$SPECIES_GENOME_DIR/$gtf_unzipped" ]; then gunzip -c "$SPECIES_GENOME_DIR/$gtf_gz" > "$SPECIES_GENOME_DIR/$gtf_unzipped"; fi
-    
-    # BED12
-    if [ ! -f "$SPECIES_GENOME_DIR/$bed_file" ]; then python3 "$UTILS_DIR/gtf2bed.py" "$SPECIES_GENOME_DIR/$gtf_unzipped" > "$SPECIES_GENOME_DIR/$bed_file"; fi
     
     # Picard RefFlat (required for CollectRnaSeqMetrics)
     refflat_file="${gtf_unzipped%.gtf}.refFlat"

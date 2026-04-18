@@ -1,69 +1,161 @@
 # [[scripts_downstream/04_03_venn.R]]
-# Goal: Generate DEG Overlap Venn Diagram for specific group.
+# Goal: Generate Directional DEG Overlap Venn Diagram and export shared gene lists.
 
 library(DESeq2)
 library(ggplot2)
 library(ggVennDiagram)
 library(tidyverse)
+library(patchwork)
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 2) {
-  stop("Usage: Rscript 04_03_venn.R <Group> <Species>")
+if (length(args) == 0) {
+  stop("Usage: Rscript 04_03_venn.R <Group> [Species]")
 }
 group_name <- args[1]
-species_name <- args[2]
+species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
 
 res_dir <- paste0("../results/", group_name)
+# Ensure output directories exist
+dir.create(file.path(res_dir, "figures"), showWarnings = FALSE, recursive = TRUE)
+dir.create(file.path(res_dir, "tables/venn_lists"), showWarnings = FALSE, recursive = TRUE)
 
 # 1. Load data
 load(paste0("./.RData/", group_name, "/02_deseq_results.RData"))
 
-# Ensure output directories exist
-dir.create(paste0(res_dir, "/figures"), showWarnings = FALSE, recursive = TRUE)
+message("--- Generating Rigorous Venn Analysis for ", group_name, " ---")
 
-# 4. Venn Diagram (Refined)
-# Extract significant gene sets for each contrast
-sig_list_all <- lapply(results_list, function(x) {
-  rownames(subset(as.data.frame(x$shrunk), padj < 0.05 & abs(log2FoldChange) > 1))
-})
-
-# Prioritize the 3 primary biological contrasts for a clear 3-way Venn
-# but also handle cases where they might be missing
-priority_contrasts <- c(
-  "Romi_6nM_vs_DMSO_Romi",
-  "Kromastat_6nM_vs_DMSO_Kromastat",
-  "Romi_6nM_vs_Kromastat_6nM"
+# 2. Logic Setup
+directions <- list(
+  All  = function(lfc, padj) padj < 0.05 & abs(lfc) > 1,
+  Up   = function(lfc, padj) padj < 0.05 & lfc > 1,
+  Down = function(lfc, padj) padj < 0.05 & lfc < -1
 )
 
-sig_list_focused <- sig_list_all[names(sig_list_all) %in% priority_contrasts]
+priority_contrasts <- c(
+  "Romi_6nM_vs_DMSO_Romi",
+  "Kromastat_6nM_vs_DMSO_Kromastat"
+)
 
-# Filter out empty sets to avoid ambiguous "empty" circles
-sig_list_final <- sig_list_focused[sapply(sig_list_focused, length) > 0]
+# Premium colors: Up=Red (#D62728), Down=Blue (#1F77B4), All=Orange (#E69F00)
+dir_colors <- c(All = "#E69F00", Up = "#D62728", Down = "#1F77B4")
 
-if (length(sig_list_final) >= 2) {
-  # Shorten names for the plot labels if needed
-  names(sig_list_final) <- names(sig_list_final) %>%
-    str_replace_all("_vs_", " vs ")
+# Storage for combined plot
+venn_plots <- list()
+
+# 3. Process Each Direction
+rigor_summary <- data.frame()
+
+for (dir_name in names(directions)) {
+  message("Processing Direction: ", dir_name)
   
-  p_venn <- ggVennDiagram(sig_list_final) +
-    scale_fill_gradient(low = "white", high = "red") +
-    scale_x_continuous(expand = expansion(mult = .2)) +
+  # Extract gene sets
+  sig_list <- lapply(results_list[priority_contrasts], function(x) {
+    if (is.null(x$df)) return(character(0))
+    res_df <- x$df
+    pass_filter <- directions[[dir_name]](res_df$log2FoldChange, res_df$padj)
+    res_df$Geneid[pass_filter]
+  })
+  
+  # Filter out empty sets
+  sig_list <- sig_list[sapply(sig_list, length) > 0]
+  
+  if (length(sig_list) < 2) {
+    message("  -- Skipping ", dir_name, " Venn: Fewer than 2 priority contrasts have significant genes.")
+    next
+  }
+  
+  # A. Generate Visualization
+  clean_names <- names(sig_list) %>% 
+    str_replace_all("_vs_", "\nvs\n") %>%
+    str_replace_all("_", " ")
+  names(sig_list) <- clean_names
+  
+  p_venn <- ggVennDiagram(sig_list) +
+    scale_fill_gradient(low = "white", high = dir_colors[dir_name]) + 
+    scale_x_continuous(expand = expansion(mult = .4)) + 
     scale_y_continuous(expand = expansion(mult = .1)) +
     coord_cartesian(clip = "off") +
-    labs(
-      title = paste0("DEG Overlap: ", group_name, " Primary Comparisons"),
-      subtitle = "Significant Genes: padj < 0.05 & |log2FC| > 1",
-      fill = "Gene Count"
-    ) +
-    theme(
-      plot.title = element_text(hjust = 0.5, face = "bold"),
-      plot.margin = margin(10, 20, 10, 20)
-    )
+    labs(title = paste0(dir_name, " DEGs"), fill = "Count") +
+    theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+          plot.margin = margin(10, 10, 10, 10))
 
-  ggsave(paste0(res_dir, "/figures/04_venn_diagram_primary.png"), p_venn,
-         width = 10, height = 8, bg = "white")
-  message("[OK] Refined Venn diagram saved -> 04_venn_diagram_primary.png",
-          "  (", length(sig_list_final), " sets included)")
-} else {
-  message("Skipping Venn diagram: Fewer than 2 primary contrasts had significant genes.")
+  venn_plots[[dir_name]] <- p_venn
+  
+  # B. Export Shared Lists and Rigor Stats
+  shared_ids <- Reduce(intersect, sig_list)
+  union_ids <- Reduce(union, sig_list)
+  total_genes <- nrow(results_list[[priority_contrasts[1]]]$df)
+  
+  n_shared <- length(shared_ids)
+  n_romi <- length(sig_list[[1]])
+  n_kroma <- length(sig_list[[2]])
+  
+  p_overlap <- phyper(n_shared - 1, n_romi, total_genes - n_romi, n_kroma, lower.tail = FALSE)
+  jaccard <- n_shared / length(union_ids)
+  expected_shared <- (n_romi * n_kroma) / total_genes
+  rep_factor <- n_shared / expected_shared
+  
+  # Add to summary dataframe
+  rigor_summary <- rbind(rigor_summary, data.frame(
+    Direction = dir_name,
+    Set1_Romi = n_romi,
+    Set2_Kroma = n_kroma,
+    Shared = n_shared,
+    P_Overlap = p_overlap,
+    Jaccard_Index = jaccard,
+    Representation_Factor = rep_factor
+  ))
+
+  message("  -- Rigor Metrics for ", dir_name, ":")
+  message("     * Overlap P-value: ", format.pval(p_overlap, digits = 3))
+  message("     * Jaccard Index: ", round(jaccard, 3))
+  message("     * Representation Factor: ", round(rep_factor, 1), "x more than chance")
+  
+  if (length(shared_ids) > 0) {
+    shared_table <- results_list[[priority_contrasts[1]]]$df %>%
+      filter(Geneid %in% shared_ids) %>%
+      select(Geneid, gene_label, log2FoldChange, padj) %>%
+      mutate(direction = dir_name, p_overlap = p_overlap, jaccard = jaccard) %>%
+      arrange(padj)
+    
+    write.csv(shared_table, 
+              file = paste0(res_dir, "/tables/venn_lists/shared_genes_", tolower(dir_name), ".csv"),
+              row.names = FALSE)
+  }
 }
+
+# Save the rigor summary table
+write.csv(rigor_summary, 
+          file = paste0(res_dir, "/tables/04_03_venn_rigor_stats.csv"),
+          row.names = FALSE)
+message("[OK] Rigor summary table saved -> 04_03_venn_rigor_stats.csv")
+
+# 4. Save Plots...
+
+# 4. Save Individual and Combined Plots
+if (length(venn_plots) > 0) {
+  # Individual save
+  for (name in names(venn_plots)) {
+    ggsave(paste0(res_dir, "/figures/04_03_venn_", tolower(name), ".png"), venn_plots[[name]],
+           width = 8, height = 7, bg = "white")
+  }
+  
+  # Combined save (Vertical stack is better for long labels)
+  p_combined <- wrap_plots(venn_plots, ncol = 1) + 
+    plot_annotation(
+      title = paste0("Directional Venn Comparisons: ", group_name),
+      subtitle = "Criteria: padj < 0.05 & |log2FC| > 1",
+      theme = theme(
+        plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 14, hjust = 0.5)
+      )
+    )
+  
+  # Save with a portrait aspect ratio for the vertical stack
+  ggsave(paste0(res_dir, "/figures/04_03_venn_combined.png"), p_combined,
+         width = 10, height = 8 * length(venn_plots), dpi = 300, bg = "white")
+  
+  message("[OK] Combined Venn diagram saved -> 04_03_venn_combined.png")
+}
+
+message("[OK] Venn analysis complete.")

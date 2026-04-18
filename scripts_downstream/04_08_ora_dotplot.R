@@ -7,11 +7,11 @@ library(tidyverse)
 library(patchwork)
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 2) {
-  stop("Usage: Rscript 04_08_ora_dotplot.R <Group> <Species>")
+if (length(args) == 0) {
+  stop("Usage: Rscript 04_08_ora_dotplot.R <Group> [Species]")
 }
 group_name <- args[1]
-species_name <- args[2]
+species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
 
 res_dir <- paste0("../results/", group_name)
 
@@ -22,7 +22,7 @@ load(paste0("./.RData/", group_name, "/03_enrichment_results.RData"))
 # Ensure output directories exist
 dir.create(paste0(res_dir, "/figures"), showWarnings = FALSE, recursive = TRUE)
 
-# 9. ORA Dotplots -- individual per dose + stitched combined
+# 9. ORA Dotplots -- individual per dose + faceted combined
 message("Building ORA dotplots...")
 
 # Collect ORA results across all contrasts
@@ -37,25 +37,25 @@ ora_combined <- map2_dfr(
         mutate(
           Contrast = contrast_name,
           # Parse GeneRatio (e.g., "10/100" -> 0.1)
-          Ratio = sapply(strsplit(GeneRatio, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2]))
+          Ratio = sapply(strsplit(GeneRatio, "/"), function(x) as.numeric(x[1]) / as.numeric(x[2])),
+          # Wrap long descriptions once, consistently
+          Description = str_wrap(Description, width = 35)
         )
     }
   }
 )
 
-# Helper: build a single ORA dotplot
-make_ora_plot <- function(df_dose, dose_label, top_paths_wrapped) {
-  df_dose <- df_dose %>%
-    filter(Description %in% top_paths_wrapped) %>%
-    mutate(
-      Description = factor(Description, levels = rev(top_paths_wrapped))
-    )
-  
-  ggplot(df_dose, aes(x = Ratio, y = Description,
-                      color = p.adjust, size = Count)) +
+# Helper: build a single ORA dotplot (local top_n, independent Y-axis)
+make_ora_plot_single <- function(df_dose, dose_label, top_n = 15) {
+  hall_df <- df_dose %>%
+    slice_min(order_by = p.adjust, n = top_n) %>%
+    arrange(p.adjust) %>%
+    mutate(Description = factor(Description, levels = rev(unique(Description))))
+
+  ggplot(hall_df, aes(x = Ratio, y = Description, color = p.adjust, size = Count)) +
     geom_point(alpha = 0.9) +
     scale_color_gradient(
-      low = "#E41A1C", high = "#377EB8",
+      low = "#D62728", high = "#1F77B4",
       name = "padj"
     ) +
     scale_size_continuous(name = "Count", range = c(3, 10)) +
@@ -66,63 +66,106 @@ make_ora_plot <- function(df_dose, dose_label, top_paths_wrapped) {
       panel.grid.minor = element_blank(),
       plot.title = element_text(hjust = 0.5, face = "bold", size = 11)
     ) +
-    labs(title = paste0("ORA Enrichment: ", dose_label),
-         x = "Gene Ratio", y = NULL)
+    labs(title = paste0("ORA GO: ", dose_label),
+         x = "Gene Ratio", y = NULL) +
+    guides(
+      color = guide_colorbar(order = 1, title = "padj"),
+      size  = guide_legend(order = 2, title = "Count")
+    )
 }
 
 if (!is.null(ora_combined) && nrow(ora_combined) > 0) {
-  # Select Top 15 pathways per contrast to ensure diversity
-  top_paths <- ora_combined %>%
-    group_by(Contrast) %>%
-    slice_min(order_by = p.adjust, n = 15) %>%
-    ungroup() %>%
-    pull(Description) %>%
-    unique()
-  
-  # Limit to 40 for readability
-  if (length(top_paths) > 40) {
-     top_paths <- ora_combined %>%
-        filter(Description %in% top_paths) %>%
-        group_by(Description) %>%
-        summarise(min_p = min(p.adjust)) %>%
-        arrange(min_p) %>%
-        head(40) %>%
-        pull(Description)
-  }
-  
-  top_paths_wrapped <- str_wrap(top_paths, width = 40)
-  
-  ora_combined <- ora_combined %>%
-    mutate(Description = str_wrap(Description, width = 40))
-  
-  ora_plots <- list()
+
+  # --- INDIVIDUAL PLOTS (per contrast, independent Y-axis) ---
   for (contrast in names(enrichment_results_all)) {
     df_dose <- ora_combined %>% filter(Contrast == contrast)
     if (nrow(df_dose) > 0) {
       safe_name <- str_replace_all(contrast, "[^a-zA-Z0-9]", "_")
-      p <- make_ora_plot(df_dose, contrast, top_paths_wrapped)
-      ora_plots[[contrast]] <- p
-      
+      p <- make_ora_plot_single(df_dose, contrast)
       ggsave(
-        paste0(res_dir, "/figures/04_ora_dotplot_", safe_name, ".png"),
-        p, width = 8, height = max(6, length(top_paths) * 0.4)
+        paste0(res_dir, "/figures/04_08_ora_dotplot_", safe_name, ".png"),
+        p, width = 8, height = 9, limitsize = FALSE
       )
     }
   }
-  
-  # Stitched plot
-  if (length(ora_plots) > 1) {
-    combined_ora <- wrap_plots(ora_plots, nrow = 1) +
-      plot_annotation(title = "GO ORA: Pathway Comparison")
-    
-    ggsave(
-      paste0(res_dir, "/figures/04_ora_dotplot_combined.png"),
-      combined_ora,
-      width = 8 * length(ora_plots),
-      height = max(8, length(top_paths) * 0.4)
+
+  # --- COMBINED FACET PLOT (single ggplot, global Y-axis) ---
+  # Curated combined ORA plot -- exclude statistically weaker and QC-only contrasts:
+  #   - DMSO_Kromastat_vs_DMSO_Romi: vehicle QC baseline, near-empty by design
+  #   - Romi_6nM_vs_DMSO_Romi: global pooled across both cell lines, weaker signal
+  #   - Kromastat_6nM_vs_DMSO_Kromastat: global pooled, same reason
+  # These are preserved as individual saves above for reference.
+  COMBINED_EXCLUDE <- c(
+    "DMSO_Kromastat_vs_DMSO_Romi",
+    "Romi_6nM_vs_DMSO_Romi",
+    "Kromastat_6nM_vs_DMSO_Kromastat"
+  )
+  ora_combined_curated <- ora_combined %>%
+    filter(!Contrast %in% COMBINED_EXCLUDE)
+
+  # Select top_n pathways per curated contrast by padj
+  TOP_N <- 12
+  top_paths <- ora_combined_curated %>%
+    group_by(Contrast) %>%
+    slice_min(order_by = p.adjust, n = TOP_N) %>%
+    ungroup() %>%
+    pull(Description) %>%
+    unique()
+
+  # Build combined data: only selected pathways
+  dotplot_df <- ora_combined_curated %>%
+    filter(Description %in% top_paths)
+
+  # Global Y-axis: order by mean padj across contrasts (most significant on top)
+  global_order <- dotplot_df %>%
+    group_by(Description) %>%
+    summarise(mean_padj = mean(p.adjust), .groups = "drop") %>%
+    arrange(desc(mean_padj)) %>%
+    pull(Description)
+
+  dotplot_df <- dotplot_df %>%
+    mutate(Description = factor(Description, levels = global_order))
+
+  n_contrasts <- length(unique(dotplot_df$Contrast))
+  n_paths     <- length(global_order)
+
+  combined_p <- ggplot(dotplot_df, aes(x = Ratio, y = Description,
+                                        color = p.adjust, size = Count)) +
+    geom_point(alpha = 0.9) +
+    scale_color_gradient(
+      low = "#D62728", high = "#1F77B4",
+      name = "padj"
+    ) +
+    scale_size_continuous(name = "Count", range = c(3, 10)) +
+    facet_wrap(~ Contrast, nrow = 1) +
+    theme_bw(base_size = 11) +
+    theme(
+      strip.text = element_text(face = "bold", size = 9),
+      strip.background = element_rect(fill = "grey92"),
+      axis.text.x = element_text(size = 9),
+      axis.text.y = element_text(size = 9, hjust = 1),
+      panel.grid.minor = element_blank(),
+      panel.spacing = unit(0.5, "lines"),
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 13)
+    ) +
+    labs(
+      title = paste0("GO ORA Comparison: ", species_name),
+      x = "Gene Ratio", y = "GO Term"
+    ) +
+    guides(
+      color = guide_colorbar(order = 1, title = "padj"),
+      size  = guide_legend(order = 2, title = "Count")
     )
-    message("[OK] Combined ORA dotplot saved.")
-  }
+
+  ggsave(
+    paste0(res_dir, "/figures/04_08_ora_dotplot_combined.png"),
+    combined_p,
+    width  = 5 * n_contrasts + 3,
+    height = max(8, n_paths * 0.45),
+    limitsize = FALSE
+  )
+  message("[OK] Combined ORA dotplot saved -> 04_08_ora_dotplot_combined.png")
+
 } else {
   message("Skipping ORA dotplots: No significant results found.")
 }

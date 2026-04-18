@@ -1,5 +1,6 @@
 # [[scripts_downstream/04_04_heatmap_pathway.R]]
-# Goal: Generate Pathway-specific Heatmap for specific group.
+# Goal: Generate Pathway-Grouped Heatmaps (Leading Edge Analysis).
+# Strategy: Visualize the specific genes driving the top Hallmark GSEA results.
 
 library(DESeq2)
 library(ggplot2)
@@ -9,11 +10,11 @@ library(tidyverse)
 library(clusterProfiler)
 
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 2) {
-  stop("Usage: Rscript 04_04_heatmap_pathway.R <Group> <Species>")
+if (length(args) == 0) {
+  stop("Usage: Rscript 04_04_heatmap_pathway.R <Group> [Species]")
 }
 group_name <- args[1]
-species_name <- args[2]
+species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
 
 if (species_name == "Human") {
   library(org.Hs.eg.db)
@@ -26,215 +27,217 @@ if (species_name == "Human") {
 }
 
 res_dir <- paste0("../results/", group_name)
+dir.create(file.path(res_dir, "figures"), showWarnings = FALSE, recursive = TRUE)
 
 # 1. Load data
 load(paste0("./.RData/", group_name, "/02_deseq_results.RData"))
 load(paste0("./.RData/", group_name, "/03_enrichment_results.RData"))
 
-# 1.5 ID Mapping (ENSG -> Symbol)
-message("Mapping gene IDs...")
-gene_ids <- rownames(dds)
-gene_map <- bitr(gene_ids, fromType = "ENSEMBL", toType = "SYMBOL", OrgDb = org_db) %>%
-  distinct(ENSEMBL, .keep_all = TRUE)
-row.names(gene_map) <- gene_map$ENSEMBL
-
-# Ensure output directories exist
-dir.create(paste0(res_dir, "/figures"), showWarnings = FALSE, recursive = TRUE)
-
 # Transform counts (VST)
 vsd <- vst(dds, blind=FALSE)
+mat_full <- assay(vsd)
 
-# 1.6 Create clean Sample Names for display
-colData(vsd)$display_name <- rownames(colData(vsd))
-colnames(vsd) <- colData(vsd)$display_name
+# Mapping for labels
+gene_ids <- rownames(vsd)
+gene_map <- bitr(gene_ids, fromType = "ENSEMBL", toType = "SYMBOL", OrgDb = org_db) %>%
+  distinct(ENSEMBL, .keep_all = TRUE)
+rownames(gene_map) <- gene_map$ENSEMBL
 
-# Order VSD columns by condition
-vsd <- vsd[, order(vsd$condition)]
+# 2. Iterate through primary contrasts to generate heatmaps
+# We prioritize Hallmark GSEA results for the heatmaps
+contrasts_to_plot <- names(enrichment_results_all)
 
-# Shared dose colour palette
-cond_levels   <- unique(as.character(colData(vsd)$condition))
-dose_palette_shared <- setNames(
-  colorRampPalette(RColorBrewer::brewer.pal(min(length(cond_levels), 8), "Set2"))(length(cond_levels)),
-  cond_levels
-)
-
-# 5. Pathway-specific Heatmap
-enrichment_doses <- names(enrichment_results_all)
-target_dose <- if("5nM" %in% enrichment_doses) "5nM" else tail(enrichment_doses, 1)
-
-# Robust selection fallback (ORA GO -> GSEA GO -> GSEA Hallmark)
-res_obj <- enrichment_results_all[[target_dose]]
-top_go_df <- if(!is.null(res_obj$ora_go) && nrow(as.data.frame(res_obj$ora_go)) > 0) {
-  message("Using ORA GO for heatmap.")
-  as.data.frame(res_obj$ora_go)
-} else if (!is.null(res_obj$gsea_go) && nrow(as.data.frame(res_obj$gsea_go)) > 0) {
-  message("ORA GO empty. Using GSEA GO for heatmap.")
-  as.data.frame(res_obj$gsea_go)
-} else if (!is.null(res_obj$gsea_hallmark) && nrow(as.data.frame(res_obj$gsea_hallmark)) > 0) {
-  message("ORA/GSEA GO empty. Using GSEA Hallmark for heatmap.")
-  as.data.frame(res_obj$gsea_hallmark)
-} else {
-  NULL
-}
-
-if (!is.null(top_go_df)) {
-  top_pathways <- top_go_df %>%
-    # Standard significance filtering for production
+for (contrast in contrasts_to_plot) {
+  message("\n--- Generating Leading-Edge Heatmap for: ", contrast, " ---")
+  
+  res_obj <- enrichment_results_all[[contrast]]
+  hallmark_res <- res_obj$gsea_hallmark
+  
+  if (is.null(hallmark_res) || nrow(as.data.frame(hallmark_res)) == 0) {
+    message("  Skipping: No significant Hallmark pathways found.")
+    next
+  }
+  
+  # Select Top Pathways (e.g., 3 Activated, 3 Suppressed)
+  df_halo <- as.data.frame(hallmark_res) %>%
     filter(p.adjust < 0.05) %>%
-    head(6)
-
+    mutate(abs_NES = abs(NES)) %>%
+    arrange(desc(abs_NES))
+  
+  if (nrow(df_halo) == 0) {
+    message("  Skipping: No pathways with padj < 0.05.")
+    next
+  }
+  
+  # Pick top pathways to avoid an infinite heatmap
+  top_pathways <- head(df_halo, 6)
+  
   expanded_matrix_list <- list()
   annotation_row_list  <- list()
-
+  
   for (i in seq_len(nrow(top_pathways))) {
-    path_name  <- top_pathways$Description[i]
-    safe_path  <- str_trunc(str_replace_all(path_name, "[^a-zA-Z0-9]", "_"), 30)
-
-    # Dynamic column detection (ORA uses geneID, GSEA uses core_enrichment)
-    gene_col <- if("geneID" %in% colnames(top_pathways)) "geneID" else "core_enrichment"
-
-    if (!gene_col %in% colnames(top_pathways) || is.na(top_pathways[[gene_col]][i])) {
-      message("Skipping pathway '", path_name, "': No gene column found.")
-      next
-    }
-
-    genes_path <- str_split(top_pathways[[gene_col]][i], "/")[[1]]
-    genes_path <- intersect(genes_path, rownames(vsd))
-    message("Pathway '", path_name, "': ", length(genes_path), " genes found in VSD.")
-
-    # Limit to top 15 genes by absolute log2FoldChange
-    res_lfc <- as.data.frame(results_list[[target_dose]]$shrunk)
+    path_raw  <- top_pathways$ID[i]
+    path_clean <- str_to_title(gsub("_", " ", gsub("HALLMARK_", "", path_raw)))
+    
+    # Extract Leading Edge (from core_enrichment column)
+    # core_enrichment is a list of / separated Ensembl IDs
+    genes_path <- str_split(top_pathways$core_enrichment[i], "/")[[1]]
+    genes_path <- intersect(genes_path, rownames(mat_full))
+    
+    # Limit to top 15 genes per pathway by absolute LFC to keep it clean
+    # extracted from our results_list
+    res_lfc <- as.data.frame(results_list[[contrast]]$shrunk)
     genes_path <- intersect(genes_path, rownames(res_lfc))
-    if (length(genes_path) > 15) {
+    
+    if (length(genes_path) > 12) {
       genes_path <- res_lfc[genes_path, ] %>%
         mutate(gene = rownames(.)) %>%
         arrange(desc(abs(log2FoldChange))) %>%
-        head(15) %>%
+        head(12) %>%
         pull(gene)
-      message("  -> Limited to top 15 genes by |log2FC|")
     }
-
+    
     if (length(genes_path) > 0) {
-      mat_slice <- assay(vsd)[genes_path, , drop = FALSE]
-      rownames(mat_slice) <- paste0(genes_path, "__", safe_path)
-      expanded_matrix_list[[path_name]] <- mat_slice
-      annot_slice <- data.frame(Pathway = rep(path_name, length(genes_path)))
+      mat_slice <- mat_full[genes_path, , drop = FALSE]
+      # Unique rownames to allow same gene in multiple pathways
+      rownames(mat_slice) <- paste0(genes_path, "__", i) 
+      
+      expanded_matrix_list[[path_clean]] <- mat_slice
+      
+      annot_slice <- data.frame(Pathway = rep(path_clean, length(genes_path)))
       rownames(annot_slice) <- rownames(mat_slice)
-      annotation_row_list[[path_name]] <- annot_slice
+      annotation_row_list[[path_clean]] <- annot_slice
     }
   }
-
+  
   if (length(expanded_matrix_list) > 0) {
     mat_pathway  <- do.call(rbind, expanded_matrix_list)
     df_annot_row <- do.call(rbind, annotation_row_list)
-    # Intensify colors: Full Z-score scaling (center and scale by SD)
-    # This makes expression patterns much higher contrast
-    mat_pathway  <- t(scale(t(mat_pathway))) 
-    mat_pathway  <- pmin(pmax(mat_pathway, -2), 2)
-
-    orig_ensg       <- str_split_i(rownames(mat_pathway), "__", 1)
+    
+    # 4. Shorten Sample Names for the plot (Thesis-Ready Aesthetics)
+    colnames(mat_pathway) <- colnames(mat_pathway) %>%
+      str_remove_all("human_|dog_") %>% 
+      str_replace_all("DMSO", "D") %>%
+      str_replace_all("Romidepsin|Romi", "R") %>%
+      str_replace_all("Kromastat|Kroma", "K") %>%
+      str_replace_all("6nM", "") %>%
+      str_replace_all("(?i)replicate|rep", "") %>%
+      str_replace_all("_+", "_") %>%
+      str_remove("^_|_$")
+    
+    # Standardize (Z-score)
+    mat_pathway <- t(scale(t(mat_pathway)))
+    mat_pathway <- pmin(pmax(mat_pathway, -2), 2) # Cap at +/- 2 for contrast
+    
+    # Prep Labels
+    orig_ensg <- sub("__.*$", "", rownames(mat_pathway))
     symbols_display <- gene_map[orig_ensg, "SYMBOL"]
-    labels_display  <- ifelse(is.na(symbols_display), orig_ensg, symbols_display)
-
-    wrapped_pw     <- str_wrap(df_annot_row$Pathway, width = 20)
-    pathway_factor <- factor(wrapped_pw, levels = unique(wrapped_pw))
-
-    col_fun <- colorRamp2(c(-2, 0, 2), c("navy", "white", "firebrick3"))
-
-    pathway_names <- levels(pathway_factor)
-    n_pw          <- length(pathway_names)
-    pw_palette    <- setNames(
-      colorRampPalette(RColorBrewer::brewer.pal(min(n_pw, 8), "Set1"))(n_pw),
-      pathway_names
+    labels_display <- ifelse(is.na(symbols_display), orig_ensg, symbols_display)
+    
+    # Sorting and Factors
+    pathway_factor <- factor(df_annot_row$Pathway, levels = unique(df_annot_row$Pathway))
+    
+    # Colors
+    col_fun <- colorRamp2(c(-2, 0, 2), c("#3B4CC0", "white", "#B40426"))
+    n_pw <- nlevels(pathway_factor)
+    pw_palette <- setNames(
+      colorRampPalette(RColorBrewer::brewer.pal(min(n_pw, 8), "Dark2"))(n_pw),
+      levels(pathway_factor)
+    )
+    
+    # Metadata for annotation
+    conditions <- colData(vsd)$condition
+    cell_lines <- if("cell_line" %in% colnames(colData(vsd))) colData(vsd)$cell_line else NULL
+    
+    dose_palette <- c(
+      "DMSO_Romi"      = "grey85",
+      "Romi_6nM"       = "#E41A1C", # Brighter Red
+      "DMSO_Kromastat" = "grey70",
+      "Kromastat_6nM"  = "#377EB8"  # Brighter Blue
     )
 
-    conditions   <- colData(vsd)$condition
-    top_ha <- HeatmapAnnotation(
-      Dose = as.character(conditions),
-      col  = list(Dose = dose_palette_shared),
-      show_annotation_name = FALSE,
-      show_legend          = FALSE
-    )
-
-    right_ha <- rowAnnotation(
-      id      = anno_text(labels_display, gp = gpar(fontsize = 7)),
-      Pathway = pathway_factor,
-      gap     = unit(4, "mm"),
-      col     = list(Pathway = pw_palette),
-      show_annotation_name = FALSE,
-      show_legend          = c(id = FALSE, Pathway = FALSE)
-    )
-
-    ht_pathway <- Heatmap(
+    ha_list <- list(condition = dose_palette)
+    if (!is.null(cell_lines)) {
+      ha_list$cell_line <- setNames(RColorBrewer::brewer.pal(max(3, length(unique(cell_lines))), "Accent")[seq_along(unique(cell_lines))], unique(cell_lines))
+    }
+    
+    top_ha <- HeatmapAnnotation(df = as.data.frame(colData(vsd)[, names(ha_list), drop=FALSE]), 
+                                col = ha_list,
+                                show_legend = FALSE)
+    
+    # The Heatmap
+    # Wrap title if too long
+    clean_contrast <- str_replace_all(contrast, "_", " ")
+    wrapped_title <- str_wrap(paste0(species_name, ": ", clean_contrast), width = 50)
+    
+    ht <- Heatmap(
       mat_pathway,
-      name              = "log2FC",
-      col               = col_fun,
-      row_split         = pathway_factor,
-      row_title_side    = "right",
-      row_title_rot     = 0,
-      row_title_gp      = gpar(fontsize = 8, fontface = "bold"),
-      row_gap           = unit(0, "mm"),
-      cluster_rows      = FALSE,
-      cluster_row_slices = FALSE,
-      cluster_columns   = FALSE,
-      column_split      = factor(as.character(conditions), levels = unique(as.character(conditions))),
-      column_title_gp   = gpar(fontsize = 9, fontface = "bold"),
-      column_title_rot  = 0,
-      column_gap        = unit(0, "mm"),
-      top_annotation    = top_ha,
-      right_annotation  = right_ha,
-      show_row_names    = FALSE,
-      show_column_names = TRUE,
-      column_names_rot  = 45,
-      column_names_gp   = gpar(fontsize = 10),
-      use_raster        = FALSE,
-      height            = unit(nrow(mat_pathway) * 6, "mm"),
-      width             = unit(ncol(mat_pathway) * 10, "mm"),
-      heatmap_legend_param = list(
-        title          = "log2(FC)",
-        title_position = "leftcenter-rot",
-        at             = c(-2, -1, 0, 1, 2),
-        labels         = c("-2", "-1", "0", "1", "2"),
-        direction      = "vertical",
-        legend_height  = unit(4, "cm")
-      )
+      name = "z-score",
+      col = col_fun,
+      row_split = pathway_factor,
+      row_title_side = "right",
+      row_title_rot = 0,
+      row_title_gp = gpar(fontsize = 9, fontface = "bold"),
+      cluster_rows = FALSE,
+      cluster_columns = FALSE,
+      column_split = conditions,
+      show_row_names = FALSE,
+      right_annotation = rowAnnotation(
+        id = anno_text(labels_display, gp = gpar(fontsize = 8)),
+        Pathway = pathway_factor,
+        col = list(Pathway = pw_palette),
+        show_legend = FALSE
+      ),
+      top_annotation = top_ha,
+      column_title = wrapped_title,
+      column_title_gp = gpar(fontsize = 12, fontface = "bold"),
+      column_names_rot = 45,
+      column_names_gp = gpar(fontsize = 10),
+      show_heatmap_legend = FALSE # We will create it manually for custom ordering
     )
-
-    px_per_mm    <- 150 / 25.4
-    mm_legend    <- 0
-    mm_title     <- 22
-    mm_col_title <- 12
-    mm_dose_bar  <- 8
-    mm_col_names <- 40
-    mm_padding   <- 5
-    mm_rows      <- nrow(mat_pathway) * 6
-    canvas_h_px  <- round((mm_legend + mm_title + mm_col_title + mm_dose_bar + mm_col_names + mm_padding + mm_rows) * px_per_mm)
-
-    png(paste0(res_dir, "/figures/04_heatmap_pathway_genes.png"),
-        width = 1280, height = canvas_h_px, res = 150)
-    ht_opt(TITLE_PADDING = unit(c(2, 8), "mm"))
-    draw(ht_pathway,
-         heatmap_legend_side    = "left",
-         annotation_legend_side = "top",
-         merge_legend           = FALSE,
-         align_heatmap_legend   = "heatmap_top",
-         column_title           = paste0(group_name, ": Genes Grouped by Pathway"),
-         column_title_gp        = gpar(fontsize = 12, fontface = "bold"))
-    decorate_annotation("Pathway", {
-      grid.text("Pathway",
-                x    = unit(0, "npc"),
-                y    = unit(1, "npc") + unit(3, "mm"),
-                just = c("left", "bottom"),
-                gp   = gpar(fontsize = 9, fontface = "bold"))
-    })
+    
+    # 5. Create Custom Legends for Ordered Stacking
+    lgd_shorthand = Legend(labels = c("D = DMSO", "R = Romidepsin", "K = Kromastat"), 
+                           title = "Shorthand", 
+                           graphics = list(function(x, y, w, h) {}, 
+                                           function(x, y, w, h) {}, 
+                                           function(x, y, w, h) {}))
+    
+    lgd_condition = Legend(title = "Condition", 
+                           at = names(ha_list$condition), 
+                           legend_gp = gpar(fill = ha_list$condition))
+    
+    lgd_list = list(lgd_shorthand, lgd_condition)
+    
+    if (!is.null(cell_lines)) {
+      lgd_cell = Legend(title = "Cell Line", 
+                        at = names(ha_list$cell_line), 
+                        legend_gp = gpar(fill = ha_list$cell_line))
+      lgd_list = c(lgd_list, list(lgd_cell))
+    }
+    
+    lgd_z = Legend(title = "z-score", 
+                   col_fun = col_fun, 
+                   at = c(-2, 0, 2))
+    lgd_list = c(lgd_list, list(lgd_z))
+    
+    # Pack them vertically
+    pd = packLegend(list = lgd_list, direction = "vertical")
+    
+    safe_target <- str_replace_all(contrast, "[^a-zA-Z0-9]", "_")
+    png(paste0(res_dir, "/figures/04_04_heatmap_pathway_", safe_target, ".png"), 
+        width = 2000, height = 250 + nrow(mat_pathway)*25, res = 150)
+    
+    # Draw with the packed legend list on the left
+    draw(ht, 
+         annotation_legend_list = pd,
+         heatmap_legend_side = "left", 
+         annotation_legend_side = "left",
+         padding = unit(c(5, 25, 5, 10), "mm")) # bottom, left, top, right
     dev.off()
-    message("[OK] Pathway heatmap -> 04_heatmap_pathway_genes.png",
-            "  (", nrow(mat_pathway), " rows x ", ncol(mat_pathway), " cols",
-            "  |  ", nlevels(pathway_factor), " pathways",
-            "  |  canvas: 1280x", canvas_h_px, "px)")
-  } else {
-    message("Skipping Pathway heatmap: No qualifying genes for top pathways.")
+    
+    message("  [OK] Saved heatmap -> 04_04_heatmap_pathway_", safe_target, ".png")
   }
-} else {
-  message("Skipping Pathway heatmap: No ORA GO enrichment results found.")
 }
+
+message("\n[OK] Leading-edge heatmap generation complete.")

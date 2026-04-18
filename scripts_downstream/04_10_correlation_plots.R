@@ -1,0 +1,97 @@
+# [[scripts_downstream/04_10_correlation_plots.R]]
+# Goal: Generate LFC-LFC correlation plots for consistency proofing.
+
+library(DESeq2)
+library(ggplot2)
+library(tidyverse)
+library(patchwork)
+
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  stop("Usage: Rscript 04_10_correlation_plots.R <Group> [Species]")
+}
+group_name <- args[1]
+species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
+
+res_dir <- paste0("../results/", group_name)
+dir.create(file.path(res_dir, "figures"), showWarnings = FALSE, recursive = TRUE)
+
+# 1. Load data
+load(paste0("./.RData/", group_name, "/02_deseq_results.RData"))
+
+# 2. Identify Cell Line Subsets
+keys <- names(results_list)
+# Known cell lines in this project
+known_cl <- c("H9", "SUPM2", "CNK89", "UL1")
+cell_lines <- intersect(known_cl, unique(str_extract(keys, "^[A-Za-z0-9]+(?=_)")))
+
+if (length(cell_lines) < 2) {
+  message("\n[CRITICAL] Error: Could not find cell-line subset results (e.g., H9_..., SUPM2_...).")
+  message(">> Did you remember to re-run '02_deseq2_dge.R' after the upgrade?")
+  stop("Missing subset results.")
+}
+
+cl1 <- cell_lines[1]
+cl2 <- cell_lines[2]
+
+message("--- Generating LFC Correlation Report (", cl1, " vs ", cl2, ") ---")
+
+create_corr_plot <- function(drug_name, stub) {
+  # Join results from both cell lines
+  df1 <- results_list[[paste0(cl1, "_", stub)]]$df
+  df2 <- results_list[[paste0(cl2, "_", stub)]]$df
+  
+  if (is.null(df1) || is.null(df2)) return(NULL)
+  
+  # All genes present in both cell lines are retained to show the unbiased global LFC trend.
+  # Significance status is encoded by color, not used as a filter, to avoid bias.
+  merged <- inner_join(
+    df1 %>% select(Geneid, gene_label, lfc1 = log2FoldChange, padj1 = padj),
+    df2 %>% select(Geneid, lfc2 = log2FoldChange, padj2 = padj),
+    by = "Geneid"
+  ) %>%
+    mutate(
+      status = case_when(
+        (padj1 < 0.05 & padj2 < 0.05) ~ "Consensus (Sig in both)",
+        (padj1 < 0.05 | padj2 < 0.05) ~ "Specific (Sig in one)",
+        TRUE ~ "Non-significant"
+      )
+    )
+  
+  # Calculate Pearson Correlation
+  corr_val <- cor(merged$lfc1, merged$lfc2, method = "pearson", use = "complete.obs")
+  
+  ggplot(merged, aes(x = lfc1, y = lfc2, color = status)) +
+    geom_point(alpha = 0.4, size = 1) +
+    geom_smooth(method = "lm", color = "black", linetype = "dashed", linewidth = 0.5) +
+    scale_color_manual(values = c(
+      "Consensus (Sig in both)" = "#D62728", # Premium Red
+      "Specific (Sig in one)" = "#1F77B4",   # Premium Blue
+      "Non-significant" = "grey80"
+    )) +
+    theme_bw(base_size = 12) +
+    labs(
+      title = paste0(drug_name, " Mechanism Consistency"),
+      subtitle = paste(cl1, "vs", cl2, "| R =", round(corr_val, 3)),
+      x = paste0("log2FoldChange (", cl1, ")"),
+      y = paste0("log2FoldChange (", cl2, ")"),
+      color = "Significance"
+    ) +
+    theme(legend.position = "bottom")
+}
+
+p_romi <- create_corr_plot("Romidepsin", "Romi_6nM_vs_DMSO_Romi")
+p_krom <- create_corr_plot("Kromastat", "Kromastat_6nM_vs_DMSO_Kromastat")
+
+if (!is.null(p_romi) && !is.null(p_krom)) {
+  p_combined <- p_romi + p_krom + 
+    plot_annotation(
+      title = paste0("Pathway Directionality Consensus: ", group_name),
+      theme = theme(plot.title = element_text(size = 18, face = "bold", hjust = 0.5))
+    )
+  
+  ggsave(file.path(res_dir, "figures/04_10_lfc_correlation.png"), p_combined, 
+         width = 12, height = 7, dpi = 300, bg = "white")
+  
+  message("[OK] Correlation plot saved -> 04_10_lfc_correlation.png")
+}
