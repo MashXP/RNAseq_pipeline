@@ -6,7 +6,7 @@ library(tidyverse)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) < 1) {
-  stop("Usage: Rscript 00_bridge.R <Species> (e.g., human or dog)")
+  stop("Usage: Rscript 01_bridge_data_prep.R <Species> (e.g., human or dog)")
 }
 
 species_name <- args[1]
@@ -14,7 +14,8 @@ group_name <- species_name # Using Species as the Group for multifactorial analy
 message("Bridging mentor data for Species: ", species_name)
 
 # 1. Define Paths
-base_dir <- paste0("cancer_downstream/featurecounts/", species_name)
+# --- DEVIATION: Adjusted paths to work from scripts_downstream CWD
+base_dir <- paste0("../cancer_downstream/featurecounts/", species_name)
 count_file <- file.path(base_dir, paste0(species_name, "_featurecounts_counts.tsv"))
 meta_file  <- file.path(base_dir, paste0(species_name, "_sample_metadata.tsv"))
 
@@ -53,7 +54,8 @@ keep <- rowSums(counts_matrix >= 10) >= 3
 counts_filtered <- counts_matrix[keep,]
 
 # 5. Save processed objects
-out_dir <- paste0("scripts_downstream/.RData/", group_name)
+# --- DEVIATION: Save into local .RData directory for consistency with pipeline
+out_dir <- paste0("./.RData/", group_name)
 dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
 save(counts_filtered, metadata, species_name, group_name, file = file.path(out_dir, "01_processed_counts.RData"))
 
