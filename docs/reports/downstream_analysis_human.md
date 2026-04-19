@@ -41,10 +41,13 @@ The combined dashboard provides a bird's-eye view of all 8 contrasts used to val
 - **Conclusion**: This "blank" plot confirms that the two control groups are identical. Any downstream results are strictly due to the drug treatments.
 
 #### 2.1.2 Global Magnitude of Response
-| Treatment | Total DEGs (\|log2FC\| > 1) | Ratio (Up:Down) |
-| :--- | :--- | :--- |
-| **Romidepsin (6nM)** | 9,593 | 2.5 : 1 (6,866 up / 2,727 down) |
-| **Kromastat (6nM)** | 5,697 | 4.65 : 1 (4,689 up / 1,008 down) |
+> [!NOTE]
+> Global DEG counts and ratios are derived from the species-level analysis consolidated in: [04_03_venn_rigor_stats.csv](../../results/human/tables/04_03_venn_rigor_stats.csv).
+
+| Treatment            | Total DEGs (\|log2FC\| > 1) | Ratio (Up:Down)                   |
+| :------------------- | :-------------------------- | :-------------------------------- |
+| **Romidepsin (6nM)** | 9,594                       | 2.5 : 1 (6,867 up / 2,727 down)   |
+| **Kromastat (6nM)**  | 5,131                       | 4.6 : 1 (4,222 up / 909 down)     |
 
 Romidepsin induces a broader and more balanced transcriptomic response, while Kromastat's effect is more heavily skewed toward gene activation.
 
@@ -55,10 +58,18 @@ This contrast directly compares the two drugs at the same 6nM dose to identify u
 
 - **Genes higher in Romidepsin (Red)**: Includes `SPAG9`, `GM2A`, and `SLC25A4`. These represent pathways where Romidepsin has a more potent "overdrive" effect compared to Kromastat.
 - **Genes higher in Kromastat (Blue)**: Includes `STAT6`, `HDGF`, and `TNFRSF8`. Despite being less potent overall, Kromastat uniquely or more strongly regulates these specific targets.
-- **Potency Proof**: With **3,680 significant differences** between the two drugs at the same molarity, we have strong evidence that these HDAC inhibitors are not functionally redundant.
+- **Potency Proof**: With **3,084 significant differences** between the two drugs at the same molarity, we have strong evidence that these HDAC inhibitors are not functionally redundant.
 
 ### 2.3 Local (Cell-Line Specific) Response
 To understand if drug sensitivity varies between backgrounds, we analyzed the lines individually.
+
+> [!NOTE]
+> Local reactivity counts are derived from individual cell-line DGE tables (e.g., `02_dge_H9_*.csv`) located in: [results/human/tables/](../../results/human/tables/).
+
+| Cell Line             | Romidepsin (6nM) | Kromastat (6nM) |
+| :-------------------- | :--------------- | :-------------- |
+| **H9 (Healthy-like)** | 8,258 DEGs       | 4,499 DEGs      |
+| **SUPM2 (Cancer)**    | 9,561 DEGs       | 5,742 DEGs      |
 
 | Cell Line             | Romidepsin (6nM)                                                                           | Kromastat (6nM)                                                                                       |
 | :-------------------- | :----------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
@@ -75,8 +86,8 @@ To understand if drug sensitivity varies between backgrounds, we analyzed the li
 
 The Venn diagrams illustrate the degree of transcriptomic "shared identity" between Romidepsin and Kromastat at the 6nM concentration.
 
-| All DEGs                                                      | Up-regulated                                                | Down-regulated                                                  |
-| :------------------------------------------------------------ | :---------------------------------------------------------- | :-------------------------------------------------------------- |
+| All DEGs                                                         | Up-regulated                                                   | Down-regulated                                                     |
+| :--------------------------------------------------------------- | :------------------------------------------------------------- | :----------------------------------------------------------------- |
 | ![Venn All\|400](../../results/human/figures/04_03_venn_all.png) | ![Venn Up\|400](../../results/human/figures/04_03_venn_up.png) | ![Venn Down\|400](../../results/human/figures/04_03_venn_down.png) |
 
 ### 3.1 Statistical Rigor Summary

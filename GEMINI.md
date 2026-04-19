@@ -5,6 +5,8 @@ This file tracks the step-by-step collaborative work between Antigravity and the
 ## Protocol
 - **Step-by-Step Execution**: No actions will be taken beyond the current agreed-upon step.
 - **Verification**: Each step must be verified before moving to the next.
+- **User-Led Progression**: Never proactively move to the next phase/pillar or ask to move on. Wait for the user's explicit command to proceed.
+- **Research Constraints**: Do not run terminal commands for independent data verification or research unless explicitly requested as a specific step.
 - **Execution Rule**: Always ask the user to activate the `mamba` environment (`ma cancer_rnaseq`) first, then only provide the `Rscript` command for the user to run. Do not execute visualization scripts automatically.
 
 ## RNA-Seq Pipeline System Instructions
