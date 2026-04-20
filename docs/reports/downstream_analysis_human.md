@@ -44,10 +44,10 @@ The combined dashboard provides a bird's-eye view of all 8 contrasts used to val
 > [!NOTE]
 > Global DEG counts and ratios are derived from the species-level analysis consolidated in: [04_03_venn_rigor_stats.csv](../../results/human/tables/04_03_venn_rigor_stats.csv).
 
-| Treatment            | Total DEGs (\|log2FC\| > 1) | Ratio (Up:Down)                   |
+| Treatment            | Total DEGs (|log2FC| > 1) | Ratio (Up:Down)                   |
 | :------------------- | :-------------------------- | :-------------------------------- |
 | **Romidepsin (6nM)** | 9,594                       | 2.5 : 1 (6,867 up / 2,727 down)   |
-| **Kromastat (6nM)**  | 5,131                       | 4.6 : 1 (4,222 up / 909 down)     |
+| **Kromastat (6nM)**  | 5,698                       | 4.6 : 1 (4,689 up / 1,009 down)     |
 
 Romidepsin induces a broader and more balanced transcriptomic response, while Kromastat's effect is more heavily skewed toward gene activation.
 
@@ -123,7 +123,7 @@ The rigor metrics support a clear functional hierarchy:
 - **Kromastat Uniqueness (8%)**: Only 809 genes.
 - **Romidepsin Uniqueness (51%)**: 5,272 genes.
 
-**Finding**: Kromastat acts primarily as a **transcriptomic subset** of Romidepsin. Approximately **85% of Kromastat's total response is contained within the Romidepsin signature**.
+**Finding**: Kromastat acts primarily as a **transcriptomic subset** of Romidepsin. Approximately **76% of Kromastat's total response is contained within the Romidepsin signature**.
 
 ### 3.4 Directional Differences
 - **Shared Activation**: Both drugs are highly effective at gene activation, sharing 3,593 "Up" genes.
@@ -186,7 +186,7 @@ The matrices reveal a striking **Reciprocal Signature** between the control stat
 | **MYC Targets V2** |    //    |  🟦   |    //    |                   //                   |
 | **E2f Targets**    |    //    |  🟦   |    //    |                   //                   |
 | **G2M Checkpoint** |    //    |  🟦   |    //    |                   //                   |
-| **Allograft Rej.** |    //    |  🟦   |    //    |             more light 🟥              |
+| **Allograft Rej.** |    //    |  🟦   |    //    |             light 🟦              |
 | **Myogenesis**     | light 🟦 |  🟥   | light 🟦 |                   //                   |
 ##### K vs D
 
@@ -202,7 +202,7 @@ The matrices reveal a striking **Reciprocal Signature** between the control stat
 #### **Analysis: The H9 Specificity**
 The hand-verified H9 matrices reveal three critical biological nuances:
 1. **Potency Gradation**: The presence of "a bit of red" in the Kromastat (`K_6nM`) column for **MYC Targets V1** (despite the overall blue shift) provides granular proof of Kromastat's weaker repressive force compared to Romidepsin's absolute suppression (`🟦`).
-2. **The Immune Toggle**: The most significant divergence is seen in **Allograft Rejection**. While Romidepsin forces a total "Flip" to deep blue (immunosuppression), Kromastat actually increases the baseline activation ("more light red"). This suggests a potential immuno-stimulatory or stress-inducing effect unique to Kromastat in healthy-like cells.
+2. **The Immune-Sparing Signature**: While Romidepsin forces a total "Flip" of **Allograft Rejection** to deep blue (absolute immunosuppression), Kromastat only results in a **mild suppression (light blue)**. This preservation of immune signaling infrastructure is the most significant functional divergence in the healthy-like background.
 3. **Conserved Differentiation**: Despite the potency gap and immune differences, both drugs successfully flip the **Myogenesis** signature from light blue to red, confirming that this differentiation pathway is a robust, conserved response to HDAC inhibition in the H9 background.
 
 ---
@@ -275,7 +275,7 @@ Both drugs successfully achieve the primary goal of HDAC inhibition: a massive *
 The matrices visually prove that Romidepsin is a **"Metabolic Crusher,"** inducing a "Deep Blue" wall of suppression. Kromastat, by contrast, acts as a **"Metabolic Modulator,"** resulting in a "Pale/Light Blue" signature. It hits the same targets but with significantly less repressive force at the 6nM concentration.
 
 #### **3. The Functional Divergence**
-*   **Immune Sparing**: Romidepsin broadly suppresses immune-related pathways (**Interferon Alpha, Allograft Rejection**). Kromastat uniquely **preserves or activates** these pathways.
+*   **Immune Sparing**: Romidepsin results in absolute suppression of immune-related pathways (**Interferon Alpha, Allograft Rejection**). Kromastat **spares** these pathways from this deep repression, maintaining higher levels of baseline signaling infrastructure.
 *   **Stress Fates**: In cancer cells (SUPM2), Romidepsin pushes the cells toward a **Hypoxia** stress state, while Kromastat triggers a **Complement** immune-cascade.
 *   **Healthy-Line Safety**: In H9 cells, Kromastat's weaker repression suggests it may be less "toxic" to healthy cell metabolism than Romidepsin.
 
@@ -366,7 +366,7 @@ This cluster is the mirror image: **strongly expressed in H9 (Green), near-zero 
 | **PDE3B** | 8,542 | 5 | −0.60 | ≈ 0 | Phosphodiesterase — cAMP/lipid metabolism |
 | **GAS7** | 8,567 | 5 | −0.50 | ≈ 0 | Growth-arrest specific — neuronal/cytoskeletal function |
 
-> **Interpretation**: This cluster constitutes the **healthy-cell homeostatic programme** of H9 — a set of genes governing cytoskeletal integrity, immune identity (TRBV13, GPR174), and growth regulation. The consistent suppression of all these genes by **Kromastat in H9** reveals that at 6nM, Kromastat is actively **dismantling the healthy-cell maintenance programme**, raising a meaningful safety concern relative to Romidepsin, which shows no significant effect on these H9-specific genes. The near-zero baseMean in SUPM2 means this cluster is effectively absent from the cancer background — these genes are simply not part of the cancer cell's identity.
+> **Interpretation**: This cluster constitutes the **healthy-cell homeostatic programme** of H9 — a set of genes governing cytoskeletal integrity, immune identity (TRBV13, GPR174), and growth regulation. The consistent suppression of all these genes by both inhibitors reveals that HDAC inhibition involves a fundamental remodelling of the healthy-cell maintenance programme. Notably, **Romidepsin is significantly more disruptive** to this homeostatic signature (e.g., `RASSF2` log2FC = −2.13) compared to **Kromastat** (log2FC = −1.11), suggesting that Kromastat's milder transcriptomic footprint may offer a larger therapeutic window by sparing more of the healthy cell identity at the same dose. The near-zero baseMean in SUPM2 means this cluster is effectively absent from the cancer background — these genes are simply not part of the cancer cell's identity.
 
 > **Note**: `LOC101927690` visible in the heatmap could not be resolved to a gene symbol in the DGE tables, consistent with its status as an unannotated or low-confidence locus.
 
@@ -404,7 +404,7 @@ Individual analysis of the H9 lineage reveals how these drugs affect a "healthy"
 
 - **Shared Core**: Both drugs show the canonical proliferation crash (**Myc Targets V1**, **Myc Targets V2**, **E2f Targets**, **G2m Checkpoint**) as the dominant suppressed signatures in H9.
 - **Romi-Specific Suppression in H9**: Romidepsin additionally suppresses **Allograft Rejection** and **IL2-STAT5 Signaling** in H9 — both immune-modulatory pathways — confirming a more immunosuppressive character even in the healthy background.
-- **Kroma-Specific Activation in H9**: Kromastat uniquely activates **Apoptosis** and **P53 Pathway** in H9 (both present in its top 10 activated panel; absent from H9+Romi). This indicates Kromastat induces a **controlled, p53-driven apoptotic programme** in the healthy lineage — a qualitatively distinct fate from Romidepsin's stress-dominated response.
+- **Divergent Activation in H9**: While both drugs activate **Apoptosis** and the **P53 Pathway** in H9, Kromastat induces a more robust activation of these signatures (Kroma NES ≈ +1.89 vs Romi NES ≈ +1.65). This indicates Kromastat engages a cleaner, p53-driven apoptotic programme in the healthy lineage, whereas Romidepsin's response is more dominated by broader cytotoxic stress.
 
 ---
 
@@ -416,8 +416,8 @@ The cancer-specific response highlights the "Growth Crushing" effectiveness of e
 | ![SUPM2 Romi NES\|600](../../results/human/figures/04_06_hallmark_nes_SUPM2_Romi_6nM_vs_DMSO_Romi.png) | ![SUPM2 Kroma NES\|600](../../results/human/figures/04_06_hallmark_nes_SUPM2_Kromastat_6nM_vs_DMSO_Kromastat.png) |
 
 - **Leading Suppression**: In both SUPM2 plots, **E2f Targets** is the single most suppressed hallmark (NES ≈ −3.0), overtaking **Myc Targets V1** — reflecting maximal disruption of the G1/S transition in the cancer background.
-- **Romi-Specific Activation in SUPM2**: Romidepsin uniquely activates **Apoptosis**, **P53 Pathway**, and **KRAS Signaling Up** in SUPM2. The co-activation of apoptotic and oncogenic stress pathways is a signature of **terminal cancer cell stress** — cells simultaneously dying and fighting back.
-- **Kroma-Specific Activation in SUPM2**: Kromastat instead activates **Complement**, **UV Response Down**, **IL2-STAT5 Signaling**, and **Inflammatory Response** — a broader immune and inflammatory activation profile entirely absent from Romidepsin's SUPM2 response.
+- **Conserved Stress Activation in SUPM2**: Both drugs show significant activation of **Apoptosis**, **P53 Pathway**, and **KRAS Signaling Up** in the cancer background. This co-activation of apoptotic and oncogenic stress pathways is a signature of terminal cancer cell stress — cells simultaneously dying and mounting a survival response.
+- **Divergent Inflammatory Response in SUPM2**: While both drugs activate **Complement** (Romi NES ≈ +2.05, Kroma NES ≈ +2.33), Kromastat triggers a broader immune and inflammatory activation profile, including significantly stronger activation of **Il2 Stat5 Signaling** and the **Inflammatory Response** hallmark compared to Romidepsin.
 
 ---
 
