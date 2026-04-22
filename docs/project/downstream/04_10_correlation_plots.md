@@ -6,10 +6,10 @@ This is the "Proof of Mechanism" script. While other plots show that genes chang
 
 ## 0. Data Flow (I/O)
 - **Input**: 
-    - **Results RData**: `scripts_downstream/.RData/[Group]/02_deseq_results.RData` (Contains cell-line specific DGE results).
-- **Processing**: Inner-joining LFCs between two cell lines, Consensus classification, Pearson correlation calculation.
+    - **Results RData**: `./.RData/[Group]/02_deseq_results.RData` (Contains cell-line specific DGE results).
+- **Processing**: Inner-joining LFCs between two cell lines, Consensus classification (LFC > 2.0), Pearson correlation calculation.
 - **Output**: 
-    - **Consistency Figure**: `../results/[Group]/figures/04_lfc_correlation.png` (Side-by-side Romi vs Krom).
+    - **Consistency Figure**: `../results/[Group]/figures/04_10_lfc_correlation.png` (Side-by-side Romi vs Krom).
 
 ---
 
@@ -51,8 +51,8 @@ merged <- inner_join(
 ## 3. Defining "Consensus"
 ```r
 status = case_when(
-  (padj1 < 0.05 & padj2 < 0.05) ~ "Consensus (Sig in both)",
-  (padj1 < 0.05 | padj2 < 0.05) ~ "Specific (Sig in one)",
+  (is_sig1 & is_sig2) ~ "Consensus (Sig in both)",
+  (is_sig1 | is_sig2) ~ "Specific (Sig in one)",
   TRUE ~ "Non-significant"
 )
 ```
@@ -100,8 +100,8 @@ This plot is the ultimate test of **Biological Reproducibility**.
 
 1. **The R-Value (Pearson Correlation)**:
     - **R > 0.7**: Strong evidence that the drug's mechanism is **Conserved**. The drug does the same thing to both cell lines.
-    - **R < 0.4**: Evidence of **Cell-Line Specificity**. The drug affects the cancer line differently than the healthy line.
-2. **The Diagonal Cloud**: 
+    - **R < 0.4**: Evidence of **Cell-Line Specificity**. The drug affects the cancer line differently than the healthy line. 
+2. **Consensus Genes (Red Dots)**: These are the "Universal Hits" that passed the **|LFC| > 2.0** and **padj < 0.05** thresholds in BOTH cell lines. If a gene is Red and far from the center, it is a **High-Confidence Target** that responds to the drug regardless of the biological background.
+3. **The Diagonal Cloud**: 
     - Most points should cluster along the diagonal dashed line. This means that if a gene was upregulated in Model A, it was also upregulated in Model B.
-3. **Consensus Genes (Red Dots)**: These are the "Universal Hits." If a gene is Red and far from the center, it is a **High-Confidence Target** that responds to the drug regardless of the biological background.
 4. **Outliers (Dots far from the line)**: These represent "Model-Specific" biology. For example, a gene that is inhibited in cancer but not in healthy cells would appear far away from the diagonal.

@@ -29,6 +29,8 @@ color_down <- "#1F77B4"
 color_ns   <- "grey70"
 
 volcano_plots <- list()
+summary_stats <- list() # Store counts for formal export
+all_top_genes <- list() # Store top 10 genes per contrast
 
 for (contrast in names(results_list)) {
   message("Processing Volcano for: ", contrast)
@@ -37,16 +39,14 @@ for (contrast in names(results_list)) {
   plot_df <- results_list[[contrast]]$df
   
   # 2. Robust Significance Classification
-  # Filter out rows with NA in log2FoldChange or padj for plotting stability
   plot_df <- plot_df %>%
     filter(!is.na(log2FoldChange), !is.na(padj))
   
   padj_cutoff <- 0.05
-  lfc_cutoff <- 1.0
+  lfc_cutoff <- 2.0
   
   plot_df <- plot_df %>%
     mutate(
-      # Handle padj=0 and apply a visual cap at 500 for clarity
       neg_log10_padj = case_when(
         padj == 0 ~ 500,
         -log10(padj) > 500 ~ 500,
@@ -62,8 +62,31 @@ for (contrast in names(results_list)) {
   up_count <- sum(plot_df$sig_status == "up", na.rm = TRUE)
   down_count <- sum(plot_df$sig_status == "down", na.rm = TRUE)
   
-  # 3. Mentor's Labeling Heuristic (Fixing tie-breaks for padj = 0)
-  # Label top 5 genes per side, prioritized by padj then abs(LFC)
+  # Store stats for the summary table
+  summary_stats[[contrast]] <- data.frame(
+    Contrast = contrast,
+    Up = up_count,
+    Down = down_count,
+    Total = up_count + down_count
+  )
+
+  # 3. Top Genes Extraction (5 Up / 5 Down for formal export)
+  top_up <- plot_df %>%
+    filter(sig_status == "up", !is.na(gene_name)) %>%
+    arrange(padj, desc(abs(log2FoldChange))) %>%
+    slice_head(n = 5) %>%
+    mutate(Contrast = contrast, Direction = "Up")
+    
+  top_down <- plot_df %>%
+    filter(sig_status == "down", !is.na(gene_name)) %>%
+    arrange(padj, desc(abs(log2FoldChange))) %>%
+    slice_head(n = 5) %>%
+    mutate(Contrast = contrast, Direction = "Down")
+    
+  all_top_genes[[contrast]] <- bind_rows(top_up, top_down) %>%
+    select(Contrast, Direction, gene_name, log2FoldChange, padj)
+
+  # 4. Mentor's Labeling Heuristic
   label_per_side <- 5
   label_df <- plot_df %>%
     filter(sig_status != "not_significant") %>%
@@ -78,7 +101,7 @@ for (contrast in names(results_list)) {
     scale_color_manual(values = c("up" = color_up, "down" = color_down, "not_significant" = color_ns)) +
     geom_vline(xintercept = c(-lfc_cutoff, lfc_cutoff), linetype = "dashed", color = "grey40", alpha = 0.7) +
     geom_hline(yintercept = -log10(padj_cutoff), linetype = "dashed", color = "grey40", alpha = 0.7) +
-    coord_cartesian(clip = "off") + # Prevent labels from being cut off
+    coord_cartesian(clip = "off") +
     theme_bw(base_size = 14) +
     labs(
       title = str_replace_all(contrast, "_", " "),
@@ -94,10 +117,9 @@ for (contrast in names(results_list)) {
       legend.position = "none",
       plot.title = element_text(face = "bold"),
       panel.grid.minor = element_blank(),
-      plot.margin = margin(1, 1, 1, 1, "cm") # Extra margin for annotations
+      plot.margin = margin(1, 1, 1, 1, "cm")
     )
   
-  # Only add labels if there are significant genes
   if (nrow(label_df) > 0) {
     p <- p + geom_text_repel(
       data = label_df,
@@ -118,7 +140,51 @@ for (contrast in names(results_list)) {
   ggsave(paste0(res_dir, "/figures/04_02_volcano_", safe_name, ".png"), p, width = 8, height = 7, dpi = 300, bg = "white")
 }
 
-# 5. Combined Plot
+# 5. Export Master Summary Tables
+message("--- Exporting Authoritative DGE Summary Tables ---")
+dir.create(file.path(res_dir, "tables"), showWarnings = FALSE, recursive = TRUE)
+
+# 5.1 Global Counts
+final_summary_df <- bind_rows(summary_stats)
+write.csv(final_summary_df, file.path(res_dir, "tables/04_02_dge_summary_stats.csv"), row.names = FALSE)
+
+# 5.2 Top 10 Genes per Contrast
+final_top_genes_df <- bind_rows(all_top_genes)
+write.csv(final_top_genes_df, file.path(res_dir, "tables/04_02_top_dge_genes.csv"), row.names = FALSE)
+
+# 5.3 Conserved Targets (H9 ∩ SUPM2)
+message("--- Identifying Conserved Targets across Cell Lines ---")
+conserved_list <- list()
+treatments <- c("Romi_6nM_vs_DMSO_Romi", "Kromastat_6nM_vs_DMSO_Kromastat")
+
+for (tr in treatments) {
+  h9_key <- paste0("H9_", tr)
+  supm2_key <- paste0("SUPM2_", tr)
+  
+  if (h9_key %in% names(results_list) && supm2_key %in% names(results_list)) {
+    h9_df <- results_list[[h9_key]]$df %>% 
+      filter(padj < 0.05, abs(log2FoldChange) > 2.0) %>%
+      select(gene_name, log2FoldChange, padj)
+      
+    supm2_df <- results_list[[supm2_key]]$df %>% 
+      filter(padj < 0.05, abs(log2FoldChange) > 2.0) %>%
+      select(gene_name, log2FoldChange, padj)
+      
+    conserved <- inner_join(h9_df, supm2_df, by = "gene_name", suffix = c("_H9", "_SUPM2")) %>%
+      filter(!is.na(gene_name)) %>%
+      mutate(Treatment = tr)
+      
+    conserved_list[[tr]] <- conserved
+  }
+}
+
+if (length(conserved_list) > 0) {
+  final_conserved_df <- bind_rows(conserved_list)
+  write.csv(final_conserved_df, file.path(res_dir, "tables/04_02_conserved_targets.csv"), row.names = FALSE)
+  message("[OK] Conserved targets table saved.")
+}
+
+# 6. Combined Plot
 if (length(volcano_plots) > 1) {
   p_combined <- wrap_plots(volcano_plots, ncol = 2) + 
     plot_annotation(title = paste0("Volcano Plot Summary: ", group_name))
@@ -127,4 +193,4 @@ if (length(volcano_plots) > 1) {
          width = 16, height = 8 * ceiling(length(volcano_plots)/2), dpi = 300, bg = "white")
 }
 
-message("[OK] Volcano plots successfully completed for ", group_name)
+message("[OK] Volcano plots and summary table completed for ", group_name)

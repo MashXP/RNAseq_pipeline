@@ -127,7 +127,7 @@ for (contrast in contrasts_to_plot) {
     
     # Standardize (Z-score)
     mat_pathway <- t(scale(t(mat_pathway)))
-    mat_pathway <- pmin(pmax(mat_pathway, -2), 2) # Cap at +/- 2 for contrast
+    mat_pathway <- pmin(pmax(mat_pathway, -1), 1) # Cap at +/- 1 for contrast
     
     # Prep Labels
     orig_ensg <- sub("__.*$", "", rownames(mat_pathway))
@@ -138,16 +138,27 @@ for (contrast in contrasts_to_plot) {
     pathway_factor <- factor(df_annot_row$Pathway, levels = unique(df_annot_row$Pathway))
     
     # Colors
-    col_fun <- colorRamp2(c(-2, 0, 2), c("#3B4CC0", "white", "#B40426"))
+    col_fun <- colorRamp2(c(-1, 0, 1), c("#3B4CC0", "white", "#B40426"))
     n_pw <- nlevels(pathway_factor)
     pw_palette <- setNames(
       colorRampPalette(RColorBrewer::brewer.pal(min(n_pw, 8), "Dark2"))(n_pw),
       levels(pathway_factor)
     )
     
-    # Metadata for annotation
-    conditions <- colData(vsd)$condition
-    cell_lines <- if("cell_line" %in% colnames(colData(vsd))) colData(vsd)$cell_line else NULL
+    # Metadata for annotation (REORDERED for cell line grouping)
+    col_meta <- as.data.frame(colData(vsd))
+    if (!"cell_line" %in% colnames(col_meta)) col_meta$cell_line <- species_name
+    
+    # Define Column Order: Cell Line first, then Condition (Explicitly Romi first)
+    col_meta$condition <- factor(col_meta$condition, levels = c("DMSO_Romi", "Romi_6nM", "DMSO_Kromastat", "Kromastat_6nM"))
+    col_order <- order(col_meta$cell_line, col_meta$condition)
+    mat_pathway <- mat_pathway[, col_order]
+    col_meta_ordered <- col_meta[col_order, ]
+    
+    conditions <- col_meta_ordered$condition
+    cell_lines <- col_meta_ordered$cell_line
+    drug_groups <- factor(ifelse(grepl("Romi", conditions), "Romidepsin", "Kromastat"), 
+                          levels = c("Romidepsin", "Kromastat"))
     
     dose_palette <- c(
       "DMSO_Romi"      = "grey85",
@@ -157,11 +168,9 @@ for (contrast in contrasts_to_plot) {
     )
 
     ha_list <- list(condition = dose_palette)
-    if (!is.null(cell_lines)) {
-      ha_list$cell_line <- setNames(RColorBrewer::brewer.pal(max(3, length(unique(cell_lines))), "Accent")[seq_along(unique(cell_lines))], unique(cell_lines))
-    }
+    ha_list$cell_line <- setNames(RColorBrewer::brewer.pal(max(3, length(unique(cell_lines))), "Accent")[seq_along(unique(cell_lines))], unique(cell_lines))
     
-    top_ha <- HeatmapAnnotation(df = as.data.frame(colData(vsd)[, names(ha_list), drop=FALSE]), 
+    top_ha <- HeatmapAnnotation(df = col_meta_ordered[, names(ha_list), drop=FALSE], 
                                 col = ha_list,
                                 show_legend = FALSE)
     
@@ -180,7 +189,8 @@ for (contrast in contrasts_to_plot) {
       row_title_gp = gpar(fontsize = 9, fontface = "bold"),
       cluster_rows = FALSE,
       cluster_columns = FALSE,
-      column_split = conditions,
+      column_split = data.frame(cell_lines, drug_groups),
+      column_gap = unit(c(2, 10, 2), "mm"),
       show_row_names = FALSE,
       right_annotation = rowAnnotation(
         id = anno_text(labels_display, gp = gpar(fontsize = 8)),
@@ -218,7 +228,7 @@ for (contrast in contrasts_to_plot) {
     
     lgd_z = Legend(title = "z-score", 
                    col_fun = col_fun, 
-                   at = c(-2, 0, 2))
+                   at = c(-1, 0, 1))
     lgd_list = c(lgd_list, list(lgd_z))
     
     # Pack them vertically

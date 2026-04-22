@@ -6,7 +6,7 @@ While the "Pathway Heatmap" looks at specific biological groups, this script loo
 
 ## 0. Data Flow (I/O)
 - **Input**: 
-    - **Results RData**: `scripts_downstream/.RData/[Group]/02_deseq_results.RData`.
+    - **Results RData**: `./.RData/[Group]/02_deseq_results.RData`.
     - **Species Org.DB**: `org.Hs.eg.db` or `org.Cf.eg.db`.
 - **Processing**: VST transformation, identification of top 50 genes by `rowVars`, Z-score standardization, column-splitting by `condition`.
 - **Output**: 
@@ -30,10 +30,10 @@ mat_var       <- assay(vsd)[top_genes_idx, ]
 
 # Z-score standardization and capping
 mat_var       <- t(scale(t(mat_var))) 
-mat_var       <- pmin(pmax(mat_var, -2), 2)
+mat_var       <- pmin(pmax(mat_var, -1), 1)
 ```
-- **The Job**: Identifies the 50 genes that show the largest changes in expression across all your samples, then standardizes them to a -2 to +2 scale.
-- **The Reasoning**: This is a "blind" search. It doesn't care about your metadata; it just cares about where the action is. The Z-score standardization is critical because raw count variances can span thousands of units; standardizing ensures that both high-abundance and low-abundance variable genes are equally visible on the final color map.
+- **The Job**: Identifies the 50 genes that show the largest changes in expression across all your samples, then standardizes them to a -1 to +1 scale.
+- **The Reasoning**: This is a "blind" search. It doesn't care about your metadata; it just cares about where the action is. The Z-score standardization is critical because raw count variances can span thousands of units; standardizing ensures that both high-abundance and low-abundance variable genes are equally visible. Capping at +/- 1 intensifies the colors for high-impact visual contrast.
 
 ---
 
@@ -41,18 +41,18 @@ mat_var       <- pmin(pmax(mat_var, -2), 2)
 ```r
 ht_var <- Heatmap(
   mat_var,
-  column_split = factor(conditions_var, levels = unique(conditions_var)),
-  column_gap = unit(0, "mm")
+  column_split = data.frame(cell_lines_var, drug_groups_var),
+  column_gap = unit(c(2, 10, 2), "mm")
 )
 ```
-- **The Job**: Groups the columns of the heatmap by their Treatment (DMSO, Romi, Krom).
-- **Why it matters**: It makes the heatmap highly organized. You can clearly see a "Block" of Red (High expression) in the drug groups and a "Block" of Navy (Low expression) in the DMSO groups. This proves the drug effect is consistent across replicates.
+- **The Job**: Groups the columns of the heatmap by both Cell Line and Drug Group (Romidepsin vs Kromastat).
+- **Why it matters**: It makes the heatmap highly organized across your complex multi-model design. You can clearly see a "Block" of Red (High expression) in the drug groups and a "Block" of Navy (Low expression) in the DMSO groups, confirming the drug effect is consistent across replicates and cell lines.
 
 ---
 
 ## 3. High-Contrast Color Mapping
 ```r
-col_fun_var <- colorRamp2(c(-2, 0, 2), c("#3B4CC0", "white", "#B40426"))
+col_fun_var <- colorRamp2(c(-1, 0, 1), c("#3B4CC0", "white", "#B40426"))
 ```
 - **The Job**: Maps the Z-scores to a "Fire and Ice" color scale.
 - **The Reasoning**: Standard R colors can be muddy. By using explicit hex codes like `#3B4CC0` (deep blue) and `#B40426` (deep red), we create a high-contrast image that looks professional in a journal article or a mentor's slide deck.

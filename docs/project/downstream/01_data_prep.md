@@ -10,7 +10,7 @@ While `00_bridge.R` handles your mentor's data, `01_data_prep.R` is the engine t
     - **Metadata**: `_data/drPhuong_Sample_Data_Table.csv` (CSV, mapping groups to treatments).
 - **Processing**: Filters by Group, creates `display_names`, reorders matrix columns, and filters low-signal genes.
 - **Output**: 
-    - **Processed RData**: `scripts_downstream/.RData/[Group]/01_processed_counts.RData`.
+    - **Processed RData**: `./.RData/[Group]/01_processed_counts.RData`.
 
 ---
 

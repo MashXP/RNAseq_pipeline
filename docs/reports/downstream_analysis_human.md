@@ -44,10 +44,10 @@ The combined dashboard provides a bird's-eye view of all 8 contrasts used to val
 > [!NOTE]
 > Global DEG counts and ratios are derived from the species-level analysis consolidated in: [04_03_venn_rigor_stats.csv](../../results/human/tables/04_03_venn_rigor_stats.csv).
 
-| Treatment            | Total DEGs (|log2FC| > 1) | Ratio (Up:Down)                   |
+| Treatment            | Total DEGs (\|log2FoldChange\| > 2) | Ratio (Up:Down)                   |
 | :------------------- | :-------------------------- | :-------------------------------- |
-| **Romidepsin (6nM)** | 9,594                       | 2.5 : 1 (6,867 up / 2,727 down)   |
-| **Kromastat (6nM)**  | 5,698                       | 4.6 : 1 (4,689 up / 1,009 down)     |
+| **Romidepsin (6nM)** | 4,445                       | 4.9 : 1 (3,696 up / 749 down)     |
+| **Kromastat (6nM)**  | 1,759                       | 19.7 : 1 (1,674 up / 85 down)     |
 
 Romidepsin induces a broader and more balanced transcriptomic response, while Kromastat's effect is more heavily skewed toward gene activation.
 
@@ -56,20 +56,43 @@ This contrast directly compares the two drugs at the same 6nM dose to identify u
 
 ![Romi vs Kroma Volcano|500](../../results/human/figures/04_02_volcano_Romi_6nM_vs_Kromastat_6nM.png)
 
-- **Genes higher in Romidepsin (Red)**: Includes `SPAG9`, `GM2A`, and `SLC25A4`. These represent pathways where Romidepsin has a more potent "overdrive" effect compared to Kromastat.
-- **Genes higher in Kromastat (Blue)**: Includes `STAT6`, `HDGF`, and `TNFRSF8`. Despite being less potent overall, Kromastat uniquely or more strongly regulates these specific targets.
-- **Potency Proof**: With **3,084 significant differences** between the two drugs at the same molarity, we have strong evidence that these HDAC inhibitors are not functionally redundant.
+- **Genes higher in Romidepsin (Red)**: Includes **419 genes** (e.g., `CALCOCO1`, `CRISPLD2`, and `BAIAP2`). These represent pathways where Romidepsin has a more potent "overdrive" effect compared to Kromastat.
+- **Genes higher in Kromastat (Blue)**: Includes **158 genes** (e.g., `LPXN`, `SLC38A1`, and `SASH3`). Despite being less potent overall, Kromastat uniquely or more strongly regulates these specific targets.
+- **Potency Proof**: With **577 significant differences** between the two drugs at the same molarity, we have strong evidence that these HDAC inhibitors are not functionally redundant.
+
+> [!NOTE]
+> Detailed statistical evidence is available in the authoritative tables:
+> - **Global Counts**: [04_02_dge_summary_stats.csv](../../results/human/tables/04_02_dge_summary_stats.csv)
+> - **Top Genes (5 Up / 5 Down)**: [04_02_top_dge_genes.csv](../../results/human/tables/04_02_top_dge_genes.csv)
+
+#### Top Differential Representatives (Romi vs. Kroma)
+
+| Direction | Gene Symbol | log2FoldChange | padj |
+| :--- | :--- | ---: | ---: |
+| **Higher in Kromastat** 🔵 | **LPXN** | -3.4398 | 2.0489e-193 |
+| | **SLC38A1** | -2.0231 | 1.7168e-143 |
+| | **SASH3** | -2.1468 | 5.0431e-100 |
+| | **ANKRD22** | -2.0691 | 2.2313e-86 |
+| | **IGF2BP1** | -2.0848 | 5.6171e-85 |
+| --- | --- | --- | --- |
+| **Higher in Romidepsin** 🔴 | **CALCOCO1** | +2.1168 | 1.4878e-62 |
+| | **CRISPLD2** | +2.9376 | 2.5449e-44 |
+| | **BAIAP2** | +2.1616 | 1.1926e-40 |
+| | **DHRS2** | +3.4768 | 6.9579e-34 |
+| | **CEACAM22P** | +3.8436 | 2.6716e-26 |
 
 ### 2.3 Local (Cell-Line Specific) Response
 To understand if drug sensitivity varies between backgrounds, we analyzed the lines individually.
 
 > [!NOTE]
-> Local reactivity counts are derived from individual cell-line DGE tables (e.g., `02_dge_H9_*.csv`) located in: [results/human/tables/](../../results/human/tables/).
+> Local reactivity counts and top gene representatives are derived from the consolidated tables:
+> - **DGE Summary**: [04_02_dge_summary_stats.csv](../../results/human/tables/04_02_dge_summary_stats.csv)
+> - **Top Genes**: [04_02_top_dge_genes.csv](../../results/human/tables/04_02_top_dge_genes.csv)
 
 | Cell Line             | Romidepsin (6nM) | Kromastat (6nM) |
 | :-------------------- | :--------------- | :-------------- |
-| **H9 (Healthy-like)** | 8,258 DEGs       | 4,499 DEGs      |
-| **SUPM2 (Cancer)**    | 9,561 DEGs       | 5,742 DEGs      |
+| **H9 (Healthy-like)** | 3,910 DEGs       | 1,411 DEGs      |
+| **SUPM2 (Cancer)**    | 4,840 DEGs       | 2,086 DEGs      |
 
 | Cell Line             | Romidepsin (6nM)                                                                           | Kromastat (6nM)                                                                                       |
 | :-------------------- | :----------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
@@ -77,8 +100,29 @@ To understand if drug sensitivity varies between backgrounds, we analyzed the li
 | **SUPM2 (Cancer)**    | ![SUPM2 Romi\|500](../../results/human/figures/04_02_volcano_SUPM2_Romi_6nM_vs_DMSO_Romi.png) | ![SUPM2 Kroma\|500](../../results/human/figures/04_02_volcano_SUPM2_Kromastat_6nM_vs_DMSO_Kromastat.png) |
 
 #### Key Observations:
-1. **Response Magnitude**: The cancer cell line (**SUPM2**) shows a higher number of DEGs (**9,561**) compared to the healthy-like line (**H9: 8,258**) when treated with Romidepsin. A similar trend holds for Kromastat, suggesting a higher transcriptomic reactivity in the cancer background across HDAC inhibitors.
-2. **Conserved Targets**: Despite the difference in scale, core targets such as `PMEL` and `CHGB` are highly significant across both lines, indicating a conserved drug mechanism that transcends the cell line identity.
+1. **Response Magnitude**: The cancer cell line (**SUPM2**) shows a higher number of DEGs (**4,840**) compared to the healthy-like line (**H9: 3,910**) when treated with Romidepsin. A similar trend holds for Kromastat, suggesting a higher transcriptomic reactivity in the cancer background across HDAC inhibitors.
+2. **Conserved Targets**: Core targets such as `ENPP2` and `EPAS1` are among the most robustly significant genes across both backgrounds, indicating a conserved drug mechanism that transcends cell line identity.
+
+#### Top Conserved Differential Targets
+The following genes show the highest combined significance and magnitude in both healthy-like and cancer backgrounds:
+
+| Drug | Gene Symbol | LFC (H9) | LFC (SUPM2) | Max padj |
+| :--- | :--- | ---: | ---: | :--- |
+| **Romidepsin** 🔴 | **ENPP2** | +4.4554 | +8.2440 | 0.0 |
+| | **RGL1** | +3.8183 | +6.5308 | 0.0 |
+| | **SYT11** | +3.5230 | +5.9316 | 0.0 |
+| | **GSN** | +4.6114 | +4.7108 | 0.0 |
+| | **SLC38A5** | -5.0853 | -4.2156 | 0.0 |
+| --- | --- | --- | --- | --- |
+| **Kromastat** 🔵 | **EPAS1** | +2.8069 | +2.9520 | 0.0 |
+| | **PLA2G4A** | +2.7033 | +2.7799 | 0.0 |
+| | **CREG1** | +2.1359 | +2.6599 | 0.0 |
+| | **PTPN7** | -2.4089 | -2.0761 | 1.4223e-292 |
+| | **VCL** | +2.5037 | +2.2450 | 3.2942e-270 |
+
+> [!NOTE]
+> Conserved targets are defined as genes significant (|LFC| > 2.0, padj < 0.05) in both cell lines.
+> Full stats: [04_02_conserved_targets.csv](../../results/human/tables/04_02_conserved_targets.csv)
 
 ---
 
@@ -94,40 +138,57 @@ The Venn diagrams illustrate the degree of transcriptomic "shared identity" betw
 To ensure these overlaps are biologically meaningful and not due to chance, we calculated significance using a hypergeometric test.
 
 > [!NOTE]
-> Venn set sizes below are from the `04_03_venn_rigor_stats.csv` snapshot. Current DGE tables yield **9,593** (Romi) and **5,697** (Kroma) at the same thresholds; the proportional conclusions are unchanged.
+> Venn set sizes reflect the high-stringency **|LFC| > 2.0** threshold. Total significant targets for this analysis are **4,445** (Romidepsin) and **1,759** (Kromastat).
 
 | Gene Set | Overlap P-value | Jaccard Index | Representation Factor |
 | :--- | :--- | :--- | :--- |
-| **All DEGs** | < 2.2e-16 | 0.415 | 2.2x |
-| **Up-regulated** | < 2.2e-16 | 0.479 | 3.1x |
-| **Down-regulated** | < 2.2e-16 | 0.248 | **7.2x** |
+| **All DEGs** | < 2e-16 | 0.319 | 4.8x |
+| **Up-regulated** | < 2e-16 | 0.364 | 5.7x |
+| **Down-regulated** | 2.95e-90 | 0.090 | **26.9x** |
 
 > [!TIP]
 > **Full Statistical Report**: The complete overlap metrics (including Romi/Kroma set sizes) are exported to: [04_03_venn_rigor_stats.csv](../../results/human/tables/04_03_venn_rigor_stats.csv)
 
-**Conclusion**: The overlap is highly significant (p < 2.2e-16). The **7.2x Representation Factor** for down-regulated genes is particularly striking; it suggests that while Romidepsin silences more genes, the ones it *does* share with Kromastat are part of an extremely rigid, conserved silencing program.
+**Conclusion**: The overlap is highly significant (p < 2e-16). The **26.9x Representation Factor** for down-regulated genes is particularly striking; it suggests that while Romidepsin silences fewer genes than it activates, the ones it *does* share with Kromastat are part of an extremely rigid, conserved silencing program.
 
 ### 3.2 Top Shared Targets
-These genes represent the "Core Response" triggered by both inhibitors:
+These genes represent the "Core Response" triggered by both inhibitors, strictly sorted by combined significance:
 
-| Direction | Top Shared Genes (padj ~ 0) | Biological Context |
-| :--- | :--- | :--- |
-| **Up-regulated** | `EPAS1`, `GM2A`, `GSN`, `ABCD1` | Angiogenesis, Lipid Transport |
-| **Down-regulated** | `RCC1`, `RCC2`, `HDGF`, `TNFRSF8` | **Chromatin Condensation**, Growth Factors |
+| Direction | Gene Symbol | LFC (Romi) | LFC (Kroma) | Max padj | Biological Context |
+| :--- | :--- | ---: | ---: | :--- | :--- |
+| **Up-regulated** 🔴 | **EPAS1** | +3.05 | +2.93 | 0.0 | Hypoxia/Angiogenesis |
+| | **GSN** | +4.71 | +4.09 | 3.73e-225 | Cytoskeleton/Apoptosis |
+| | **PLA2G4A** | +2.44 | +2.79 | 1.45e-226 | Lipid Signaling |
+| | **STXBP1** | +2.28 | +2.12 | 3.45e-218 | Vesicle Trafficking |
+| | **ZSWIM6** | +2.63 | +2.03 | 1.96e-191 | Nervous System Dev |
+| **Down-regulated** 🔵 | **TNFRSF8** | -3.94 | -2.12 | 1.45e-250 | Immune Signaling |
+| | **DUS3L** | -2.81 | -2.09 | 3.68e-109 | tRNA Modification |
+| | **PTPN7** | -4.17 | -2.19 | 1.94e-107 | T-cell Phosphatase |
+| | **PATZ1** | -2.95 | -2.05 | 3.58e-94 | Transcription Repressor |
+| | **MARVELD1** | -4.06 | -3.20 | 7.29e-84 | Nuclear Envelope |
 
-The shared suppression of **RCC1/RCC2** (Regulators of Chromosome Condensation) is a perfect "sanity check" for an HDAC inhibitor study, as these drugs directly impact chromatin structure.
+#### Chromatin Sanity Check: RCC1/RCC2 Suppression
+While `RCC1/RCC2` fall slightly below the strict |LFC| > 2.0 threshold in the Kromastat group, their suppression is statistically undeniable across both inhibitors. This confirms a shared impact on **Regulators of Chromosome Condensation**, a key feature of Class I HDAC inhibition.
+
+| Gene | Log2FC (Romi) | padj (Romi) | Log2FC (Kroma) | padj (Kroma) |
+| :--- | ---: | :--- | ---: | :--- |
+| **RCC2** | -2.77 | 0.0 | -1.64 | 6.63e-121 |
+| **RCC1** | -1.97 | 0.0 | -1.09 | 2.73e-97 |
+
+> [!NOTE]
+> Shared targets in the main table are strictly defined as the intersection of significant genes (|LFC| > 2.0, padj < 0.05).
 
 ### 3.3 The "Subset" Hypothesis
 The rigor metrics support a clear functional hierarchy:
-- **Shared Response (42%)**: 4,322 genes forming the core "Class I HDAC Inhibition" signature.
-- **Kromastat Uniqueness (8%)**: Only 809 genes.
-- **Romidepsin Uniqueness (51%)**: 5,272 genes.
+- **Shared Response (32%)**: 1,502 genes forming the core "Class I HDAC Inhibition" signature.
+- **Kromastat Uniqueness (6%)**: 257 genes.
+- **Romidepsin Uniqueness (62%)**: 2,943 genes.
 
-**Finding**: Kromastat acts primarily as a **transcriptomic subset** of Romidepsin. Approximately **76% of Kromastat's total response is contained within the Romidepsin signature**.
+**Finding**: Kromastat acts primarily as a **transcriptomic subset** of Romidepsin. Approximately **85% of Kromastat's total response is contained within the Romidepsin signature**.
 
 ### 3.4 Directional Differences
-- **Shared Activation**: Both drugs are highly effective at gene activation, sharing 3,593 "Up" genes.
-- **Unique Suppression**: Romidepsin is a significantly more potent suppressor of transcription. It uniquely down-regulates **2,005 genes**, while Kromastat only uniquely suppresses **187**. 
+- **Shared Activation**: Both drugs are highly effective at gene activation, sharing 1,432 "Up" genes.
+- **Unique Suppression**: Romidepsin is a significantly more potent suppressor of transcription. It uniquely down-regulates **680 genes**, while Kromastat only uniquely suppresses **16**. 
 
 This suggests that the "potency gap" observed in the PCA is largely driven by Romidepsin's ability to silence a vast network of genes that are inaccessible to Kromastat at this dose.
 
@@ -526,18 +587,18 @@ To ensure that the identified biological signatures are robust and not driven by
 
 ### 8.1 Intersectional Degree of Consensus (UpSet Matrix)
 
-We analyzed the overlap of significant DEGs (defined by `padj < 0.05` and `|LFC| > 1`) across the four primary experimental conditions. This matrix visualizes the "potency" and "uniqueness" of the drug-induced transcriptional changes.
+We analyzed the overlap of significant DEGs (defined by `padj < 0.05` and `|log2FoldChange| > 2`) across the four primary experimental conditions. This matrix visualizes the "potency" and "uniqueness" of the drug-induced transcriptional changes.
 
 ![UpSet Consistency Matrix|717](../../results/human/figures/04_09_upset_consistency.png)
 
 | Observation Category | Key Finding | Biological Interpretation |
 |:---|:---|:---|
-| **Magnitude of Response** | SUPM2 Romi has the largest set (~7500+ DEGs) | Romidepsin triggers a massively broader transcriptional response in SUPM2, confirming its heightened sensitivity compared to other conditions. |
-| **Comparative Potency** | H9 Romi is the second largest set (~5500+ DEGs) | Romidepsin consistently acts as a highly potent perturbagen across different cellular backgrounds. |
-| **Drug Selectivity** | Kromastat sets are notably smaller (~3000–4000 DEGs) | Consistent with its targeted profile, Kromastat acts as a more selective perturbagen, inducing a focused transcriptome-wide footprint. |
-| **Cell-Line Specificity** | Largest unique intersection = SUPM2 Romi (2,641) | A significant core of genes is uniquely regulated by Romidepsin in SUPM2, likely representing cell-line-specific sensitivity pathways. |
-| **Mechanism Consistency** | H9 Krom ∩ SUPM2 Krom consensus (2,364 DEGs) | Despite smaller absolute set sizes, Kromastat displays high cross-cell-line concordance, indicating a very stable mechanistic action. |
-| **Conserved HDAC Core** | 4-way all-condition overlap (45 genes) | These 45 genes are significant across ALL conditions and cell lines, representing the "gold-standard" conserved targets of HDAC inhibition. |
+| **Magnitude of Response** | SUPM2 Romi has the largest set (~7500+ DEGs [REVERIFY]) | Romidepsin triggers a massively broader transcriptional response in SUPM2, confirming its heightened sensitivity compared to other conditions. |
+| **Comparative Potency** | H9 Romi is the second largest set (~5500+ DEGs [REVERIFY]) | Romidepsin consistently acts as a highly potent perturbagen across different cellular backgrounds. |
+| **Drug Selectivity** | Kromastat sets are notably smaller (~3000–4000 DEGs [REVERIFY]) | Consistent with its targeted profile, Kromastat acts as a more selective perturbagen, inducing a focused transcriptome-wide footprint. |
+| **Cell-Line Specificity** | Largest unique intersection = SUPM2 Romi (2,641) [REVERIFY] | A significant core of genes is uniquely regulated by Romidepsin in SUPM2, likely representing cell-line-specific sensitivity pathways. |
+| **Mechanism Consistency** | H9 Krom ∩ SUPM2 Krom consensus (2,364 DEGs) [REVERIFY] | Despite smaller absolute set sizes, Kromastat displays high cross-cell-line concordance, indicating a very stable mechanistic action. |
+| **Conserved HDAC Core** | 4-way all-condition overlap (45 genes) [REVERIFY] | These 45 genes are significant across ALL conditions and cell lines, representing the "gold-standard" conserved targets of HDAC inhibition. |
 
 ### 8.2 Global Transcriptomic Concordance (LFC Correlation)
 

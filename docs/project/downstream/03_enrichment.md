@@ -6,12 +6,12 @@ This script answers the question: "What are these genes actually doing?" It tran
 
 ## 0. Data Flow (I/O)
 - **Input**: 
-    - **Results RData**: `scripts_downstream/.RData/[Group]/02_deseq_results.RData` (Contains results_list).
+    - **Results RData**: `./.RData/[Group]/02_deseq_results.RData` (Contains results_list).
     - **Species Org.DB**: `org.Hs.eg.db` or `org.Cf.eg.db`.
 - **Processing**: ORA (GO/KEGG) for significant hits, GSEA (Hallmark/GO) based on Wald-statistic ranking.
 - **Output**: 
     - **Enrichment CSVs**: `../results/[Group]/tables/03_[go/kegg/gsea]_...csv`.
-    - **Final Enrichment RData**: `scripts_downstream/.RData/[Group]/03_enrichment_results.RData`.
+    - **Final Enrichment RData**: `./.RData/[Group]/03_enrichment_results.RData`.
 
 ---
 
@@ -42,13 +42,13 @@ if (species_name == "Human") {
 ## 2. ORA (Over-Representation Analysis)
 ```r
 sig_genes <- res_df %>%
-  filter(padj < 0.05, abs(log2FoldChange) > 1) %>%
+  filter(padj < 0.05, abs(log2FoldChange) > 2) %>%
   rownames()
 ...
 ego <- enrichGO(gene = gene_map$ENSEMBL, OrgDb = org_db, ont = "BP", ...)
 ```
 - **The Job**: Asks, "Are there more genes in 'Pathway X' than we would expect by random chance among my significant hits?"
-- **The Reasoning**: This is the "Classic" approach. It uses your most confident genes (Fold Change > 1) to find clear, obvious biological shifts.
+- **The Reasoning**: This is the "Classic" approach. It uses your most confident genes (Fold Change > 2) to find clear, obvious biological shifts.
 
 ---
 

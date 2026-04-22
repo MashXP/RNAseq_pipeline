@@ -6,10 +6,10 @@ The Dotplot is the best way to compare your two drugs (Kromastat vs Romidepsin) 
 
 ## 0. Data Flow (I/O)
 - **Input**: 
-    - **Enrichment RData**: `scripts_downstream/.RData/[Group]/03_enrichment_results.RData` (GSEA Hallmark results).
+    - **Enrichment RData**: `./.RData/[Group]/03_enrichment_results.RData` (GSEA Hallmark results).
 - **Processing**: Selection of Top 12 pathways per contrast, title-casing for labels, mirror dot-encoding (X-axis=direction, color=Response, size=Leading Edge, alpha=padj), and faceted stitching.
 - **Output**: 
-    - **GSEA Figures**: `../results/[Group]/figures/04_gsea_dotplot_[Contrast].png` and `04_gsea_dotplot_combined.png`.
+    - **GSEA Figures**: `../results/[Group]/figures/04_07_gsea_dotplot_[Contrast].png` and `04_07_gsea_dotplot_combined.png`.
 
 ---
 
@@ -32,7 +32,7 @@ gsea_combined <- map2_dfr(
 )
 ```
 - **The Job**: Iterates through all drug contrasts and securely compiles their GSEA results into one giant table.
-- **The Reasoning**: `map2_dfr` is a robust `tidyverse` function that automatically stitches lists of dataframes together while gracefully ignoring `NULL` (empty) results, preventing catastrophic pipeline failures if one drug dose didn't work.
+- **The Reasoning**: `map2_dfr` is a robust `tidyverse` function that automatically stitches lists of dataframes together. The script also includes a `COMBINED_EXCLUDE` list to remove non-informative vehicle QC contrasts from the final comparison, ensuring the focus remains on biological drug effects.
 
 ---
 

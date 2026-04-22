@@ -6,12 +6,12 @@ This is the "Brain" of the pipeline. It implements the complex statistical model
 
 ## 0. Data Flow (I/O)
 - **Input**: 
-    - **Processed RData**: `scripts_downstream/.RData/[Group]/01_processed_counts.RData` (Counts and metadata).
+    - **Processed RData**: `./.RData/[Group]/01_processed_counts.RData` (Counts and metadata).
     - **Genome Reference**: `../_data/genome/[Species]/[Files].gtf` (For gene symbology).
 - **Processing**: Build gene map, run multifactorial DESeq2 (`~cell_line + condition`), run subset models for cell lines, apply APEGLM shrinkage.
 - **Output**: 
     - **Results Tables**: `../results/[Group]/tables/02_dge_[Contrast].csv` (Full statistics + symbols).
-    - **Results RData**: `scripts_downstream/.RData/[Group]/02_deseq_results.RData`.
+    - **Results RData**: `./.RData/[Group]/02_deseq_results.RData`.
 
 ---
 
@@ -73,7 +73,7 @@ comparisons <- list(
   c("Romi_6nM",       "DMSO_Romi"),
   c("Kromastat_6nM",  "DMSO_Kromastat"),
   c("Romi_6nM",       "Kromastat_6nM"),
-  ...
+  c("DMSO_Kromastat", "DMSO_Romi")
 )
 ```
 - **The Job**: Loops through every biological question you need to answer.

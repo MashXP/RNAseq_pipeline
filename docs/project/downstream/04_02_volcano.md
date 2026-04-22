@@ -6,10 +6,12 @@ The Volcano plot is the "Money Shot" of RNA-seq. It identifies the most heavily 
 
 ## 0. Data Flow (I/O)
 - **Input**: 
-    - **Results RData**: `scripts_downstream/.RData/[Group]/02_deseq_results.RData` (Contains results_list with pre-mapped symbols).
-- **Processing**: P-value capping at 500, fold-change significance classification, and top-gene labeling.
+    - **Results RData**: `./.RData/[Group]/02_deseq_results.RData` (Contains results_list with pre-mapped symbols).
+- **Processing**: P-value capping at 500, fold-change significance classification (LFC > 2.0), and top-gene labeling.
 - **Output**: 
-    - **DGE Figures**: `../results/[Group]/figures/04_volcano_[Contrast].png` and `04_volcano_combined.png`.
+    - **DGE Figures**: `../results/[Group]/figures/04_02_volcano_[Contrast].png` and `04_02_volcano_combined.png`.
+    - **Summary Tables**: `../results/[Group]/tables/04_02_dge_summary_stats.csv` and `04_02_top_dge_genes.csv`.
+    - **Conserved Targets**: `../results/[Group]/tables/04_02_conserved_targets.csv` (H9 ∩ SUPM2 overlap).
 
 ---
 
@@ -54,8 +56,8 @@ plot_df <- plot_df %>%
 ## 3. Color Coding (Significance Status)
 ```r
 sig_status = case_when(
-  padj < 0.05 & log2FoldChange >= 1.0  ~ "up",
-  padj < 0.05 & log2FoldChange <= -1.0 ~ "down",
+  padj < 0.05 & log2FoldChange >= 2.0  ~ "up",
+  padj < 0.05 & log2FoldChange <= -2.0 ~ "down",
   TRUE ~ "not_significant"
 )
 ```
@@ -102,13 +104,24 @@ p <- p + geom_text_repel(
 
 ---
 
-## 7. How to Interpret Your Volcano Plot
+## 7. Authoritative DGE Exports & Conserved Targets
+```r
+write.csv(final_summary_df, file.path(res_dir, "tables/04_02_dge_summary_stats.csv"))
+write.csv(final_conserved_df, file.path(res_dir, "tables/04_02_conserved_targets.csv"))
+```
+- **The Job**: Exports three critical tables for your report:
+    1. **Summary Stats**: Total Up/Down counts per contrast.
+    2. **Top Genes**: The top 5 Up/Down genes for each comparison.
+    3. **Conserved Targets**: The genes that are significant in BOTH the healthy line (H9) and the cancer line (SUPM2) for a given treatment.
+- **The Reasoning**: The "Conserved Targets" table is particularly high-value as it highlights genes that respond to the drug regardless of the cell line—the "Core Mechanism."
+
+## 8. How to Interpret Your Volcano Plot
 The Volcano plot helps you balance **magnitude** (how much it changed) with **significance** (how sure we are).
 
 1. **The X-axis (log2FoldChange)**: Represents the effect size. 
     - **0**: No change.
-    - **1**: Doubled expression (Upregulated).
-    - **-1**: Halved expression (Downregulated).
+    - **2**: 4x expression (Upregulated).
+    - **-2**: 4x suppression (Downregulated).
     - **>5**: Massive activation (often seen in stress response or apoptosis).
 2. **The Y-axis (-log10 Adjusted p-value)**: Represents statistical confidence. 
     - The higher the point, the more "sure" we are that the change is real and not just a random fluctuation.

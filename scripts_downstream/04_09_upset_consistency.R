@@ -21,11 +21,11 @@ load(paste0("./.RData/", group_name, "/02_deseq_results.RData"))
 
 # 2. Extract Significant Gene Lists
 # We want to compare Romidepsin consistency and Kromastat consistency
-# Threshold: padj < 0.05 & |log2FC| > 1
+# Threshold: padj < 0.05 & |log2FoldChange| > 2
 get_sig_ids <- function(res_entry) {
   if (is.null(res_entry$df)) return(character(0))
   df <- res_entry$df
-  df$Geneid[df$padj < 0.05 & abs(df$log2FoldChange) > 1 & !is.na(df$padj)]
+  df$Geneid[df$padj < 0.05 & abs(df$log2FoldChange) > 2 & !is.na(df$padj)]
 }
 
 # 2. Identify Cell Line Subsets

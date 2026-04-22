@@ -117,7 +117,7 @@ This report verifies that the logic, thresholds, and flow documented in `docs/up
 - **Script Verified**: `scripts_downstream/03_enrichment.R`
 - **Audit Findings**:
   - **Species Org.DB**: Accurate switching between `org.Hs.eg.db`/`hsa` and `org.Cf.eg.db`/`cfa`.
-  - **ORA Thresholds**: Extracting `sig_genes` using `padj < 0.05, abs(log2FoldChange) > 1` matches the strict documented logic.
+  - **ORA Thresholds**: Extracting `sig_genes` using `padj < 0.05, abs(log2FoldChange) > 2` matches the strict documented logic.
   - **GSEA Ranking**: Extracting the Wald-statistic (`stat`) and sorting decreasingly matches the "Gold Standard" claim.
   - **Robust Error Handling**: The `tryCatch` wrappers successfully catch failures in `GSEA` or `gseGO` and output `[CAUTION]` without crashing the loop.
 - **Status**: **PASS**. Fully matches documentation.
@@ -137,7 +137,7 @@ This report verifies that the logic, thresholds, and flow documented in `docs/up
 - **Script Verified**: `scripts_downstream/04_02_volcano.R`
 - **Audit Findings**:
   - **NA Filtering & Infinity Capping**: Removing `NA` values and capping `-log10(0)` to `500` via `case_when` precisely match the script logic.
-  - **Significance Coding**: Log2FC thresholds (>= 1.0, <= -1.0) and padj (< 0.05) classifications accurately categorize genes into "up", "down", and "not_significant".
+  - **Significance Coding**: Log2FC thresholds (>= 2.0, <= -2.0) and padj (< 0.05) classifications accurately categorize genes into "up", "down", and "not_significant".
   - **Labeling Heuristic**: Slicing the top 5 genes sorted by `padj` and `desc(abs(log2FoldChange))` strictly mimics the documentation.
   - **Annotations & Ggrepel**: On-plot counts (`annotate`) and non-overlapping label properties (`geom_text_repel` with `max.overlaps = 20`) align exactly.
 - **Status**: **PASS**. Fully matches documentation.
@@ -146,7 +146,7 @@ This report verifies that the logic, thresholds, and flow documented in `docs/up
 - **Documentation Verified**: `docs/downstream/04_03_venn.md`
 - **Script Verified**: `scripts_downstream/04_03_venn.R`
 - **Audit Findings**:
-  - **Directional Filtering**: The function list for `All`, `Up`, and `Down` padj/LFC thresholds is exactly as documented.
+  - **Directional Filtering**: The function list for `All`, `Up`, and `Down` padj/LFC thresholds (abs(log2FoldChange) > 2) is exactly as documented.
   - **Label Formatting & Clipping**: `str_replace_all`, `expansion(mult = .4)`, and `coord_cartesian(clip = "off")` perfectly implement the label visibility logic.
   - **Statistical Rigor**: `phyper` (p_overlap), Jaccard Index, and Representation Factor math are fully and accurately implemented and saved to `04_03_venn_rigor_stats.csv`.
   - **Shared Genes Extraction**: Extracting `shared_ids` via `Reduce(intersect, sig_list)` matches exactly.

@@ -36,6 +36,10 @@ cl2 <- cell_lines[2]
 
 message("--- Generating LFC Correlation Report (", cl1, " vs ", cl2, ") ---")
 
+# Threshold definition for coloring
+lfc_thresh <- 2.0
+padj_thresh <- 0.05
+
 create_corr_plot <- function(drug_name, stub) {
   # Join results from both cell lines
   df1 <- results_list[[paste0(cl1, "_", stub)]]$df
@@ -44,16 +48,19 @@ create_corr_plot <- function(drug_name, stub) {
   if (is.null(df1) || is.null(df2)) return(NULL)
   
   # All genes present in both cell lines are retained to show the unbiased global LFC trend.
-  # Significance status is encoded by color, not used as a filter, to avoid bias.
+  # Significance status is encoded by color. 
+  # Criteria: padj < 0.05 AND |LFC| > 2.0
   merged <- inner_join(
     df1 %>% select(Geneid, gene_label, lfc1 = log2FoldChange, padj1 = padj),
     df2 %>% select(Geneid, lfc2 = log2FoldChange, padj2 = padj),
     by = "Geneid"
   ) %>%
     mutate(
+      is_sig1 = (padj1 < padj_thresh & abs(lfc1) > lfc_thresh),
+      is_sig2 = (padj2 < padj_thresh & abs(lfc2) > lfc_thresh),
       status = case_when(
-        (padj1 < 0.05 & padj2 < 0.05) ~ "Consensus (Sig in both)",
-        (padj1 < 0.05 | padj2 < 0.05) ~ "Specific (Sig in one)",
+        (is_sig1 & is_sig2) ~ "Consensus (Sig in both)",
+        (is_sig1 | is_sig2) ~ "Specific (Sig in one)",
         TRUE ~ "Non-significant"
       )
     )
@@ -72,7 +79,7 @@ create_corr_plot <- function(drug_name, stub) {
     theme_bw(base_size = 12) +
     labs(
       title = paste0(drug_name, " Mechanism Consistency"),
-      subtitle = paste(cl1, "vs", cl2, "| R =", round(corr_val, 3)),
+      subtitle = paste0(cl1, " vs ", cl2, " | R = ", round(corr_val, 3), " | |LFC| > ", lfc_thresh),
       x = paste0("log2FoldChange (", cl1, ")"),
       y = paste0("log2FoldChange (", cl2, ")"),
       color = "Significance"

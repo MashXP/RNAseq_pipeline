@@ -58,8 +58,9 @@ display_names <- rownames(colData(vsd)) %>%
 colData(vsd)$display_name <- display_names
 colnames(vsd) <- display_names
 
-# Order VSD columns by cell_line then condition
-vsd <- vsd[, order(vsd$cell_line, vsd$condition)]
+# Order VSD columns by cell_line then condition (Explicitly Romi first)
+colData(vsd)$condition <- factor(colData(vsd)$condition, levels = c("DMSO_Romi", "Romi_6nM", "DMSO_Kromastat", "Kromastat_6nM"))
+vsd <- vsd[, order(colData(vsd)$cell_line, colData(vsd)$condition)]
 
 # Color palettes (Intuitive Distinct Palette)
 conditions <- colData(vsd)$condition
@@ -82,15 +83,16 @@ top_genes_idx <- head(order(rowVars(assay(vsd)), decreasing = TRUE), 50)
 mat_var       <- assay(vsd)[top_genes_idx, ]
 # Intensify colors: Full Z-score scaling (center and scale by SD)
 mat_var       <- t(scale(t(mat_var))) 
-mat_var       <- pmin(pmax(mat_var, -2), 2)
+mat_var       <- pmin(pmax(mat_var, -1), 1)
 
 symbols_var       <- gene_map[rownames(mat_var), "SYMBOL"]
 rownames(mat_var) <- ifelse(is.na(symbols_var), rownames(mat_var), symbols_var)
 
-col_fun_var <- colorRamp2(c(-2, 0, 2), c("#3B4CC0", "white", "#B40426"))
+col_fun_var <- colorRamp2(c(-1, 0, 1), c("#3B4CC0", "white", "#B40426"))
 
 conditions_var <- as.character(colData(vsd)$condition)
 cell_lines_var <- as.character(colData(vsd)$cell_line)
+drug_groups_var <- factor(ifelse(grepl("Romi", conditions_var), "Romidepsin", "Kromastat"), levels = c("Romidepsin", "Kromastat"))
 
 top_ha_var <- HeatmapAnnotation(
   Dose     = conditions_var,
@@ -110,10 +112,10 @@ ht_var <- Heatmap(
   col               = col_fun_var,
   cluster_rows      = TRUE,
   cluster_columns   = FALSE,
-  column_split      = factor(conditions_var, levels = unique(conditions_var)),
+  column_split      = data.frame(cell_lines_var, drug_groups_var),
   column_title_gp   = gpar(fontsize = 9, fontface = "bold"),
   column_title_rot  = 0,
-  column_gap        = unit(0, "mm"),
+  column_gap        = unit(c(2, 10, 2), "mm"),
   top_annotation    = top_ha_var,
   show_row_names    = TRUE,
   row_names_gp      = gpar(fontsize = 8),
@@ -125,8 +127,8 @@ ht_var <- Heatmap(
   heatmap_legend_param = list(
     title          = "Z-score",
     title_position = "leftcenter-rot",
-    at             = c(-2, -1, 0, 1, 2),
-    labels         = c("-2", "-1", "0", "1", "2"),
+    at             = c(-1, 0, 1),
+    labels         = c("-1", "0", "1"),
     direction      = "vertical",
     legend_height  = unit(4, "cm")
   )

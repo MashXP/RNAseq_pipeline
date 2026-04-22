@@ -6,10 +6,10 @@ This script creates the "Executive Summary" of your functional analysis. It take
 
 ## 0. Data Flow (I/O)
 - **Input**: 
-    - **Enrichment RData**: `scripts_downstream/.RData/[Group]/03_enrichment_results.RData`.
+    - **Enrichment RData**: `./.RData/[Group]/03_enrichment_results.RData`.
 - **Processing**: Selection of top 10 activated and top 10 suppressed pathways based on absolute NES.
 - **Output**: 
-    - **NES Figures**: `../results/[Group]/figures/04_hallmark_nes_[Contrast].png` and `04_hallmark_nes_combined.png`.
+    - **NES Figures**: `../results/[Group]/figures/04_06_hallmark_nes_[Contrast].png` and `04_06_hallmark_nes_combined.png`.
 
 ---
 
@@ -79,14 +79,14 @@ scale_fill_manual(
 
 ## 6. Robust Conditional Stitching
 ```r
-if (length(nes_plots) > 1) {
-  combined_nes <- wrap_plots(nes_plots, nrow = 1)
+if (length(nes_plots_curated) > 1) {
+  combined_nes <- wrap_plots(nes_plots_curated, nrow = 1)
 } else {
-  message("Skipping Combined NES plot: Fewer than 2 doses with NES data.")
+  message("Skipping Combined NES plot: Fewer than 2 curated contrasts with NES data.")
 }
 ```
-- **The Job**: Safely attempts to combine multiple barplots into one figure, only if at least two plots exist.
-- **The Reasoning**: Stitching a single plot to itself makes no sense and can cause `patchwork` to error out. This conditional check ensures that the "Combined" plot is only generated when it adds value (i.e., comparing Romidepsin next to Kromastat).
+- **The Job**: Safely attempts to combine curated drug-specific barplots into one figure.
+- **The Reasoning**: The script uses a `COMBINED_EXCLUDE` list to remove non-informative QC contrasts (e.g., DMSO vs DMSO) from the final faceted comparison. This ensures the "Combined" plot focuses only on the high-value treatment comparisons that add biological insight.
 
 ---
 

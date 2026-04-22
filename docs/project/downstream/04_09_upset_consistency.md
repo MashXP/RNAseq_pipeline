@@ -6,10 +6,10 @@ This script answers the ultimate "Rigor" question: **"Are these results consiste
 
 ## 0. Data Flow (I/O)
 - **Input**: 
-    - **Results RData**: `scripts_downstream/.RData/[Group]/02_deseq_results.RData` (Contains results_list with cell-line subsets).
+    - **Results RData**: `./.RData/[Group]/02_deseq_results.RData` (Contains results_list with cell-line subsets).
 - **Processing**: Extraction of significant gene IDs per cell-line/drug combination, UpSet intersection matrix calculation.
 - **Output**: 
-    - **Consistency Figure**: `../results/[Group]/figures/04_upset_consistency.png`.
+    - **Consistency Figure**: `../results/[Group]/figures/04_09_upset_consistency.png`.
 
 ---
 
@@ -72,8 +72,8 @@ line.size = 1.0
 
 ## 5. Directional Consistency
 - **Input**: Loads the `results_list` from the DGE step (Step 02).
-- **Threshold**: Uses a strict `padj < 0.05` and `|log2FC| > 1` to ensure we are only comparing high-confidence biological shifts.
-- **Output**: `04_upset_consistency.png` — a comprehensive map of how well your experimental groups overlap.
+- **Threshold**: Uses a strict `padj < 0.05` and `|log2FC| > 2` to ensure we are only comparing high-confidence biological shifts.
+- **Output**: `04_09_upset_consistency.png` — a comprehensive map of how well your experimental groups overlap.
 
 ---
 

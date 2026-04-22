@@ -7,7 +7,7 @@ This document explains the conceptual difference between Over-Representation Ana
 ## 1. ORA (Over-Representation Analysis)
 **The "VIP List" Approach**
 
-*   **Mechanism:** You define a "Significant List" using a hard cutoff (e.g., $p_{adj} < 0.05$ and $|log2FC| > 1$). You then compare this list against a background (all genes on the chip/genome) to see if specific pathways appear more often than random chance.
+*   **Mechanism:** You define a "Significant List" using a hard cutoff (e.g., $p_{adj} < 0.05$ and $|log2FoldChange| > 2$). You then compare this list against a background (all genes on the chip/genome) to see if specific pathways appear more often than random chance.
 *   **Intuition:** Imagine a bag of 10,000 marbles (genes). 100 are "red" (belong to Pathway A). You grab 50 marbles blindly (your significant genes). If you find 20 red marbles in your hand, that pathway is "Over-Represented."
 *   **Pros:** Fast, easy to understand, focuses on the "big winners."
 *   **Cons:** Highly dependent on the arbitrary cutoff. Ignores genes that barely missed the cutoff (e.g., $p = 0.051$).

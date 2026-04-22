@@ -2,7 +2,7 @@
 
 **Date**: April 15, 2026  
 **Subject**: Elevation of log2FoldChange (LFC) Stringency to 2.0  
-**Status**: Investigatory / Recommended
+**Status**: Active / Implemented
 
 ## Observation
 Current analysis of Romidepsin and Kromastat treatment in SUPM2 and H9 lymphoma models using a standard $|log2FC| \ge 1.0$ threshold ($FDR < 0.05$) yields an extremely high number of differentially expressed genes (DEGs), reaching nearly 9,000 in some contrasts. This represent ~40-50% of the active transcriptome, which significantly dilutes biological signal during GSEA and functional enrichment.

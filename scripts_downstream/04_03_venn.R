@@ -26,9 +26,9 @@ message("--- Generating Rigorous Venn Analysis for ", group_name, " ---")
 
 # 2. Logic Setup
 directions <- list(
-  All  = function(lfc, padj) padj < 0.05 & abs(lfc) > 1,
-  Up   = function(lfc, padj) padj < 0.05 & lfc > 1,
-  Down = function(lfc, padj) padj < 0.05 & lfc < -1
+  All  = function(lfc, padj) padj < 0.05 & abs(lfc) > 2,
+  Up   = function(lfc, padj) padj < 0.05 & lfc > 2,
+  Down = function(lfc, padj) padj < 0.05 & lfc < -2
 )
 
 priority_contrasts <- c(
@@ -39,8 +39,9 @@ priority_contrasts <- c(
 # Premium colors: Up=Red (#D62728), Down=Blue (#1F77B4), All=Orange (#E69F00)
 dir_colors <- c(All = "#E69F00", Up = "#D62728", Down = "#1F77B4")
 
-# Storage for combined plot
+# Storage for combined plot and tables
 venn_plots <- list()
+shared_targets_list <- list()
 
 # 3. Process Each Direction
 rigor_summary <- data.frame()
@@ -95,7 +96,6 @@ for (dir_name in names(directions)) {
   expected_shared <- (n_romi * n_kroma) / total_genes
   rep_factor <- n_shared / expected_shared
   
-  # Add to summary dataframe
   rigor_summary <- rbind(rigor_summary, data.frame(
     Direction = dir_name,
     Set1_Romi = n_romi,
@@ -106,22 +106,34 @@ for (dir_name in names(directions)) {
     Representation_Factor = rep_factor
   ))
 
-  message("  -- Rigor Metrics for ", dir_name, ":")
-  message("     * Overlap P-value: ", format.pval(p_overlap, digits = 3))
-  message("     * Jaccard Index: ", round(jaccard, 3))
-  message("     * Representation Factor: ", round(rep_factor, 1), "x more than chance")
-  
   if (length(shared_ids) > 0) {
-    shared_table <- results_list[[priority_contrasts[1]]]$df %>%
+    romi_df <- results_list[[priority_contrasts[1]]]$df %>% 
       filter(Geneid %in% shared_ids) %>%
-      select(Geneid, gene_label, log2FoldChange, padj) %>%
-      mutate(direction = dir_name, p_overlap = p_overlap, jaccard = jaccard) %>%
-      arrange(padj)
+      select(Geneid, gene_label, log2FoldChange, padj)
     
-    write.csv(shared_table, 
-              file = paste0(res_dir, "/tables/venn_lists/shared_genes_", tolower(dir_name), ".csv"),
-              row.names = FALSE)
+    kroma_df <- results_list[[priority_contrasts[2]]]$df %>% 
+      filter(Geneid %in% shared_ids) %>%
+      select(Geneid, log2FoldChange, padj)
+    
+    shared_table <- inner_join(romi_df, kroma_df, by = "Geneid", suffix = c("_Romi", "_Kroma")) %>%
+      mutate(
+        direction = dir_name, 
+        max_padj = pmax(padj_Romi, padj_Kroma, na.rm = TRUE),
+        avg_abs_lfc = (abs(log2FoldChange_Romi) + abs(log2FoldChange_Kroma)) / 2
+      ) %>%
+      arrange(max_padj, desc(avg_abs_lfc))
+    
+    shared_targets_list[[dir_name]] <- shared_table
   }
+}
+
+# Save the master shared targets table
+if (length(shared_targets_list) > 0) {
+  final_shared_df <- bind_rows(shared_targets_list)
+  write.csv(final_shared_df, 
+            file = file.path(res_dir, "tables/04_03_shared_targets_stats.csv"),
+            row.names = FALSE)
+  message("[OK] Master shared targets table saved -> 04_03_shared_targets_stats.csv")
 }
 
 # Save the rigor summary table
@@ -129,8 +141,6 @@ write.csv(rigor_summary,
           file = paste0(res_dir, "/tables/04_03_venn_rigor_stats.csv"),
           row.names = FALSE)
 message("[OK] Rigor summary table saved -> 04_03_venn_rigor_stats.csv")
-
-# 4. Save Plots...
 
 # 4. Save Individual and Combined Plots
 if (length(venn_plots) > 0) {
@@ -144,7 +154,7 @@ if (length(venn_plots) > 0) {
   p_combined <- wrap_plots(venn_plots, ncol = 1) + 
     plot_annotation(
       title = paste0("Directional Venn Comparisons: ", group_name),
-      subtitle = "Criteria: padj < 0.05 & |log2FC| > 1",
+      subtitle = "Criteria: padj < 0.05 & |log2FoldChange| > 2",
       theme = theme(
         plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
         plot.subtitle = element_text(size = 14, hjust = 0.5)

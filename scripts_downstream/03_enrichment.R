@@ -49,7 +49,7 @@ for (contrast in names(results_list)) {
   
   # 2. ORA (Over-Representation Analysis)
   sig_genes <- res_df %>%
-    filter(padj < 0.05, abs(log2FoldChange) > 1) %>%
+    filter(padj < 0.05, abs(log2FoldChange) > 2) %>%
     rownames()
   
   ego <- NULL

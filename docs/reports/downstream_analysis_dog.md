@@ -42,10 +42,10 @@ The combined dashboard provides a bird's-eye view of all primary contrasts used 
 > [!WARNING]
 > **Statistical Caveat**: Global DEG counts are derived from a species-level analysis that pools CNK89 and UL1. Because 96% of the variance is driven by biological lineage (Section 1), pooling these vastly different populations violates basic DGE assumptions and introduces significant confounding. These global metrics are used only for high-level potency screening; the local (cell-line specific) results in Section 2.3 are the definitive findings.
 
-| Treatment            | Total DEGs (\|log2FC\| > 1) | Ratio (Up:Down)               |
+| Treatment            | Total DEGs (\|log2FoldChange\| > 2) | Ratio (Up:Down)               |
 | :------------------- | :-------------------------- | :---------------------------- |
-| **Romidepsin (6nM)** | 3,494                       | 3.4 : 1 (2,705 up / 789 down) |
-| **Kromastat (6nM)**  | 1,327                       | 22.3 : 1 (1,270 up / 57 down) |
+| **Romidepsin (6nM)** | 3,494 [REVERIFY]            | 3.4 : 1 (2,705 up / 789 down) |
+| **Kromastat (6nM)**  | 1,327 [REVERIFY]            | 22.3 : 1 (1,270 up / 57 down) |
 
 Both inhibitors show a significant bias toward gene activation in dog cells. However, Kromastat's response is exceptionally skewed, with almost no gene suppression observed at this concentration.
 
@@ -66,8 +66,8 @@ Analysis of the lineages individually highlights significant differences in tran
 
 | Cell Line             | Romidepsin (6nM) | Kromastat (6nM) |
 | :-------------------- | :--------------- | :-------------- |
-| **UL1 (T-ALL Cancer)** | 5,045 DEGs   | 2,659 DEGs     |
-| **CNK89 (NK Cancer)** | 2,245 DEGs   | 589 DEGs       |
+| **UL1 (T-ALL Cancer)** | 5,045 DEGs [REVERIFY] | 2,659 DEGs [REVERIFY] |
+| **CNK89 (NK Cancer)** | 2,245 DEGs [REVERIFY] | 589 DEGs [REVERIFY]   |
 
 | Cell Line             | Romidepsin (6nM)                                                                           | Kromastat (6nM)                                                                                       |
 | :-------------------- | :----------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
@@ -89,7 +89,7 @@ The Venn diagrams illustrate the degree of transcriptomic "shared identity" betw
 To ensure these overlaps are biologically meaningful and not due to chance, we calculated significance using a hypergeometric test.
 
 > [!NOTE]
-> Venn set sizes below are from the `04_03_venn_rigor_stats.csv` snapshot. Current DGE tables yield **3,494** (Romi) and **1,327** (Kroma) at the same thresholds.
+> Venn set sizes below are from the `04_03_venn_rigor_stats.csv` snapshot. Current DGE tables yield **3,494 [REVERIFY]** (Romi) and **1,327 [REVERIFY]** (Kroma) at the same thresholds.
 
 | Gene Set           | Overlap P-value | Jaccard Index | Representation Factor |
 | :----------------- | :-------------- | :------------ | :-------------------- |
@@ -114,9 +114,9 @@ The shared suppression of **E2F8** and **GAS7** appears to confirm a conserved a
 
 ### 3.3 The "Subset" Hypothesis
 The rigor metrics support a clear functional hierarchy:
-- **Shared Response (31%)**: 1,144 genes forming the core HDAC inhibition signature.
-- **Kromastat Uniqueness (5%)**: Only 183 genes.
-- **Romidepsin Uniqueness (64%)**: 2,350 genes.
+- **Shared Response (31%) [REVERIFY]**: 1,144 genes [REVERIFY] forming the core HDAC inhibition signature.
+- **Kromastat Uniqueness (5%) [REVERIFY]**: Only 183 genes [REVERIFY].
+- **Romidepsin Uniqueness (64%) [REVERIFY]**: 2,350 genes [REVERIFY].
 
 **Finding**: Kromastat acts primarily as a **transcriptomic subset** of Romidepsin in dog cell lines. Approximately **86% of Kromastat's total response is contained within the Romidepsin signature**. While this confirms that Kromastat rarely triggers novel pathways, its **differentiation** arises from:
 1. **The 183 Unique Targets**: These Kromastat-specific genes (including immune receptors like `CD86`) may drive the specialized cytokine signatures observed later.
@@ -486,16 +486,16 @@ To ensure that the identified biological signatures are robust and not driven by
 
 ### 8.1 Intersectional Degree of Consensus (UpSet Matrix)
 
-We analyzed the overlap of significant DEGs (defined by `padj < 0.05` and `|LFC| > 1`) across the four primary experimental conditions.
+We analyzed the overlap of significant DEGs (defined by `padj < 0.05` and `\|log2FoldChange\| > 2`) across the four primary experimental conditions.
 
 ![UpSet Consistency Matrix|717](../../results/dog/figures/04_09_upset_consistency.png)
 
 | Observation Category | Key Finding | Biological Interpretation |
 |:---|:---|:---|
-| **Magnitude of Response** | UL1 Romi has the largest set (~5,000 DEGs) | Romidepsin triggers a broader transcriptional response in the T-ALL background, consistent with its heightened sensitivity profile in the dog dataset. |
-| **Comparative Potency** | CNK89 Romi is the second largest set (~2,245 DEGs) | Romidepsin consistently acts as a highly potent perturbagen, though the NK cancer line shows reduced sensitivity compared to UL1. |
-| **Drug Selectivity** | Kromastat sets are notably smaller (UL1: ~2,659 / CNK89: ~589 DEGs) | Consistent with its targeted profile, Kromastat acts as a more selective perturbagen with a compressed transcriptomic footprint, especially in the NK-cell cancer background. |
-| **Cancer-Line Resistance** | CNK89 Kroma is the smallest set (~589 DEGs) | The extremely low DEG count for CNK89+Kromastat indicates significant transcriptomic resistance of the NK-cell cancer line at 6nM — a key finding for dose optimisation. |
+| **Magnitude of Response** | UL1 Romi has the largest set (~5,000 DEGs [REVERIFY]) | Romidepsin triggers a broader transcriptional response in the T-ALL background, consistent with its heightened sensitivity profile in the dog dataset. |
+| **Comparative Potency** | CNK89 Romi is the second largest set (~2,245 DEGs [REVERIFY]) | Romidepsin consistently acts as a highly potent perturbagen, though the NK cancer line shows reduced sensitivity compared to UL1. |
+| **Drug Selectivity** | Kromastat sets are notably smaller (UL1: ~2,659 [REVERIFY] / CNK89: ~589 DEGs [REVERIFY]) | Consistent with its targeted profile, Kromastat acts as a more selective perturbagen with a compressed transcriptomic footprint, especially in the NK-cell cancer background. |
+| **Cancer-Line Resistance** | CNK89 Kroma is the smallest set (~589 DEGs [REVERIFY]) | The extremely low DEG count for CNK89+Kromastat indicates significant transcriptomic resistance of the NK-cell cancer line at 6nM — a key finding for dose optimisation. |
 | **Mechanism Consistency** | UL1 Krom ∩ CNK89 Krom consensus | Despite smaller absolute set sizes, Kromastat displays cross-cell-line concordance, indicating a stable mechanistic core shared across lineages. |
 | **Conserved HDAC Core** | 4-way all-condition overlap | Genes significant across ALL conditions represent the "gold-standard" conserved targets of HDAC inhibition in the canine context. |
 

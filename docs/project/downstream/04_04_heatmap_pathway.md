@@ -6,12 +6,12 @@ This script generates the most detailed visual in the pipeline: the **Leading Ed
 
 ## 0. Data Flow (I/O)
 - **Input**: 
-    - **Results RData**: `scripts_downstream/.RData/[Group]/02_deseq_results.RData` (Counts and LFC results).
-    - **Enrichment RData**: `scripts_downstream/.RData/[Group]/03_enrichment_results.RData` (GSEA pathways).
+    - **Results RData**: `./.RData/[Group]/02_deseq_results.RData` (Counts and LFC results).
+    - **Enrichment RData**: `./.RData/[Group]/03_enrichment_results.RData` (GSEA pathways).
     - **Species Org.DB**: `org.Hs.eg.db` or `org.Cf.eg.db`.
-- **Processing**: VST transformation, leading-edge gene extraction from GSEA, Z-score standardization, value capping at +/- 2.
+- **Processing**: VST transformation, leading-edge gene extraction from GSEA, Z-score standardization, value capping at +/- 1.
 - **Output**: 
-    - **Heatmap Figures**: `../results/[Group]/figures/04_gsea_leading_edge_[Contrast].png`.
+    - **Heatmap Figures**: `../results/[Group]/figures/04_04_heatmap_pathway_[Contrast].png`.
 
 ---
 
@@ -68,12 +68,12 @@ rownames(mat_slice) <- paste0(genes_path, "__", i)
 ## 4. Z-Score Standardization
 ```r
 mat_pathway <- t(scale(t(mat_pathway)))
-mat_pathway <- pmin(pmax(mat_pathway, -2), 2)
+mat_pathway <- pmin(pmax(mat_pathway, -1), 1)
 ```
 - **The Job**: Converts raw expression values into "standard deviations from the mean."
 - **The Reasoning**: 
     - **Scale**: If Gene A has 10,000 counts and Gene B has 10 counts, you can't see them on the same map. Scaling (Z-score) puts them on the same -2 to +2 scale.
-    - **Capping**: We cap the values at +/- 2 so that one "outlier" sample doesn't wash out the subtle differences in the other samples.
+    - **Capping**: We cap the values at +/- 1 so that one "outlier" sample doesn't wash out the subtle differences in the other samples. This also intensifies the color contrast for publication.
 
 ---
 
@@ -93,14 +93,15 @@ ht <- Heatmap(
 
 ## 6. Metadata Annotations (The Headers)
 ```r
-ha_list <- list(
-  Condition = setNames(RColorBrewer::brewer.pal(..., "Set2"), unique(conditions)),
-  CellLine = setNames(RColorBrewer::brewer.pal(..., "Accent"), unique(cell_lines))
-)
-top_ha <- HeatmapAnnotation(df = as.data.frame(...), col = ha_list)
+col_meta$condition <- factor(col_meta$condition, levels = c("DMSO_Romi", "Romi_6nM", "DMSO_Kromastat", "Kromastat_6nM"))
+col_order <- order(col_meta$cell_line, col_meta$condition)
+...
+column_split = data.frame(cell_lines, drug_groups)
 ```
-- **The Job**: Adds color-coded bars at the top of each column to identify the Sample Type and Treatment.
-- **The Reasoning**: In a large 24-sample study, you need to be able to tell at a glance which columns are `Kromastat_6nM` and which are `DMSO`. This header provides the necessary context.
+- **The Job**: 
+    1. Enforces a strict order: Romidepsin (Control + Treated) first, then Kromastat.
+    2. Splits the columns visually by both Cell Line and Drug Group.
+- **The Reasoning**: In a large 24-sample study, you need to be able to tell at a glance which columns are `Kromastat_6nM` and which are `DMSO`. This header provides the necessary context and ensures the "Conserved" pattern is easy to spot across cell lines.
 
 ---
 
@@ -108,8 +109,8 @@ top_ha <- HeatmapAnnotation(df = as.data.frame(...), col = ha_list)
 ```r
 png(..., width = 1200, height = 200 + nrow(mat_pathway)*25, res = 150)
 ```
-- **The Job**: Automatically calculates how "tall" the image should be based on how many genes were found.
-- **The Reasoning**: This prevents the "Squashed Heatmap" problem. If a pathway has 50 genes, the image expands vertically to ensure every single row is readable and printable.
+- **The Job**: Automatically calculates how "tall" the image should be based on how many genes were found, and places a packed legend list on the LEFT.
+- **The Reasoning**: This prevents the "Squashed Heatmap" problem. By moving the legend to the left and calculating height dynamically, we ensure every row label is readable and the overall figure follows professional multi-panel standards.
 
 ---
 

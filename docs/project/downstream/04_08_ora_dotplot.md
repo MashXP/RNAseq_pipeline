@@ -6,10 +6,10 @@ While GSEA looks at the "Global" trend of all genes, the ORA Dotplot focuses str
 
 ## 0. Data Flow (I/O)
 - **Input**: 
-    - **Enrichment RData**: `scripts_downstream/.RData/[Group]/03_enrichment_results.RData` (ORA GO results).
+    - **Enrichment RData**: `./.RData/[Group]/03_enrichment_results.RData` (ORA GO results).
 - **Processing**: GeneRatio parsing, top 15 pathway selection per contrast, dot-encoding (color=padj, size=Count).
 - **Output**: 
-    - **ORA Figures**: `../results/[Group]/figures/04_ora_dotplot_[Contrast].png` and `04_ora_dotplot_combined.png`.
+    - **ORA Figures**: `../results/[Group]/figures/04_08_ora_dotplot_[Contrast].png` and `04_08_ora_dotplot_combined.png`.
 
 ---
 
@@ -37,7 +37,7 @@ ora_combined <- map2_dfr(
 )
 ```
 - **The Job**: Iterates through all drug contrasts and securely compiles their ORA results, while converting the biological "fraction" (e.g., 10 genes out of 100 in the pathway) into a decimal number (0.1).
-- **The Reasoning**: This `Ratio` is the primary metric for ORA. It tells you what percentage of a biological pathway was "hit" by your drug. A high ratio in a "Cell Cycle" pathway is strong evidence that the drug is stopping cell division.
+- **The Reasoning**: This `Ratio` is the primary metric for ORA. It tells you what percentage of a biological pathway was "hit" by your drug. The script also employs a `COMBINED_EXCLUDE` list to filter out QC contrasts (e.g., DMSO vs DMSO) from the final faceted comparison, keeping the visualization clinically relevant.
 
 ---
 

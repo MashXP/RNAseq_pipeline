@@ -33,7 +33,7 @@ group_name <- species_name
 
 ## 2. Path Construction
 ```r
-base_dir <- paste0("cancer_downstream/featurecounts/", species_name)
+base_dir <- paste0("../cancer_downstream/featurecounts/", species_name)
 count_file <- file.path(base_dir, paste0(species_name, "_featurecounts_counts.tsv"))
 meta_file  <- file.path(base_dir, paste0(species_name, "_sample_metadata.tsv"))
 ```
@@ -81,7 +81,7 @@ counts_filtered <- counts_matrix[keep,]
 
 ## 6. Pipeline Bridge (`.RData`)
 ```r
-out_dir <- paste0("scripts_downstream/.RData/", group_name)
+out_dir <- paste0("./.RData/", group_name)
 save(counts_filtered, metadata, species_name, group_name, file = file.path(out_dir, "01_processed_counts.RData"))
 ```
 - **The Job**: Saves all the cleaned R objects into a single compressed binary file.
