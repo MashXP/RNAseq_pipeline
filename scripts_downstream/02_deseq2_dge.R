@@ -10,8 +10,8 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
   stop("Usage: Rscript 02_deseq2_dge.R <Group> [Species]")
 }
-group_name   <- args[1]
-species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
+group_name   <- tolower(args[1]) # Standardize to lowercase for path consistency
+species_name <- if (length(args) >= 2) args[2] else str_to_title(args[1])
 
 # Ensure output directories exist
 res_dir <- paste0("../results/", group_name)
@@ -52,53 +52,41 @@ if (file.exists(gtf_path)) {
   unlink(map_file)
 }
 
-# 3. Model Definition
-metadata$condition <- relevel(metadata$condition, ref = "DMSO_Romi")
+# -- Comparison Engine: Match Mentor's Subset Logic --
+# Logic: 
+# 1. Species-level Drug vs DMSO: Subset to 12 samples (2 cell lines x 2 treatments x 3 reps).
+# 2. Cell-line specific Drug vs DMSO: Subset to 6 samples (1 cell line x 2 treatments x 3 reps).
+
 results_list <- list()
 
-# -- Phase 1: Full Multifactorial Model --
-message("\n[Phase 1] Running Multifactorial Model (~ cell_line + condition)")
-if ("cell_line" %in% colnames(metadata)) {
-  ref_cell_line <- if (tolower(species_name) == "human") "H9" else "UL1"
-  if (ref_cell_line %in% metadata$cell_line) {
-    metadata$cell_line <- factor(metadata$cell_line)
-    metadata$cell_line <- relevel(metadata$cell_line, ref = ref_cell_line)
-  }
-  
-  dds_full <- DESeqDataSetFromMatrix(countData = counts_filtered, colData = metadata, design = ~ cell_line + condition)
-} else {
-  dds_full <- DESeqDataSetFromMatrix(countData = counts_filtered, colData = metadata, design = ~ condition)
-}
-
-dds_full <- DESeq(dds_full)
-
-# Comparisons to extract
-comparisons <- list(
-  c("Romi_6nM",       "DMSO_Romi"),
-  c("Kromastat_6nM",  "DMSO_Kromastat"),
-  c("Romi_6nM",       "Kromastat_6nM"),
-  c("DMSO_Kromastat", "DMSO_Romi")
+# Primary Contrasts (Species-wide)
+# Each runs its own independent model (~ cell_line + condition)
+drug_contrasts <- list(
+  list(name = "Romi_6nM_vs_DMSO_Romi",       levels = c("Romi_6nM", "DMSO_Romi")),
+  list(name = "Kromastat_6nM_vs_DMSO_Kromastat",  levels = c("Kromastat_6nM", "DMSO_Kromastat")),
+  list(name = "Romi_6nM_vs_Kromastat_6nM",   levels = c("Romi_6nM", "Kromastat_6nM"))
 )
 
-process_results <- function(dds_obj, dose, ref, prefix = "") {
-  contrast_name <- paste0(dose, "_vs_", ref)
-  full_name <- if(prefix == "") contrast_name else paste0(prefix, "_", contrast_name)
-  message("  Extracting: ", full_name)
+for (drug_comp in drug_contrasts) {
+  message("\n[Phase 1] Running Species-wide Model: ", drug_comp$name)
   
-  res <- results(dds_obj, contrast = c("condition", dose, ref))
+  # Subset to only the relevant treatments for this drug comparison
+  sub_metadata <- metadata %>% filter(condition %in% drug_comp$levels)
+  sub_counts <- counts_raw[, rownames(sub_metadata)]
   
-  # Shrinkage
-  all_coefs <- resultsNames(dds_obj)
-  target_pattern <- paste0("condition_", make.names(dose), "_vs_", make.names(ref))
-  coef_name <- all_coefs[grepl(target_pattern, all_coefs, fixed = TRUE)]
+  # Independent filtering and normalization
+  keep_sub <- rowSums(sub_counts >= 10) >= 3
+  sub_counts <- sub_counts[keep_sub, ]
   
-  if (length(coef_name) == 1) {
-    res_shrunk <- lfcShrink(dds_obj, coef = coef_name, type = "apeglm")
-  } else {
-    res_shrunk <- lfcShrink(dds_obj, contrast = c("condition", dose, ref), type = "normal")
-  }
+  sub_metadata$condition <- factor(sub_metadata$condition, levels = rev(drug_comp$levels)) # Ref is last
   
-  # Data Frame with Symbols
+  dds_sub <- DESeqDataSetFromMatrix(countData = sub_counts, colData = sub_metadata, design = ~ cell_line + condition)
+  dds_sub <- DESeq(dds_sub)
+  
+  # Extract with apeglm shrinkage (as it's species-wide and more robust)
+  res <- results(dds_sub)
+  res_shrunk <- lfcShrink(dds_sub, coef = resultsNames(dds_sub)[3], type = "apeglm")
+  
   res_df <- as.data.frame(res_shrunk) %>%
     rownames_to_column("Geneid") %>%
     mutate(Geneid_clean = sub("\\..*$", "", Geneid)) %>%
@@ -107,40 +95,54 @@ process_results <- function(dds_obj, dose, ref, prefix = "") {
     select(Geneid, gene_name, gene_label, everything(), -Geneid_clean) %>%
     arrange(padj)
   
-  safe_contrast <- str_replace_all(full_name, "[^a-zA-Z0-9]", "_")
-  write.csv(res_df, file = paste0(res_dir, "/tables/02_dge_", safe_contrast, ".csv"), row.names = FALSE)
-  
-  return(list(res = res, shrunk = res_shrunk, df = res_df))
+  write.csv(res_df, file = paste0(res_dir, "/tables/02_dge_", drug_comp$name, ".csv"), row.names = FALSE)
+  results_list[[drug_comp$name]] <- list(res = res, shrunk = res_shrunk, df = res_df)
 }
 
-for (comp in comparisons) {
-  results_list[[paste0(comp[1], "_vs_", comp[2])]] <- process_results(dds_full, comp[1], comp[2])
-}
-
-# -- Phase 2: Subset Models for Consistency Analysis --
+# -- Phase 2: Independent Cell-Line Specific Models --
+# Runs ~ condition for every (CellLine x Drug) combination (6 samples each)
 if ("cell_line" %in% colnames(metadata)) {
   cell_lines <- unique(as.character(metadata$cell_line))
   for (cl in cell_lines) {
-    message("\n[Phase 2] Running Subset Model for Cell Line: ", cl)
-    cl_metadata <- metadata[metadata$cell_line == cl, ]
-    cl_counts <- counts_filtered[, rownames(cl_metadata)]
-    
-    # Pre-filtering subset (ensure enough reads in this specific line)
-    keep_sub <- rowSums(cl_counts >= 5) >= 3
-    cl_counts <- cl_counts[keep_sub, ]
-    
-    dds_sub <- DESeqDataSetFromMatrix(countData = cl_counts, colData = cl_metadata, design = ~ condition)
-    dds_sub <- DESeq(dds_sub)
-    
-    # Only Romi and Krom primary contrasts for consistency
-    for (comp in comparisons[1:2]) {
-      results_list[[paste0(cl, "_", comp[1], "_vs_", comp[2])]] <- process_results(dds_sub, comp[1], comp[2], prefix = cl)
+    for (drug_comp in drug_contrasts) {
+      full_name <- paste0(cl, "_", drug_comp$name)
+      message("\n[Phase 2] Running Independent Subset Model: ", full_name)
+      
+      cl_metadata <- metadata %>% filter(cell_line == cl, condition %in% drug_comp$levels)
+      cl_counts <- counts_raw[, rownames(cl_metadata)]
+      
+      keep_cl <- rowSums(cl_counts >= 10) >= 3
+      cl_counts <- cl_counts[keep_cl, ]
+      
+      cl_metadata$condition <- factor(cl_metadata$condition, levels = rev(drug_comp$levels))
+      
+      dds_cl <- DESeqDataSetFromMatrix(countData = cl_counts, colData = cl_metadata, design = ~ condition)
+      dds_cl <- DESeq(dds_cl)
+      
+      # Use 'normal' shrinkage for legacy cell-line subsets to match mentor
+      res_cl <- results(dds_cl)
+      res_cl_shrunk <- lfcShrink(dds_cl, contrast = c("condition", drug_comp$levels[1], drug_comp$levels[2]), res = res_cl, type = "normal")
+      
+      res_cl_df <- as.data.frame(res_cl_shrunk) %>%
+        rownames_to_column("Geneid") %>%
+        mutate(Geneid_clean = sub("\\..*$", "", Geneid)) %>%
+        left_join(gene_map, by = c("Geneid_clean" = "gene_id")) %>%
+        mutate(gene_label = ifelse(is.na(gene_name) | gene_name == "", Geneid_clean, gene_name)) %>%
+        select(Geneid, gene_name, gene_label, everything(), -Geneid_clean) %>%
+        arrange(padj)
+      
+      safe_contrast <- str_replace_all(full_name, "[^a-zA-Z0-9]", "_")
+      write.csv(res_cl_df, file = paste0(res_dir, "/tables/02_dge_", safe_contrast, ".csv"), row.names = FALSE)
+      results_list[[full_name]] <- list(res = res_cl, shrunk = res_cl_shrunk, df = res_cl_df)
     }
   }
 }
 
-# Save comprehensive results (using the full dds for downstream PCA/GSEA consistency)
-dds <- dds_full 
+# Save comprehensive results
+# Note: dds_full is removed as results are now the composite of subsets. 
+# Re-running a dummy dds_full for PCA/GSEA downstream compatibility if needed, but results_list is the primary.
+dds <- DESeqDataSetFromMatrix(countData = counts_filtered, colData = metadata, design = ~ cell_line + condition)
+dds <- estimateSizeFactors(dds) # For normalized counts downstream
 save(dds, results_list, species_name, group_name, metadata,
      file = paste0("./.RData/", group_name, "/02_deseq_results.RData"))
 

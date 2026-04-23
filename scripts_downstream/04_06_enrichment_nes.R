@@ -10,8 +10,8 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
   stop("Usage: Rscript 04_06_enrichment_nes.R <Group> [Species]")
 }
-group_name <- args[1]
-species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
+group_name <- tolower(args[1])
+species_name <- if (length(args) >= 2) args[2] else str_to_title(args[1])
 
 res_dir <- paste0("../results/", group_name)
 
@@ -34,9 +34,15 @@ clean_pathway_name <- function(pathway_name) {
 
 # Helper: build a single NES barplot for one dose
 make_nes_plot <- function(hallmark_res, dose_label) {
+  is_direct <- grepl("vs_Kromastat", dose_label)
+  
   hall_df <- as.data.frame(hallmark_res) %>%
     mutate(
-      Response = ifelse(NES > 0, "Activated", "Suppressed"),
+      Response = if(is_direct) {
+                   ifelse(NES > 0, "Romi higher", "Krom higher")
+                 } else {
+                   ifelse(NES > 0, "Activated", "Suppressed")
+                 },
       Description = vapply(Description, clean_pathway_name, character(1))
     ) %>%
     group_by(Response) %>%
@@ -46,8 +52,9 @@ make_nes_plot <- function(hallmark_res, dose_label) {
   ggplot(hall_df, aes(x = NES, y = reorder(Description, NES), fill = Response)) +
     geom_col(width = 0.8) +
     scale_fill_manual(
-      values = c("Activated" = "#D62728", "Suppressed" = "#1F77B4"),
-      name = "Direction"
+      values = c("Activated" = "#D62728", "Suppressed" = "#1F77B4",
+                 "Romi higher" = "#D62728", "Krom higher" = "#1F77B4"),
+      name = if(is_direct) "Preference" else "Direction"
     ) +
     geom_vline(xintercept = 0, linewidth = 0.5, color = "grey30") +
     theme_bw(base_size = 12) +
@@ -55,10 +62,18 @@ make_nes_plot <- function(hallmark_res, dose_label) {
       panel.grid.major.y = element_blank(),
       axis.text.y = element_text(size = 9, face = "bold"),
       axis.title.x = element_text(size = 10),
-      plot.title = element_text(size = 12, face = "bold", hjust = 0.5)
+      plot.title = element_text(size = 12, face = "bold", hjust = 0.5, margin = margin(b = 5)),
+      plot.subtitle = element_text(size = 10, hjust = 0.5, margin = margin(b = 10))
     ) +
     labs(
-      title = paste0("Contrast: ", dose_label),
+      title = if(grepl("^(H9|SUPM2)_", dose_label)) {
+                cl_prefix <- str_extract(dose_label, "^(H9|SUPM2)")
+                rest <- sub("^(H9|SUPM2)_", "", dose_label)
+                paste0(cl_prefix, ": ", str_replace_all(rest, "_", " "))
+              } else {
+                paste0("Global: ", str_replace_all(dose_label, "_", " "))
+              },
+      subtitle = if(is_direct) str_wrap("Positive NES favors Romidepsin; negative NES favors Kromastat", width = 50) else NULL,
       x = "Normalized Enrichment Score (NES)", y = "Hallmark Pathway"
     )
 }
@@ -87,7 +102,8 @@ for (contrast in names(enrichment_results_all)) {
 COMBINED_EXCLUDE <- c(
   "DMSO_Kromastat_vs_DMSO_Romi",
   "Romi_6nM_vs_DMSO_Romi",
-  "Kromastat_6nM_vs_DMSO_Kromastat"
+  "Kromastat_6nM_vs_DMSO_Kromastat",
+  "Romi_6nM_vs_Kromastat_6nM"
 )
 nes_plots_curated <- nes_plots[!names(nes_plots) %in% COMBINED_EXCLUDE]
 

@@ -10,8 +10,8 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
   stop("Usage: Rscript 03_enrichment.R <Group> [Species]")
 }
-group_name <- args[1]
-species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
+group_name <- tolower(args[1])
+species_name <- if (length(args) >= 2) args[2] else str_to_title(args[1])
 
 # Load specific org.db based on species
 if (species_name == "Human") {

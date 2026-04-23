@@ -12,8 +12,8 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
   stop("Usage: Rscript 04_02_volcano.R <Group> [Species]")
 }
-group_name <- args[1]
-species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
+group_name <- tolower(args[1])
+species_name <- if (length(args) >= 2) args[2] else str_to_title(args[1])
 
 res_dir <- paste0("../results/", group_name)
 dir.create(file.path(res_dir, "figures"), showWarnings = FALSE, recursive = TRUE)
@@ -104,20 +104,30 @@ for (contrast in names(results_list)) {
     coord_cartesian(clip = "off") +
     theme_bw(base_size = 14) +
     labs(
-      title = str_replace_all(contrast, "_", " "),
-      subtitle = paste0("Species: ", species_name),
+      title = if(grepl("^(H9|SUPM2)_", contrast)) {
+                cl_prefix <- str_extract(contrast, "^(H9|SUPM2)")
+                rest <- sub("^(H9|SUPM2)_", "", contrast)
+                paste0(cl_prefix, ": ", str_replace_all(rest, "_", " "))
+              } else {
+                paste0("Global: ", str_replace_all(contrast, "_", " "))
+              },
+      subtitle = if(grepl("vs_Kromastat", contrast)) "Positive log2FC means higher in Romidepsin;\nnegative log2FC means higher in Kromastat" else NULL,
       x = "log2foldChange",
       y = "-log10 adjusted p-value"
     ) +
-    annotate("text", x = -Inf, y = Inf, label = paste0("Down: ", down_count), 
-             hjust = -0.2, vjust = 1.5, color = color_down, fontface = "bold", size = 5) +
-    annotate("text", x = Inf, y = Inf, label = paste0("Up: ", up_count), 
-             hjust = 1.2, vjust = 1.5, color = color_up, fontface = "bold", size = 5) +
+    annotate("text", x = -Inf, y = Inf, 
+             label = if(grepl("vs_Kromastat", contrast)) paste0("Higher in Kromastat: ", down_count) else paste0("Downregulated: ", down_count), 
+             hjust = -0.05, vjust = -1.2, color = color_down, fontface = "bold", size = 5) +
+    annotate("text", x = Inf, y = Inf, 
+             label = if(grepl("vs_Kromastat", contrast)) paste0("Higher in Romidepsin: ", up_count) else paste0("Upregulated: ", up_count), 
+             hjust = 1.05, vjust = -1.2, color = color_up, fontface = "bold", size = 5) +
     theme(
       legend.position = "none",
-      plot.title = element_text(face = "bold"),
+      plot.title = element_text(face = "bold", hjust = 0.5, 
+                                margin = margin(b = if(grepl("vs_Kromastat", contrast)) 10 else 50)),
+      plot.subtitle = element_text(hjust = 0.5, margin = margin(b = 45)),
       panel.grid.minor = element_blank(),
-      plot.margin = margin(1, 1, 1, 1, "cm")
+      plot.margin = margin(2.5, 1, 1, 1, "cm")
     )
   
   if (nrow(label_df) > 0) {
@@ -155,7 +165,7 @@ write.csv(final_top_genes_df, file.path(res_dir, "tables/04_02_top_dge_genes.csv
 # 5.3 Conserved Targets (H9 ∩ SUPM2)
 message("--- Identifying Conserved Targets across Cell Lines ---")
 conserved_list <- list()
-treatments <- c("Romi_6nM_vs_DMSO_Romi", "Kromastat_6nM_vs_DMSO_Kromastat")
+treatments <- c("Romi_6nM_vs_DMSO_Romi", "Kromastat_6nM_vs_DMSO_Kromastat", "Romi_6nM_vs_Kromastat_6nM")
 
 for (tr in treatments) {
   h9_key <- paste0("H9_", tr)

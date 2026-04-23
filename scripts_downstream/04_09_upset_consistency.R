@@ -10,8 +10,8 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
   stop("Usage: Rscript 04_09_upset_consistency.R <Group> [Species]")
 }
-group_name <- args[1]
-species_name <- if (length(args) >= 2) args[2] else str_to_title(group_name)
+group_name <- tolower(args[1])
+species_name <- if (length(args) >= 2) args[2] else str_to_title(args[1])
 
 res_dir <- paste0("../results/", group_name)
 dir.create(file.path(res_dir, "figures"), showWarnings = FALSE, recursive = TRUE)

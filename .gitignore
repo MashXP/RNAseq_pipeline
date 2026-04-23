@@ -74,5 +74,5 @@ test_neo
 *.out
 
 verify_discrepancy.R
-cancer_downstream
+mentor
 _hpc/counts

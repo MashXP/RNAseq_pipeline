@@ -121,10 +121,19 @@ if [ "$RUN_DOWNSTREAM" = true ]; then
             Rscript 04_05_heatmap_variable.R "$species"
             Rscript 04_06_enrichment_nes.R "$species"
             Rscript 04_07_enrichment_dotplot.R "$species"
-            Rscript 04_08_ora_dotplot.R "$species"
+            # Rscript 04_08_ora_dotplot.R "$species"
+            Rscript 04_09_upset_consistency.R "$species"
+            Rscript 04_10_correlation_plots.R "$species"
 
             echo "Done with Species: $species"
         done
+
+        echo "========================================================="
+        echo "Running Cross-Species Comparative Analysis (Global/Gene)"
+        echo "========================================================="
+        Rscript 04_11_alluvial_plot.R
+        Rscript 04_12_ortholog_gene_overlap.R
+
     ) || { echo "Downstream analysis failed at some step. Exiting."; exit 1; }
     
     echo "DOWNSTREAM COMPLETE."
