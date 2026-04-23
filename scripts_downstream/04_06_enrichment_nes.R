@@ -66,12 +66,16 @@ make_nes_plot <- function(hallmark_res, dose_label) {
       plot.subtitle = element_text(size = 10, hjust = 0.5, margin = margin(b = 10))
     ) +
     labs(
-      title = if(grepl("^(H9|SUPM2|UL1|CNK89)_", dose_label)) {
-                cl_prefix <- str_extract(dose_label, "^(H9|SUPM2|UL1|CNK89)")
-                rest <- sub("^(H9|SUPM2|UL1|CNK89)_", "", dose_label)
-                paste0(cl_prefix, ": ", str_replace_all(rest, "_", " "))
-              } else {
-                paste0("Global: ", str_replace_all(dose_label, "_", " "))
+      title = {
+                cl_list <- unique(as.character(metadata$cell_line))
+                cl_pattern <- paste0("^(", paste(cl_list, collapse="|"), ")_")
+                if(grepl(cl_pattern, dose_label)) {
+                  cl_prefix <- str_extract(dose_label, paste0("^(", paste(cl_list, collapse="|"), ")"))
+                  rest <- sub(paste0("^", cl_prefix, "_"), "", dose_label)
+                  paste0(cl_prefix, ": ", str_replace_all(rest, "_", " "))
+                } else {
+                  paste0("Global: ", str_replace_all(dose_label, "_", " "))
+                }
               },
       subtitle = if(is_direct) str_wrap("Positive NES favors Romidepsin; negative NES favors Kromastat", width = 50) else NULL,
       x = "Normalized Enrichment Score (NES)", y = "Hallmark Pathway"

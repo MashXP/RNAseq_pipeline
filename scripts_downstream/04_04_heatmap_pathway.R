@@ -95,8 +95,13 @@ for (contrast in names(enrichment_results_all)) {
   control_full <- parts[2]
   
   cell_line_filter <- ""
-  if (grepl("H9_", treat_full)) cell_line_filter <- "H9"
-  if (grepl("SUPM2_", treat_full)) cell_line_filter <- "SUPM2"
+  cl_list <- unique(as.character(colData(dds)$cell_line))
+  for (cl_name in cl_list) {
+    if (grepl(paste0("^", cl_name, "_"), treat_full)) {
+      cell_line_filter <- cl_name
+      break
+    }
+  }
   
   conds <- c(gsub(paste0("^", cell_line_filter, "_"), "", treat_full),
              gsub(paste0("^", cell_line_filter, "_"), "", control_full))
@@ -131,9 +136,8 @@ for (contrast in names(enrichment_results_all)) {
     str_remove("^_|_$")
   
   # Annotations and Meta
-  col_meta <- as.data.frame(colData(vsd_local)[, "condition", drop = FALSE])
-  colnames(col_meta) <- "Treatment"
-  col_meta$Cell_Line <- ifelse(grepl("H9", rownames(col_meta)), "H9", "SUPM2")
+  col_meta <- as.data.frame(colData(vsd_local)[, c("condition", "cell_line"), drop = FALSE])
+  colnames(col_meta) <- c("Treatment", "Cell_Line")
   
   # Sorting and Factors
   pathway_factor <- factor(heatmap_df$pathway_display, levels = unique(heatmap_df$pathway_display))
@@ -161,7 +165,10 @@ for (contrast in names(enrichment_results_all)) {
   )
   
   ha_list <- list(Treatment = dose_palette[levels(factor(conditions))])
-  ha_list$Cell_Line <- setNames(c("#7FC97F", "#BEAED4"), c("H9", "SUPM2"))[levels(factor(cell_lines))]
+  # Dynamic Cell Line coloring
+  cl_levels <- levels(factor(cell_lines))
+  cl_colors <- setNames(colorRampPalette(c("#7FC97F", "#BEAED4"))(length(cl_levels)), cl_levels)
+  ha_list$Cell_Line <- cl_colors
   
   top_ha <- HeatmapAnnotation(df = col_meta_ordered[, c("Treatment", "Cell_Line"), drop=FALSE], 
                               col = ha_list,
@@ -255,8 +262,8 @@ lgd_condition = Legend(title = "Treatment",
                        legend_gp = gpar(fill = c("grey85", "#E41A1C", "grey70", "#377EB8")))
 
 lgd_cell = Legend(title = "Cell Line", 
-                  at = c("H9", "SUPM2"), 
-                  legend_gp = gpar(fill = c("#7FC97F", "#BEAED4")))
+                  at = unique(as.character(colData(dds)$cell_line)), 
+                  legend_gp = gpar(fill = colorRampPalette(c("#7FC97F", "#BEAED4"))(length(unique(colData(dds)$cell_line)))))
 
 lgd_z = Legend(title = "z-score", 
                col_fun = col_fun, 
@@ -371,9 +378,11 @@ if ("cell_line" %in% colnames(colData(dds))) {
     mat <- mat[, col_order]
     col_meta_ordered <- col_meta[col_order, , drop = FALSE]
     
+    # Dynamic palette for the shared heatmap section
+    cl_all <- unique(as.character(colData(dds)$cell_line))
     ha_list <- list(
       Treatment = c("DMSO_Romi" = "grey85", "Romi_6nM" = "#E41A1C", "DMSO_Kromastat" = "grey70", "Kromastat_6nM" = "#377EB8"),
-      Cell_Line = c("H9" = "#7FC97F", "SUPM2" = "#BEAED4")
+      Cell_Line = setNames(colorRampPalette(c("#7FC97F", "#BEAED4"))(length(cl_all)), cl_all)
     )
     
     top_ha <- HeatmapAnnotation(df = col_meta_ordered[, c("Treatment", "Cell_Line"), drop=FALSE], 

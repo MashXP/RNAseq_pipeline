@@ -104,12 +104,16 @@ for (contrast in names(results_list)) {
     coord_cartesian(clip = "off") +
     theme_bw(base_size = 14) +
     labs(
-      title = if(grepl("^(H9|SUPM2|UL1|CNK89)_", contrast)) {
-                cl_prefix <- str_extract(contrast, "^(H9|SUPM2|UL1|CNK89)")
-                rest <- sub("^(H9|SUPM2|UL1|CNK89)_", "", contrast)
-                paste0(cl_prefix, ": ", str_replace_all(rest, "_", " "))
-              } else {
-                paste0("Global: ", str_replace_all(contrast, "_", " "))
+      title = {
+                cl_list <- unique(as.character(metadata$cell_line))
+                cl_pattern <- paste0("^(", paste(cl_list, collapse="|"), ")_")
+                if(grepl(cl_pattern, contrast)) {
+                  cl_prefix <- str_extract(contrast, paste0("^(", paste(cl_list, collapse="|"), ")"))
+                  rest <- sub(paste0("^", cl_prefix, "_"), "", contrast)
+                  paste0(cl_prefix, ": ", str_replace_all(rest, "_", " "))
+                } else {
+                  paste0("Global: ", str_replace_all(contrast, "_", " "))
+                }
               },
       subtitle = if(grepl("vs_Kromastat", contrast)) "Positive log2FC means higher in Romidepsin;\nnegative log2FC means higher in Kromastat" else NULL,
       x = "log2foldChange",
@@ -168,23 +172,26 @@ conserved_list <- list()
 treatments <- c("Romi_6nM_vs_DMSO_Romi", "Kromastat_6nM_vs_DMSO_Kromastat", "Romi_6nM_vs_Kromastat_6nM")
 
 for (tr in treatments) {
-  h9_key <- paste0("H9_", tr)
-  supm2_key <- paste0("SUPM2_", tr)
-  
-  if (h9_key %in% names(results_list) && supm2_key %in% names(results_list)) {
-    h9_df <- results_list[[h9_key]]$df %>% 
-      filter(padj < 0.05, abs(log2FoldChange) > 2.0) %>%
-      select(gene_name, log2FoldChange, padj)
-      
-    supm2_df <- results_list[[supm2_key]]$df %>% 
-      filter(padj < 0.05, abs(log2FoldChange) > 2.0) %>%
-      select(gene_name, log2FoldChange, padj)
-      
-    conserved <- inner_join(h9_df, supm2_df, by = "gene_name", suffix = c("_H9", "_SUPM2")) %>%
-      filter(!is.na(gene_name)) %>%
-      mutate(Treatment = tr)
-      
-    conserved_list[[tr]] <- conserved
+  cl_list <- unique(as.character(metadata$cell_line))
+  if (length(cl_list) >= 2) {
+    cl1_key <- paste0(cl_list[1], "_", tr)
+    cl2_key <- paste0(cl_list[2], "_", tr)
+    
+    if (cl1_key %in% names(results_list) && cl2_key %in% names(results_list)) {
+      cl1_df <- results_list[[cl1_key]]$df %>% 
+        filter(padj < 0.05, abs(log2FoldChange) > 2.0) %>%
+        select(gene_name, log2FoldChange, padj)
+        
+      cl2_df <- results_list[[cl2_key]]$df %>% 
+        filter(padj < 0.05, abs(log2FoldChange) > 2.0) %>%
+        select(gene_name, log2FoldChange, padj)
+        
+      conserved <- inner_join(cl1_df, cl2_df, by = "gene_name", suffix = paste0("_", cl_list[1:2])) %>%
+        filter(!is.na(gene_name)) %>%
+        mutate(Treatment = tr)
+        
+      conserved_list[[tr]] <- conserved
+    }
   }
 }
 

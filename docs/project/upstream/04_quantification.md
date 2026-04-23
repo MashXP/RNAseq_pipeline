@@ -8,7 +8,8 @@ This script turns your "Biological Maps" (BAMs) into "Experimental Data" (The Ge
 ```bash
 species_list=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | awk '{print $4}' | sort -u)
 for sp in $species_list; do
-    mkdir -p "$FEATURECOUNTS_DIR/$sp"
+    sp_lower=$(echo "$sp" | tr '[:upper:]' '[:lower:]')
+    mkdir -p "$FEATURECOUNTS_DIR/$sp_lower"
     ...
 done
 ```
@@ -49,7 +50,8 @@ done
 
 ## 4. The Gene-Level Quantification Call
 ```bash
-featureCounts -p -s 2 -T "$THREADS" -t exon -g gene_id -a "$GTF_FILE" -o "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_counts.tsv" $files
+featureCounts -p -s 2 -T "$THREADS" -t exon -g gene_id -a "$GTF_FILE" \
+    -o "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_counts.tsv" $files
 ```
 - **The Job**: Executes the core quantification at the gene level.
 - **The Output**: A TSV file named `{species}_featurecounts_counts.tsv` containing the gene count matrix.
@@ -58,8 +60,11 @@ featureCounts -p -s 2 -T "$THREADS" -t exon -g gene_id -a "$GTF_FILE" -o "$FEATU
 
 ## 5. The Biotype-Level Quantification & Processing
 ```bash
-featureCounts -p -s 2 -T "$THREADS" -t exon -g gene_biotype -a "$GTF_FILE" -o "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_biotype_counts_raw.tsv" $files
-python3 "$UTILS_DIR/biotype_to_multiqc.py" "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_biotype_counts_raw.tsv" "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_biotype_counts.tsv"
+featureCounts -p -s 2 -T "$THREADS" -t exon -g gene_biotype -a "$GTF_FILE" \
+    -o "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_biotype_counts_raw.tsv" $files
+python3 "$UTILS_DIR/biotype_to_multiqc.py" \
+    "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_biotype_counts_raw.tsv" \
+    "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_biotype_counts.tsv"
 ```
 - **The Job**: First counts reads per biotype (e.g., protein_coding, lncRNA), then processes the raw output into a cleaned format compatible with MultiQC reports.
 - **The Output**: `{species}_featurecounts_biotype_counts.tsv`.

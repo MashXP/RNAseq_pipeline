@@ -27,41 +27,29 @@ This script utilizes the following libraries for advanced visualization. See [**
 
 ## 1. Pathway Prioritization & Robustness
 ```r
-for (contrast in contrasts_to_plot) {
-  if (is.null(hallmark_res) || nrow(as.data.frame(hallmark_res)) == 0) {
-    message("  Skipping: No significant Hallmark pathways found.")
-    next
-  }
-  top_pathways <- head(df_halo, 6)
+for (contrast in names(enrichment_results_all)) {
+  res <- enrichment_results_all[[contrast]]$gsea_hallmark
+  df_res <- as.data.frame(res) %>% filter(p.adjust < 0.05)
+  
+  # Select Top Pathways (Activated and Suppressed)
+  top_act <- head(df_res %>% filter(NES > 0) %>% arrange(desc(NES)), 3)
+  top_sup <- head(df_res %>% filter(NES < 0) %>% arrange(NES), 2)
+  sel_paths <- rbind(top_act, top_sup)
 }
 ```
-- **The Job**: Iterates through each drug contrast and safely skips any that lack significant pathway data, then selects a maximum of 6 top pathways.
-- **The Reasoning**: This prevents script crashes when a drug fails to enrich any pathways. Limiting to the Top 6 pathways ensures the final heatmap is not overwhelmingly tall and focuses only on the most dominant biological themes.
+- **The Job**: Iterates through each drug contrast and selects the top 3 activated and top 2 suppressed Hallmark pathways.
+- **The Reasoning**: This ensures a balanced view of the biological response. Instead of just showing the "Top 5" (which might all be upregulated), we explicitly pull both directions to see what the drug activates AND what it shuts down.
 
 ---
 
 ## 2. Extracting the "Leading Edge"
 ```r
-genes_path <- str_split(top_pathways$core_enrichment[i], "/")[[1]]
-genes_path <- intersect(genes_path, rownames(mat_full))
+genes <- unique(unlist(strsplit(sel_paths$core_enrichment[i], "/")))
+genes <- intersect(genes, rownames(dds))
+genes <- head(genes, 12) # Mentor logic: Top 12 genes per pathway
 ```
-- **The Job**: GSEA identifies a specific subset of genes that account for the enrichment signal, known as the "Leading Edge." 
-- **The Reasoning**: A pathway might contain 200 genes, but maybe only 15 are actually moving. This code extracts those 15 "drivers" so we don't clutter the heatmap with dead weight.
-
----
-
-## 3. Gene Limitation Heuristics
-```r
-if (length(genes_path) > 12) {
-  genes_path <- res_lfc[genes_path, ] %>%
-    arrange(desc(abs(log2FoldChange))) %>%
-    head(12) %>% pull(gene)
-}
-# Allow duplicate genes across pathways
-rownames(mat_slice) <- paste0(genes_path, "__", i)
-```
-- **The Job**: If a pathway has more than 12 leading-edge genes, it keeps only the Top 12 (ranked by absolute fold change). It also ensures genes can appear in multiple pathways by appending a unique suffix.
-- **The Reasoning**: If `MYC_TARGETS` has 150 leading-edge genes, it would dominate the entire heatmap and push all other pathways off the page. Capping at 12 preserves equal visual weight for all pathways. The suffix trick prevents R from crashing when the same driver gene (e.g., `CDKN1A`) appears in both `P53_PATHWAY` and `APOPTOSIS`.
+- **The Job**: GSEA identifies a specific subset of genes that account for the enrichment signal, known as the "Leading Edge." We cap this at the top 12 genes per pathway.
+- **The Reasoning**: If a pathway has 200 genes, it would dominate the entire heatmap. Capping at 12 (ranked by their contribution to the enrichment score) preserves equal visual weight for all pathways and highlights the "Core Drivers" as per mentor guidelines.
 
 ---
 
@@ -93,15 +81,14 @@ ht <- Heatmap(
 
 ## 6. Metadata Annotations (The Headers)
 ```r
-col_meta$condition <- factor(col_meta$condition, levels = c("DMSO_Romi", "Romi_6nM", "DMSO_Kromastat", "Kromastat_6nM"))
-col_order <- order(col_meta$cell_line, col_meta$condition)
-...
-column_split = data.frame(cell_lines, drug_groups)
+colnames(mat) <- colnames(mat) %>%
+  str_remove_all("human_|canine_") %>% 
+  str_replace_all("DMSO", "D") %>%
+  str_replace_all("Romidepsin|Romi", "R") %>%
+  str_replace_all("Kromastat|Kroma", "K")
 ```
-- **The Job**: 
-    1. Enforces a strict order: Romidepsin (Control + Treated) first, then Kromastat.
-    2. Splits the columns visually by both Cell Line and Drug Group.
-- **The Reasoning**: In a large 24-sample study, you need to be able to tell at a glance which columns are `Kromastat_6nM` and which are `DMSO`. This header provides the necessary context and ensures the "Conserved" pattern is easy to spot across cell lines.
+- **The Job**: Automatically shortens sample names for the plot.
+- **The Reasoning**: In a large 24-sample study, long names like `SUPM2_DMSO_Rep1` cause labels to overlap and become unreadable. This "Thesis-Ready" cleanup ensures every sample is identifiable at a glance (e.g., `SUPM2_D_1`).
 
 ---
 

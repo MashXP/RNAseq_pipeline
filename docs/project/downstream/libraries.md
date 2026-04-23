@@ -60,6 +60,13 @@ This document explains the technical and scientific reasoning behind the specifi
 - **Rationale**: Provides aesthetically pleasing Venn diagrams using the `ggplot2` engine.
 - **Why it matters**: It supports gradient fills based on gene counts, making the "Intensity" of overlap visually obvious at a glance.
 
+---
+
+## 7. Comparative Flow
+### `ggalluvial`
+- **Rationale**: Specifically designed to track categorical changes between groups.
+- **Why it matters**: This is the engine for our **Alluvial Plots (04_11)**. It allows us to visualize how the statistical significance of a pathway "flows" from Human to Canine, proving evolutionary conservation of the drug's effect.
+
 ### `UpSetR`
 - **Rationale**: A matrix-based visualization for set intersections.
 - **Why it matters**: Venn diagrams fail when you have more than 3 groups. For your multi-cell line study, `UpSetR` is the only way to clearly show which genes are shared across 4 or more experimental sets.

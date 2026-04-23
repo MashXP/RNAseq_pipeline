@@ -49,21 +49,23 @@ metadata$cell_line <- relevel(metadata$cell_line, ref = ref_cell_line)
 
 ## 3. The Multifactorial Model
 ```r
-design = ~ cell_line + condition
-dds_full <- DESeqDataSetFromMatrix(countData = counts_filtered, colData = metadata, design = design)
-dds_full <- DESeq(dds_full)
+for (drug_comp in drug_contrasts) {
+  # Subset and build model
+  dds_sub <- DESeqDataSetFromMatrix(..., design = ~ cell_line + condition)
+  dds_sub <- DESeq(dds_sub)
+  
+  # Extract with apeglm shrinkage
+  res_shrunk <- lfcShrink(dds_sub, coef = resultsNames(dds_sub)[3], type = "apeglm")
+}
 ```
 - **The Job**: Runs a model that looks at `condition` (the drug) while "blocking" for the differences between `cell_lines`.
-- **Why it matters**: This aligns perfectly with your mentor's vision. It allows us to find drug effects that are **conserved** across both healthy and aggressive cancer lines, giving the study more statistical power than looking at them separately.
+- **Why it matters**: This aligns perfectly with your mentor's vision. It allows us to find drug effects that are **conserved** across both cell lines, giving the study more statistical power than looking at them separately. It uses **APEGLM** shrinkage for species-wide results to ensure maximum rigor.
 
 ---
 
 ## 4. Accurate Fold-Change (APEGLM Shrinkage)
-```r
-res_shrunk <- lfcShrink(dds_obj, coef = coef_name, type = "apeglm")
-```
-- **The Job**: Applies a sophisticated mathematical "shrinkage" to the Fold Change results.
-- **The Reasoning**: In RNA-seq, genes with low counts often show huge, "fake" fold changes due to noise. **APEGLM** is the current Gold Standard; it "shrinks" these noisy results toward zero while keeping high-confidence results intact, preventing "false positives" in your Volcano plots.
+- **The Job**: Applies a sophisticated mathematical "shrinkage" to the Fold Change results using either `apeglm` (for species-wide models) or `normal` (for cell-line subsets).
+- **The Reasoning**: In RNA-seq, genes with low counts often show huge, "fake" fold changes due to noise. Shrinkage "shrinks" these noisy results toward zero while keeping high-confidence results intact, preventing "false positives" in your Volcano plots.
 
 ---
 

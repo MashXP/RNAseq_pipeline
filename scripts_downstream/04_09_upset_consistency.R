@@ -29,11 +29,12 @@ get_sig_ids <- function(res_entry) {
 }
 
 # 2. Identify Cell Line Subsets
-# We only want keys that start with a cell line name (e.g., H9_, SUPM2_)
+# Identify Cell Line Subsets dynamically from the results keys
 keys <- names(results_list)
-# Known cell lines in this project
-known_cl <- c("H9", "SUPM2", "CNK89", "UL1")
-cell_lines <- intersect(known_cl, unique(str_extract(keys, "^[A-Za-z0-9]+(?=_)")))
+# We assume cell line subsets are the ones that are NOT the global pooled contrasts
+global_contrasts <- c("Romi_6nM_vs_DMSO_Romi", "Kromastat_6nM_vs_DMSO_Kromastat", "Romi_6nM_vs_Kromastat_6nM", "DMSO_Kromastat_vs_DMSO_Romi")
+cell_lines <- unique(str_extract(keys[!keys %in% global_contrasts], "^[A-Za-z0-9]+(?=_)"))
+cell_lines <- cell_lines[!is.na(cell_lines)]
 
 if (length(cell_lines) < 2) {
   message("\n[CRITICAL] Error: Could not find cell-line subset results (e.g., H9_..., SUPM2_...).")

@@ -23,24 +23,28 @@ This script utilizes the following libraries for data manipulation. See [**libra
 ## 1. Metadata Parsing
 ```r
 metadata_raw <- read_csv("../drPhuong_Sample_Data_Table.csv", skip = 1) %>%
-  filter(!is.na(Treatment)) %>%
-  filter(Group == group_name)
+  filter(!is.na(Treatment))
+
+# Rename and filter for the requested species (which is in the 'Cell line' column)
+metadata <- metadata_raw %>%
+  rename(species_col = `Cell line`, cell_line = Group, condition = Treatment) %>%
+  filter(species_col == species_name)
 ```
-- **The Job**: Reads your experimental design table and filters it down to a single "Group" (e.g., Human-H9 or Canine-UL1).
-- **The Reasoning**: Large-scale analysis is better managed one "Cell Line Group" at a time to ensure high specificity in the results.
+- **The Job**: Reads your experimental design table, renames technical headers to pipeline standards, and filters for the requested species (Human or Canine).
+- **The Reasoning**: This ensures that regardless of the raw CSV headers, the pipeline works with standardized variables like `cell_line` and `condition`.
 
 ---
 
 ## 2. Desktop-Quality Naming (Display Names)
 ```r
-metadata <- metadata_raw %>%
+metadata <- metadata %>%
   mutate(OriginalSample = str_replace(File1, "_R1_001.fastq.gz", "")) %>%
-  group_by(Group, Treatment) %>%
+  group_by(cell_line, condition) %>%
   mutate(Rep = row_number()) %>%
   ungroup() %>%
-  mutate(display_name = paste0(Group, "_", Treatment, "_", Rep))
+  mutate(display_name = paste0(cell_line, "_", condition, "_", Rep))
 ```
-- **The Job**: Automatically generates a clean name for each sample, like `Human-H9_Kromastat_6nM_1`.
+- **The Job**: Automatically generates a clean name for each sample, like `H9_Kromastat_6nM_1`.
 - **The Reasoning**: Filenames like `S12_L001_R1_001` are impossible to read on a final graph. By creating `display_name`, you ensure that every PCA and Volcano plot is perfectly labeled and publication-ready.
 
 ---
