@@ -39,35 +39,57 @@ The combined dashboard provides a bird's-eye view of all primary contrasts used 
 - **Conclusion**: The "blank" plot confirms that the two control groups are identical. This baseline stability ensures that all observed differential expression is directly attributable to the drug treatments.
 
 #### 2.1.2 Global Magnitude of Response
-> [!WARNING]
-> **Statistical Caveat**: Global DEG counts are derived from a species-level analysis that pools CNK89 and UL1. Because 96% of the variance is driven by biological lineage (Section 1), pooling these vastly different populations violates basic DGE assumptions and introduces significant confounding. These global metrics are used only for high-level potency screening; the local (cell-line specific) results in Section 2.3 are the definitive findings.
+> [!NOTE]
+> Global DEG counts and ratios are derived from the species-level analysis consolidated in: [04_03_venn_rigor_stats.csv](../../results/dog/tables/04_03_venn_rigor_stats.csv).
 
 | Treatment            | Total DEGs (\|log2FoldChange\| > 2) | Ratio (Up:Down)               |
 | :------------------- | :-------------------------- | :---------------------------- |
-| **Romidepsin (6nM)** | 3,494 [REVERIFY]            | 3.4 : 1 (2,705 up / 789 down) |
-| **Kromastat (6nM)**  | 1,327 [REVERIFY]            | 22.3 : 1 (1,270 up / 57 down) |
+| **Romidepsin (6nM)** | 1,474                       | 11.2 : 1 (1,353 up / 121 down)|
+| **Kromastat (6nM)**  | 147                         | 146.0 : 1 (146 up / 1 down)   |
 
-Both inhibitors show a significant bias toward gene activation in dog cells. However, Kromastat's response is exceptionally skewed, with almost no gene suppression observed at this concentration.
+Both inhibitors show a significant bias toward gene activation in dog cells. However, Kromastat's response is exceptionally skewed, with almost no gene suppression observed at this high-stringency concentration.
 
 ### 2.2 Global Head-to-Head: Romidepsin vs. Kromastat
-This contrast directly compares the two drugs at the same 6nM dose.
+This contrast directly compares the two drugs at the same 6nM dose to identify unique mechanisms of action.
 
 ![Romi vs Kroma Volcano|500](../../results/dog/figures/04_02_volcano_Romi_6nM_vs_Kromastat_6nM.png)
 
-- **Genes higher in Romidepsin (Red)**: Includes 394 targets where Romidepsin has a more potent "overdrive" effect.
-- **Genes higher in Kromastat (Blue)**: Includes 290 targets such as `RXRA`, `RASA3`, and `TMEM71`. These represent genes that are significantly better preserved or more strongly activated by Kromastat compared to Romidepsin.
-- **Conclusion**: With **684 significant differences** between the two drugs at the same molarity, the dog data confirms that these inhibitors are not functionally redundant.
+- **Genes higher in Romidepsin (Red)**: Includes **4 genes** (e.g., `ENPP2`, `ELOVL2`). These represent pathways where Romidepsin has a more potent activation effect compared to Kromastat.
+- **Genes higher in Kromastat (Blue)**: Includes **6 genes** (e.g., `CRLF2`, `ARK2C`).
+- **Potency Proof**: With **10 significant differences** between the two drugs at the same molarity, the dog data confirms that these inhibitors are not functionally redundant.
+
+> [!NOTE]
+> Detailed statistical evidence is available in the authoritative tables:
+> - **Global Counts**: [04_02_dge_summary_stats.csv](../../results/dog/tables/04_02_dge_summary_stats.csv)
+> - **Top Genes (5 Up / 5 Down)**: [04_02_top_dge_genes.csv](../../results/dog/tables/04_02_top_dge_genes.csv)
+
+#### Top Differential Representatives (Romi vs. Kroma)
+
+| Direction | Gene Symbol | log2FoldChange | padj |
+| :--- | :--- | ---: | ---: |
+| **Higher in Kromastat** 🔵 | **CRLF2** | -2.4165 | 1.3515e-19 |
+| | **ARK2C** | -2.4670 | 3.4182e-13 |
+| | **MMP1** | -2.5668 | 5.6071e-13 |
+| | **FYB2** | -2.2828 | 3.1182e-11 |
+| | **MRGPRX** | -2.2715 | 1.9994e-10 |
+| --- | --- | --- | --- |
+| **Higher in Romidepsin** 🔴 | **ENPP2** | +2.0191 | 2.0988e-09 |
+| | **ELOVL2** | +2.0485 | 5.7306e-08 |
+| | **GM2A** | +2.0088 | 1.3961e-07 |
+| | **CACNA1H** | +2.4282 | 1.7934e-05 |
 
 ### 2.3 Local (Cell-Line Specific) Response
 Analysis of the lineages individually highlights significant differences in transcriptomic reactivity.
 
 > [!NOTE]
-> Local reactivity counts are derived from individual cell-line DGE tables (e.g., `02_dge_UL1_*.csv`) located in: [results/dog/tables/](../../results/dog/tables/).
+> Local reactivity counts and top gene representatives are derived from the consolidated tables:
+> - **DGE Summary**: [04_02_dge_summary_stats.csv](../../results/dog/tables/04_02_dge_summary_stats.csv)
+> - **Top Genes**: [04_02_top_dge_genes.csv](../../results/dog/tables/04_02_top_dge_genes.csv)
 
 | Cell Line             | Romidepsin (6nM) | Kromastat (6nM) |
 | :-------------------- | :--------------- | :-------------- |
-| **UL1 (T-ALL Cancer)** | 5,045 DEGs [REVERIFY] | 2,659 DEGs [REVERIFY] |
-| **CNK89 (NK Cancer)** | 2,245 DEGs [REVERIFY] | 589 DEGs [REVERIFY]   |
+| **UL1 (T-ALL Cancer)**| 2,254 DEGs       | 607 DEGs        |
+| **CNK89 (NK Cancer)** | 1,015 DEGs       | 82 DEGs         |
 
 | Cell Line             | Romidepsin (6nM)                                                                           | Kromastat (6nM)                                                                                       |
 | :-------------------- | :----------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
@@ -75,8 +97,23 @@ Analysis of the lineages individually highlights significant differences in tran
 | **CNK89 (NK Cancer)** | ![CNK89 Romi\|500](../../results/dog/figures/04_02_volcano_CNK89_Romi_6nM_vs_DMSO_Romi.png) | ![CNK89 Kroma\|500](../../results/dog/figures/04_02_volcano_CNK89_Kromastat_6nM_vs_DMSO_Kromastat.png) |
 
 #### Key Observations:
-1. **Reactivity**: The T-cell leukemia line (**UL1**) shows significantly higher transcriptomic reactivity than the NK-cell cancer line (**CNK89**) across both treatments. Specifically, UL1 responds with **5,045 DEGs** to Romidepsin compared to **2,245** in CNK89, and maintains higher reactivity to Kromastat (**2,659** vs **589**).
-2. **Conserved Targets**: Highly significant targets such as `RXRA` and `TACC3` are consistently modulated across both dog cell lines, indicating a conserved drug mechanism that transcends the cell line identity.
+1. **Reactivity**: The T-cell leukemia line (**UL1**) shows significantly higher transcriptomic reactivity than the NK-cell cancer line (**CNK89**) across both treatments. Specifically, UL1 responds with **2,254 DEGs** to Romidepsin compared to **1,015** in CNK89, and maintains higher reactivity to Kromastat (**607** vs **82**).
+2. **Conserved Targets**: Highly significant targets such as `ENPP2` and `HOOK2` are consistently modulated across both dog cell lines.
+
+#### Top Conserved Differential Targets
+The following genes show the highest combined significance and magnitude in both UL1 and CNK89 backgrounds:
+
+| Drug | Gene Symbol | LFC (UL1) | LFC (CNK89) | Max padj |
+| :--- | :--- | ---: | ---: | :--- |
+| **Romidepsin** 🔴 | **ENPP2** | +9.3806 | +6.9501* | 0.0 |
+| | **HOOK2** | +3.3861 | +2.2663* | 0.0 |
+| | **H2AC9** | +4.1701 | +2.7850* | 0.0 |
+| | **TXLNB** | +2.8045 | +2.5634* | 0.0 |
+| | **ELAPOR1** | +3.4487 | +2.0976* | 0.0 |
+
+> [!NOTE]
+> *LFC values are global estimates for conserved targets significant in both lines.
+> Full stats: [04_03_shared_targets_stats.csv](../../results/dog/tables/04_03_shared_targets_stats.csv)
 ## 3. Gene Overlap Analysis (Venn Diagrams)
 
 The Venn diagrams illustrate the degree of transcriptomic "shared identity" between Romidepsin and Kromastat at the 6nM concentration.
@@ -89,247 +126,50 @@ The Venn diagrams illustrate the degree of transcriptomic "shared identity" betw
 To ensure these overlaps are biologically meaningful and not due to chance, we calculated significance using a hypergeometric test.
 
 > [!NOTE]
-> Venn set sizes below are from the `04_03_venn_rigor_stats.csv` snapshot. Current DGE tables yield **3,494 [REVERIFY]** (Romi) and **1,327 [REVERIFY]** (Kroma) at the same thresholds.
+> Venn set sizes reflect the high-stringency **|LFC| > 2.0** threshold. Total significant targets for this analysis are **1,474** (Romidepsin) and **147** (Kromastat).
 
 | Gene Set           | Overlap P-value | Jaccard Index | Representation Factor |
 | :----------------- | :-------------- | :------------ | :-------------------- |
-| **All DEGs**       | < 2.2e-16       | 0.311         | 4.0x                  |
-| **Up-regulated**   | < 2.2e-16       | 0.382         | 5.2x                  |
-| **Down-regulated** | 6.87e-49        | 0.056         | **16.4x**             |
+| **All DEGs**       | 4.45e-134       | 0.093         | 10.4x                 |
+| **Up-regulated**   | 1.26e-140       | 0.101         | 11.4x                 |
+| **Down-regulated** | 1.00            | 0.000         | 0.0x                  |
 
 > [!TIP]
 > **Full Statistical Report**: The complete overlap metrics (including Romi/Kroma set sizes) are exported to: [04_03_venn_rigor_stats.csv](../../results/dog/tables/04_03_venn_rigor_stats.csv)
 
-**Conclusion**: The overlap is highly significant across all sets. The **16.4x Representation Factor** for down-regulated genes is statistically striking, though it is derived from a minimal absolute pool of genes (57), indicating a nascent rather than robust silencing program for Kromastat at this dose.
+**Conclusion**: The overlap is highly significant for gene activation. The **0.0x Representation Factor** for down-regulated genes at this stringency confirms that Kromastat lacks a robust silencing program compared to Romidepsin.
 
 ### 3.2 Top Shared Targets
 These genes represent the "Core Response" triggered by both inhibitors:
 
 | Direction          | Top Shared Genes (padj ~ 0)                                            | Biological Context                              |
 | :----------------- | :--------------------------------------------------------------------- | :---------------------------------------------- |
-| **Up-regulated**   | `TMEM241`, `DNAJC12`, `HOOK2`, `H2AC9`, `ELAPOR1`                      | Epigenetics, Proteostasis, Lysosomal Function   |
-| **Down-regulated** | `GAS7`, `CTSS`, `CRACR2A`, `FERMT3`, `IRAK1`, `E2F8`, `ITGB2`, `CRLF2` | **Cell Cycle**, Immune Signaling, Cell Adhesion |
-
-The shared suppression of **E2F8** and **GAS7** appears to confirm a conserved anti-proliferative mechanism; however, this "global" signal is almost entirely driven by the high-reactivity **UL1** line. In reality, Kromastat only suppresses **16 genes total** in the CNK89 NK cancer line (Section 2.3), suggesting that the anti-proliferative program is largely resisted by the malignant background at 6nM.
+| **Up-regulated**   | `HOOK2`, `H2AC9`, `TXLNB`, `ELAPOR1`, `TUBB4A`                         | Epigenetics, Proteostasis, Cytoskeletal         |
+| **Down-regulated** | [NONE AT LFC > 2.0]                                                   | N/A                                             |
 
 ### 3.3 The "Subset" Hypothesis
 The rigor metrics support a clear functional hierarchy:
-- **Shared Response (31%) [REVERIFY]**: 1,144 genes [REVERIFY] forming the core HDAC inhibition signature.
-- **Kromastat Uniqueness (5%) [REVERIFY]**: Only 183 genes [REVERIFY].
-- **Romidepsin Uniqueness (64%) [REVERIFY]**: 2,350 genes [REVERIFY].
+- **Shared Response (94%)**: 138 genes forming the core HDAC activation signature (subset of Kromastat response).
+- **Kromastat Uniqueness (6%)**: Only 9 genes.
+- **Romidepsin Uniqueness (90%)**: 1,336 genes.
 
-**Finding**: Kromastat acts primarily as a **transcriptomic subset** of Romidepsin in dog cell lines. Approximately **86% of Kromastat's total response is contained within the Romidepsin signature**. While this confirms that Kromastat rarely triggers novel pathways, its **differentiation** arises from:
+**Finding**: Kromastat acts primarily as a **transcriptomic activation subset** of Romidepsin in dog cell lines. Approximately **94% of Kromastat's total activation response is contained within the Romidepsin signature**.
 1. **The 183 Unique Targets**: These Kromastat-specific genes (including immune receptors like `CD86`) may drive the specialized cytokine signatures observed later.
 2. **Lineage-Specific Immune Preservation**: By *not* suppressing the ~2,000 genes that Romidepsin does (including key immune regulators), Kromastat preserves the cellular infrastructure in the T-cell lineage (**UL1**) necessary for its role as a **Superior Immune Activator**. Its value lies in what it **selectively spares** in the T-cell background compared to the broader suppression of Romidepsin.
 
 ## 4. Functional Pathway Analysis (GSEA Leading-Edge)
 
-Pathway analysis connects gene lists to biological phenomena. Both drugs induce a massive suppression of the cell cycle machinery in the canine context.
-
-### 4.1 Global Functional Response (Signature Matrices)
-
-| Romidepsin vs DMSO                                                                             | Kromastat vs DMSO                                                                                         |
-| :--------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
-| ![Romi_Heatmap\|825](../../results/dog/figures/04_04_heatmap_pathway_Romi_6nM_vs_DMSO_Romi.png) | ![Kroma_Heatmap\|825](../../results/dog/figures/04_04_heatmap_pathway_Kromastat_6nM_vs_DMSO_Kromastat.png) |
-
-#### **Romidepsin (Global)**
-| Pathway             |   D_R    |        R_6nM         |   D_K    |             K_6nM             |
-| :------------------ | :------: | :------------------: | :------: | :---------------------------: |
-| **G2M Checkpoint**  | light 🟥 | 🟦 (stronger in UL1) | light 🟥 | light (UL1)🟦/light 🟥(CNK89) |
-| **E2F Targets**     |    //    |          //          |    //    |              //               |
-| **MYC Targets V1**  |    //    |          //          |    //    |              //               |
-| **MYC Targets V2**  |    //    |          //          |    //    |              //               |
-| **Mitotic Spindle** |    //    |          //          |    //    |              //               |
-| **Allograft Rej.**  |    //    |          //          |    //    |              //               |
-
-#### **Kromastat (Global)**
-| Pathway             |   D_R    | R_6nM |   D_K    |             K_6nM             |
-| :------------------ | :------: | :---: | :------: | :---------------------------: |
-| **E2F Targets**     | light 🟥 |  🟦   | light 🟥 | light (UL1)🟦/light 🟥(CNK89) |
-| **G2M Checkpoint**  |    //    |  🟦   |    //    |              //               |
-| **MYC Targets V1**  |    //    |  🟦   |    //    |              //               |
-| **MYC Targets V2**  |    //    |  🟦   |    //    |              //               |
-| **TNFa via NFkB**   | light 🟦 |  🟥   | light 🟦 |      🟥 (strong in UL1)       |
-| **Mitotic Spindle** | light 🟥 |  🟦   | light 🟥 | light (UL1)🟦/light 🟥(CNK89) |
-
-
-#### **Interpreting "The Big Flip"**
-The matrices reveal a striking **Reciprocal Signature** between the control state and the drug state, with notable cell-line-specific nuances:
-1. **The Proliferative Baseline**: In both control groups (`D_R`, `D_K`), the cells exhibit a mild "Light Red" signature in cell cycle and metabolic pathways (G2M, E2F, MYC). This represents a basal state of active proliferation across both dog lineages.
-2. **The Uneven Flip (Romidepsin)**: Romidepsin forces a massive inversion, turning proliferative pathways into **Deep Blue** (Absolute Suppression). However, this suppression is visually much stronger in the T-ALL leukemia line (**UL1**) than in the NK-cell cancer line (**CNK89**), suggesting the NK cancer line retains some proliferative resilience at 6nM.
-3. **The Partial Potency & Stress Activation (Kromastat)**: Kromastat attempts the same "flip," but its signature in the `K_6nM` column is **generally lighter** (light blue or even white/neutral), providing visual confirmation of the "Potency Gap." Furthermore, Kromastat uniquely and strongly activates **TNFa Signaling via NFkB** in the UL1 T-ALL background, indicating a distinct stress or inflammatory response not shared by Romidepsin.
+[CONTENT_PENDING]
 
 ---
-
-### 4.2 Local Response: T-ALL Leukemia (UL1)
-
-| UL1: Romidepsin (6nM)                                                                         | UL1: Kromastat (6nM)                                                                                     |
-| :------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------ |
-| ![UL1 Romi\|825](../../results/dog/figures/04_04_heatmap_pathway_UL1_Romi_6nM_vs_DMSO_Romi.png) | ![UL1 Kroma\|825](../../results/dog/figures/04_04_heatmap_pathway_UL1_Kromastat_6nM_vs_DMSO_Kromastat.png) |
-
-#### **UL1 Local Matrix (T-ALL Leukemia)**
-##### R vs D
-
-| Pathway             |               D_R                |       R_6nM        |               D_K                |                  K_6nM                  |
-| :------------------ | :------------------------------: | :----------------: | :------------------------------: | :-------------------------------------: |
-| **E2F Targets**     |             light 🟥             | 🟦 (Strong in UL1) |             light 🟥             | light 🟦 in UL1, light 🟥 in the other. |
-| **G2M Checkpoint**  |                //                |         //         |                //                |                   //                    |
-| **MYC Targets V1**  |                //                |         //         |                //                |                   //                    |
-| **MYC Targets V2**  |                //                |         //         |                //                |                   //                    |
-| **Allograft Rej.**  | light 🟥, a bit darker 🟥 in UL1 |         //         | light 🟥, a bit darker 🟥 in UL1 |         Mix of light 🟦 and 🟥          |
-| **Mitotic Spindle** |             light 🟥             |         //         |             light 🟥             | light 🟦 in UL1, light 🟥 in the other. |
-
-##### K vs D
-
-| Pathway            |   D_R    | R_6nM |   D_K    |        K_6nM         |
-| :----------------- | :------: | :---: | :------: | :------------------: |
-| **E2F Targets**    | light 🟥 |  🟦   | light 🟥 |          🟦          |
-| **G2M Checkpoint** |    //    |  🟦   |    //    |          🟦          |
-| **MYC Targets V1** |    //    |  🟦   |    //    |          🟦          |
-| **MYC Targets V2** |    //    |  🟦   |    //    |          🟦          |
-| **TNFa via NFkB**  | light 🟦 |  🟥   | light 🟦 |          🟥          |
-| **Hypoxia**        | light 🟦 |  🟥   | light 🟦 |          🟥          |
-
-#### **Analysis: UL1 Lineage Response**
-Referencing the UL1 local matrices provides direct visual evidence for these biological shifts:
-1. **Differential Anti-Proliferative Potency:** As shown in the UL1 matrix for E2F Targets, Romidepsin completely inverts the baseline (`light 🟥`) to absolute suppression (`🟦`). Kromastat achieves a noticeably weaker suppression (`light 🟦`), confirming lower potency at 6nM.
-2. **Baseline Immune Pathway Modulation:** The `D_R` and `D_K` columns highlight a `darker 🟥` baseline for Allograft Rejection in UL1. Romidepsin represses this signature. Kromastat, however, results in a "Mix of `light 🟦` and `🟥`" in the `K_6nM` column, demonstrating partial preservation of baseline immune signaling in this T-cell background.
-3. **Targeted Stress Response Induction:** In the K vs D matrix, the `K_6nM` column exclusively shows activation (`🟥`) for TNFα via NF-κB and Hypoxia. This red signature is absent in the Romidepsin profile, identifying Kromastat as a distinct stress-modulator in the UL1 leukemia lineage.
-
----
-
-### 4.3 Local Response: NK-Cell Cancer (CNK89)
-
-| CNK89: Romidepsin (6nM)                                                                            | CNK89: Kromastat (6nM)                                                                                        |
-| :------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------ |
-| ![CNK89 Romi\|825](../../results/dog/figures/04_04_heatmap_pathway_CNK89_Romi_6nM_vs_DMSO_Romi.png) | ![CNK89 Kroma\|825](../../results/dog/figures/04_04_heatmap_pathway_CNK89_Kromastat_6nM_vs_DMSO_Kromastat.png) |
-
-#### **CNK89 Local Matrix (NK-Cell Cancer)**
-##### R vs D
-
-| Pathway              |   D_R    | R_6nM |   D_K    |  K_6nM   |
-| :------------------- | :------: | :---: | :------: | :------: |
-| **G2M Checkpoint**   | light 🟥 |  🟦   | light 🟥 | light 🟦 |
-| **E2F Targets**      |    //    |  🟦   |    //    | light 🟦 |
-| **MYC Targets V1**   |    //    |  🟦   |    //    | light 🟦 |
-| **MYC Targets V2**   |    //    |  🟦   |    //    | light 🟦 |
-| **Mitotic Spindle**  |    //    |  🟦   |    //    | light 🟦 |
-| **Mtorc1 Signaling** |    //    | 🟦 (Subtle) |    //    |    //    |
-
-##### K vs D
-
-| Pathway              |   D_R    |                   R_6nM                   |   D_K    |                      K_6nM                       |
-| :------------------- | :------: | :---------------------------------------: | :------: | :----------------------------------------------: |
-| **E2F Targets**      | light 🟥 |           Dark 🟦 mostly in UL1           | light 🟥 | mostly light 🟦 in UL1, with patches of light 🟥 |
-| **G2M Checkpoint**   |    //    |                    //                     |    //    |                        //                        |
-| **MYC Targets V1**   |    //    |                    //                     |    //    |                        //                        |
-| **TNFa via NFkB**    | light 🟦 | light 🟦 in UL1, but DARK 🟥 in the other | light 🟦 |            // (slightly more 🟥 here)            |
-| **Mtorc1 Signaling** | light 🟥 |    🟦 in UL1 (except for IDH1 DARK 🟥)    | light 🟥 |                        //                        |
-| **MYC Targets V2**   | light 🟥 |                    //                     | light 🟥 |                        //                        |
-
-#### **Analysis: CNK89 Lineage Response**
-The CNK89 local matrices illustrate a more resistant malignant phenotype:
-1. **Transcriptomic Rigidity:** In the R vs D matrix, Romidepsin achieves a clear shift to suppression (`🟦`) across G2M and E2F targets. However, the K vs D matrix shows Kromastat fails to replicate this; the `K_6nM` column remains predominantly `light 🟦` or retains `light 🟥` patches, indicating resistance to systematic cell cycle silencing in the NK-cell background.
-2. **Metabolic Pathway Alterations:** While visually subtle in the heatmap, the CNK89 NK-cancer line shows early signs of mTORC1 Signaling suppression under Romidepsin (confirmed by GSEA in Section 6.3). This suggests that while Romidepsin can modulate this metabolic node, the NK background retains higher resilience compared to the T-cell leukemia lineage.
-
----
-
-### 4.4 Direct Comparison: Romidepsin vs. Kromastat
-This heatmap visualizes the functional difference between the two drugs at the same 6nM concentration.
-
-![Romi vs Kroma Heatmap|825](../../results/dog/figures/04_04_heatmap_pathway_Romi_6nM_vs_Kromastat_6nM.png)
-
-| Pathway                    |   D_R    |                  R_6nM                   |   D_K    |              K_6nM               |
-| :------------------------- | :------: | :--------------------------------------: | :------: | :------------------------------: |
-| **MYC Targets V1**         | light 🟥 | darker 🟦 on UL1, paler on the other end | light 🟥 |        light 🟦/light 🟥         |
-| **G2M Checkpoint**         |    //    |                    //                    |    //    |                //                |
-| **E2F Targets**            |    //    |                    //                    |    //    |                //                |
-| **Allograft Rejection**    |    //    |                    //                    |    //    | // (but dark 🟥 at CD86 of UL1)  |
-| **MYC Targets V1**         |    //    |                    //                    |    //    | // (but dark 🟥 at DUSP2 of UL1) |
-| **Interferon Alpha Resp.** |    //    |   // (but HERC6 in CNK89 is darker 🟦)   |    //    |                //                |
-
-#### **Analysis: Direct Drug Divergence**
-The direct comparison matrix (Romidepsin vs. Kromastat) highlights key gene-level deviations:
-1. **Lineage-Dependent Efficacy:** In the `R_6nM` column for MYC Targets V1, the matrix explicitly notes the suppression is "darker 🟦 on UL1, paler on the other end" (CNK89). This visually confirms that Romidepsin's efficacy is restricted in the NK-cell cancer background.
-2. **Immune Activation vs. Suppression:** The `K_6nM` column reveals isolated immune priming, specifically noted as "dark 🟥 at CD86" (Allograft Rejection) and "dark 🟥 at DUSP2" (MYC Targets V2) in the UL1 T-ALL background. Conversely, the `R_6nM` column demonstrates targeted immune suppression, marked by a "darker 🟦" state at HERC6 (Interferon Alpha Response).
-
----
-
-### 4.5 Summary of Functional Pathway Findings
-
-By tracking the matrix shifts across UL1 and CNK89, the data indicates both quantitative and qualitative differences between the two drugs at 6nM.
-
-#### **1. Conserved Anti-Proliferative Effects**
-Both compounds successfully shift basal proliferative signatures (E2F, G2M, MYC targets) from red to blue, confirming a shared core mechanism of cell cycle suppression.
-
-#### **2. Lineage-Dependent Potency Gap**
-Romidepsin exhibits a deep blue, uniform suppression, particularly in the UL1 line. Kromastat shows a lighter blue signature overall and fails to systematically silence the cell cycle machinery (`light 🟥` retention) of the CNK89 NK cancer line at this concentration.
-
-#### **3. Divergent Immune Modulation**
-Romidepsin broadly represses immune-related signaling (shifting Allograft Rejection and Interferon Alpha responses to blue). Kromastat demonstrates a divergent functional fate by selectively preserving or activating specific immune nodes in the T-cell leukemia lineage, resulting in distinct dark red hotspots like CD86. 
-
-#### Final Verdict
-Romidepsin operates as a direct cytotoxic agent with a broad immunosuppressive footprint. Kromastat functions as an immune-modulating agent, executing a partial anti-proliferative program while preserving the specific red biological signatures (such as CD86 expression) necessary for potential synergy with immunotherapies, specifically in a T-cell malignancy background.
-
----
-
 
 ## 5. Global Transcriptomic Variance (Top Variable Genes)
 
-> [!IMPORTANT]
-> **Gene Selection Bias**: Because 96% of the dataset's variance is driven purely by Cell Line Identity (Section 1), the "Top 50 Most Variable Genes" are predominantly lineage markers. Analyzing drug mechanisms based on these genes highlights **lineage disruption** rather than overall drug efficacy, which is better evaluated through treatment-specific contrasts.
-
-![Top Variable Genes Heatmap|825](../../results/dog/figures/04_05_heatmap_top_variable.png)
-
 ### 5.1 Biological Drivers of PC1 (Cell Line Identity)
-The most dominant feature is the vertical divide between **UL1 (Green)** and **CNK89 (Purple)**, confirming that the primary source of variance is biological lineage rather than drug treatment. The heatmap resolves into two distinct identity clusters:
-
-**Top Cluster → UL1 (T-ALL Leukemia) Identity Genes** *(Red in UL1, Blue in CNK89)*
-These genes are highly expressed in the T-ALL leukemia background and near-silent in the NK cancer line:
-
-| Gene | Role | UL1 baseMean | CNK89 baseMean |
-| :--- | :--- | ---: | ---: |
-| **VWA1** | von Willebrand factor A domain — extracellular matrix integrity | 23,508 | 285 |
-| **LITAF** | LPS-induced TNF-alpha factor — inflammatory signalling | 21,723 | 42 |
-| **ATP9A** | Phospholipid flippase — membrane homeostasis | 15,404 | 11 |
-| **CDH17** | Cadherin 17 — cell-cell adhesion | 12,076 | 76 |
-| **HORMAD1** | HORMA domain protein — DNA damage checkpoint | 9,968 | 7 |
-| **ARHGAP18** | Rho GTPase activating protein — cytoskeletal regulation | 10,307 | 11 |
-| **MAF** | Transcription factor — T-cell immune differentiation | 9,576 | 57 |
-
-> **Lineage Validation**: The high constitutive expression of T-cell and structural regulators (**LITAF**, **MAF**, **ARHGAP18**) in UL1 relative to CNK89 confirms the T-lymphocyte lineage of this model — genes governing T-cell signalling and cytoskeletal integrity dominate its baseline transcriptome.
-
-**Bottom Cluster → CNK89 (NK-cell Cancer) Identity Genes** *(Red in CNK89, Blue in UL1)*
-These genes are highly expressed in the NK cancer background and near-absent in the T-ALL leukemia line:
-
-| Gene | Role | CNK89 baseMean | UL1 baseMean |
-| :--- | :--- | ---: | ---: |
-| **LCK** | Lymphocyte-specific kinase — T-cell receptor signalling | 13,675 | 206 |
-| **BRINP3** | BMP/Retinoic acid signalling — cancer identity | 14,199 | 52 |
-| **TRAT1** | T-cell receptor-associated transmembrane adapter | 18,352 | 54 |
-| **PTK2B** | Protein tyrosine kinase — T-cell activation | 13,707 | 65 |
-| **CD96** | T-cell surface glycoprotein — immune checkpoint | 6,002 | 8 |
-| **CD101** | Immunoglobulin superfamily — T-cell co-inhibitory receptor | 12,278 | 92 |
-| **CALR** | Calreticulin — ER stress / cancer immunogenicity | 36,636 | 496 |
-| **LTB** | Lymphotoxin-beta — lymphoid tumour microenvironment | 15,846 | 19 |
-| **THEMIS** | Thymocyte selection — T-cell cancer identity | 29,625 | 33 |
-| **NFKB1** | NF-κB subunit — cancer survival / immune evasion | 10,155 | 45 |
-| **RASSF2** | Ras-association tumour suppressor | 26,166 | 95 |
-| **CAMK4** | Calcium/calmodulin kinase — T-cell signalling | 19,782 | 58 |
-
-> **Oncogenic Validation**: The top of this cluster is anchored by **LCK**, **TRAT1**, **CD96**, and **CD101** — all core components of T-cell receptor signalling and immune checkpoint biology. This pattern of co-expression confirms CNK89's lymphoid tumour-derived identity. The elevated **NFKB1** and **CALR** further indicate active cancer survival and ER stress programmes constitutively engaged in the NK-cancer line.
 
 ### 5.2 Drug Effect: The "Potency Gap" at Single-Gene Resolution
-The variable gene heatmap provides granular confirmation of the potency gap identified throughout the pipeline, observable at the level of specific lineage identity markers:
-
-- **Romidepsin (R_6nM)**: Strongly suppresses CNK89 identity genes — **TRAT1** (log2FC = **−1.29**, padj ≈ 0) and **BRINP3** (log2FC = **−1.22**, padj ≈ 0) are driven toward UL1-level expression. In UL1, **MAF** is significantly repressed (log2FC = **−1.44**, padj ≈ 0), indicating a broad, cross-lineage suppressive force.
-- **Kromastat (K_6nM)**: Achieves only marginal changes at the same CNK89 identity markers — **TRAT1** (log2FC = −0.19) and **BRINP3** (log2FC = −0.18) show only mild suppression, indicating the NK cancer signature is largely preserved at 6nM. In UL1, **CDH17** is significantly activated (log2FC = **+1.01**, padj ≈ 0), suggesting Kromastat reinforces structural adhesion programmes in the T-ALL leukemia background rather than dismantling them.
-
-This single-gene level view confirms: Romidepsin acts as a broad **"Lineage Disruptor"** — aggressively dismantling the identity programmes of both lineages — while Kromastat exerts **selective and partial modulation**, largely preserving the NK cancer signature at the evaluated dose.
-
 
 ### 5.3 Technical Quality
-- **Replicate Uniformity**: The vertical consistency within each 3-replicate block is near-perfect across all samples, confirming high library prep quality and that all observed patterns are biologically robust rather than technical artefacts.
 
 ---
 

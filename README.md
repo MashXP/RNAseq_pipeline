@@ -103,6 +103,7 @@ The pipeline is split into an upstream BASH execution engine and a downstream R 
 - `04_08_ora_dotplot.R`: ORA GO enrichment dots. [Docs](docs/project/downstream/04_08_ora_dotplot.md)
 - `04_09_upset_consistency.R`: UpSet multi-way comparisons. [Docs](docs/project/downstream/04_09_upset_consistency.md)
 - `04_10_correlation_plots.R`: Correlation scatters. [Docs](docs/project/downstream/04_10_correlation_plots.md)
+- `04_11_alluvial_plot.R`: Unified Comparative Alluvial Engine (Individual & Master Panoramic). [Docs](docs/project/downstream/04_11_alluvial_plot.md)
 
 *(Note: See [docs/project/downstream/libraries.md](docs/project/downstream/libraries.md) for full library rationales).*
 

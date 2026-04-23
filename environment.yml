@@ -33,3 +33,4 @@ dependencies:
   - bioconductor-enhancedvolcano
   - bioconductor-apeglm
   - bioconductor-enrichplot
+  - r-ggalluvial

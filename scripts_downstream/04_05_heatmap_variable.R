@@ -151,6 +151,7 @@ draw(ht_var,
      annotation_legend_side = "top",
      merge_legend           = FALSE,
      align_heatmap_legend   = "heatmap_top",
+     padding                = unit(c(10, 30, 10, 20), "mm"),
      column_title           = "Top 50 Most Variable Genes",
      column_title_gp        = gpar(fontsize = 12, fontface = "bold"))
 dev.off()
