@@ -101,8 +101,10 @@ The pipeline is split into an upstream BASH execution engine and a downstream R 
 - `04_07_enrichment_dotplot.R`: GSEA Hallmark enrichment dots (Mirror Plot). [Docs](docs/project/downstream/04_07_enrichment_dotplot.md)
 - `04_08_ora_dotplot.R`: ORA GO enrichment dots. [Docs](docs/project/downstream/04_08_ora_dotplot.md)
 - `04_09_upset_consistency.R`: UpSet multi-way comparisons. [Docs](docs/project/downstream/04_09_upset_consistency.md)
-- `04_10_correlation_plots.R`: Correlation scatters. [Docs](docs/project/downstream/04_10_correlation_plots.md)
-- `04_11_alluvial_plot.R`: Unified Comparative Alluvial Engine (Individual & Master Panoramic). [Docs](docs/project/downstream/04_11_alluvial_plot.md)
+- `04_10_correlation_plots.R`: Correlation scatters with top gene labels. [Docs](docs/project/downstream/04_10_correlation_plots.md)
+- `04_11_alluvial_plot.R`: Unified Comparative Alluvial Engine. [Docs](docs/project/downstream/04_11_alluvial_plot.md)
+- `04_12_ortholog_gene_overlap.R`: Direct gene-level species comparison. [Docs](docs/project/downstream/04_12_ortholog_gene_overlap.md)
+- `04_13_ortholog_nes_overlap.R`: Cross-species pathway activity (NES) comparison. [Docs](docs/project/downstream/04_13_ortholog_nes_overlap.md)
 
 *(Note: See [docs/project/downstream/libraries.md](docs/project/downstream/libraries.md) for full library rationales).*
 

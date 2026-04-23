@@ -133,6 +133,7 @@ if [ "$RUN_DOWNSTREAM" = true ]; then
         echo "========================================================="
         Rscript 04_11_alluvial_plot.R
         Rscript 04_12_ortholog_gene_overlap.R
+        Rscript 04_13_ortholog_nes_overlap.R
 
     ) || { echo "Downstream analysis failed at some step. Exiting."; exit 1; }
     

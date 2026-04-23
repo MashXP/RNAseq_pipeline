@@ -124,10 +124,10 @@ make_alluvial_plot <- function(df, axes_cols, labels, title, filename_base, is_m
 # --- Part 1: Individual Comparative Plots ---
 message("Generating individual comparisons...")
 comparisons <- list(
-  list(cols = c("h_h9_r", "d_ul1_r"), labels = c("Human:H9", "Canine:UL1"), title = "Romidepsin Response (H9 vs UL1)", name = "04_11_alluvial_comp_Romi_H9_vs_UL1"),
-  list(cols = c("h_supm2_r", "d_cnk89_r"), labels = c("Human:SUPM2", "Canine:CNK89"), title = "Romidepsin Response (SUPM2 vs CNK89)", name = "04_11_alluvial_comp_Romi_SUPM2_vs_CNK89"),
-  list(cols = c("h_h9_k", "d_ul1_k"), labels = c("Human:H9", "Canine:UL1"), title = "Kromastat Response (H9 vs UL1)", name = "04_11_alluvial_comp_Kroma_H9_vs_UL1"),
-  list(cols = c("h_supm2_k", "d_cnk89_k"), labels = c("Human:SUPM2", "Canine:CNK89"), title = "Kromastat Response (SUPM2 vs CNK89)", name = "04_11_alluvial_comp_Kroma_SUPM2_vs_CNK89")
+  list(cols = c("h_h9_r", "d_ul1_r"), labels = c("Human:H9", "Canine:UL1"), title = "Romidepsin Response (H9 vs UL1)", name = "04_11_alluvial_Romi_H9_vs_UL1"),
+  list(cols = c("h_supm2_r", "d_cnk89_r"), labels = c("Human:SUPM2", "Canine:CNK89"), title = "Romidepsin Response (SUPM2 vs CNK89)", name = "04_11_alluvial_Romi_SUPM2_vs_CNK89"),
+  list(cols = c("h_h9_k", "d_ul1_k"), labels = c("Human:H9", "Canine:UL1"), title = "Kromastat Response (H9 vs UL1)", name = "04_11_alluvial_Kroma_H9_vs_UL1"),
+  list(cols = c("h_supm2_k", "d_cnk89_k"), labels = c("Human:SUPM2", "Canine:CNK89"), title = "Kromastat Response (SUPM2 vs CNK89)", name = "04_11_alluvial_Kroma_SUPM2_vs_CNK89")
 )
 
 for (comp in comparisons) {
@@ -136,31 +136,40 @@ for (comp in comparisons) {
 
 # --- Part 2: Master Panoramic Flows ---
 message("Generating master panoramic flows...")
-# Master Romidepsin Chain
+# Global Romidepsin Chain
 make_alluvial_plot(
   master_df,
   axes_cols = c("h_h9_r", "h_supm2_r", "d_ul1_r", "d_cnk89_r"),
   labels    = c("H9 (Romi)", "SUPM2 (Romi)", "UL1 (Romi)", "CNK89 (Romi)"),
-  title     = "Master Romidepsin Phenotypic Flow (Healthy -> Cancer | Human -> Canine)",
-  filename_base = "04_11_alluvial_master_romidepsin"
+  title     = "Global Romidepsin Phenotypic Flow (Healthy -> Cancer | Human -> Canine)",
+  filename_base = "04_11_alluvial_hallmark_Romi"
 )
 
-# Master Kromastat Chain
+# Global Kromastat Chain
 make_alluvial_plot(
   master_df,
   axes_cols = c("h_h9_k", "h_supm2_k", "d_ul1_k", "d_cnk89_k"),
   labels    = c("H9 (Kroma)", "SUPM2 (Kroma)", "UL1 (Kroma)", "CNK89 (Kroma)"),
-  title     = "Master Kromastat Phenotypic Flow (Healthy -> Cancer | Human -> Canine)",
-  filename_base = "04_11_alluvial_master_kromastat"
+  title     = "Global Kromastat Phenotypic Flow (Healthy -> Cancer | Human -> Canine)",
+  filename_base = "04_11_alluvial_hallmark_Kroma"
 )
 
-# Drug Bridge (Aggressive Cancer)
+# Global Drug Bridge (Aggressive Cancer)
 make_alluvial_plot(
   master_df,
   axes_cols = c("h_supm2_r", "h_supm2_k", "d_cnk89_r", "d_cnk89_k"),
   labels    = c("Human:Romi", "Human:Kroma", "Canine:Romi", "Canine:Kroma"),
-  title     = "Master Drug-Species Bridge (Aggressive/Cancer Lines)",
-  filename_base = "04_11_alluvial_master_bridge_aggressive"
+  title     = "Global Drug-Species Bridge (Aggressive Cell Lines)",
+  filename_base = "04_11_alluvial_aggressive"
+)
+
+# Global Drug Bridge (Indolent/Healthy-ish Lines)
+make_alluvial_plot(
+  master_df,
+  axes_cols = c("h_h9_r", "h_h9_k", "d_ul1_r", "d_ul1_k"),
+  labels    = c("Human:Romi", "Human:Kroma", "Canine:Romi", "Canine:Kroma"),
+  title     = "Global Drug-Species Bridge (Indolent CellLines)",
+  filename_base = "04_11_alluvial_indolent"
 )
 
 # --- Gene-Level Alluvial Flow Analysis (Ortholog Specific) ---
@@ -248,7 +257,7 @@ if (length(all_alluvial_data) > 0) {
     labs(title = "Human-Dog ortholog response flows for matched cell-line pairs",
          fill = "Flow class")
 
-  ggsave(file.path(output_dir, "04_11_alluvial_gene_ortholog_flow.png"), p_alluvial, width = 14, height = 8, bg = "white", dpi = 300)
+  ggsave(file.path(output_dir, "04_11_alluvial_gene_flow.png"), p_alluvial, width = 14, height = 8, bg = "white", dpi = 300)
 
   # --- Part 4: Export Gene Flow Data Tables ---
   message("Exporting Gene Flow data tables...")

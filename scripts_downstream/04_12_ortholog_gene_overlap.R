@@ -6,6 +6,7 @@ library(tidyverse)
 library(ggplot2)
 library(pheatmap)
 library(RColorBrewer)
+library(ggrepel)
 
 # Paths
 project_dir <- ".."
@@ -99,11 +100,20 @@ for (i in 1:nrow(comparisons)) {
   all_merged_results[[label]] <- merged
   
   # A. Scatter Plot
+  # Identify top 5 shared_up and top 5 shared_down for labeling
+  label_df <- merged %>%
+    filter(status != "other") %>%
+    mutate(abs_lfc = (abs(h_lfc) + abs(c_lfc))/2) %>%
+    group_by(status) %>%
+    slice_max(order_by = abs_lfc, n = 5) %>%
+    ungroup()
+
   p <- ggplot(merged, aes(x = h_lfc, y = c_lfc, color = status)) +
     geom_point(alpha = 0.5, size = 1.2) +
     scale_color_manual(values = c("shared_up" = "#D62728", "shared_down" = "#1F77B4", "other" = "grey80")) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "grey40") +
+    geom_text_repel(data = label_df, aes(label = gene_label), size = 3, max.overlaps = 20) +
     theme_bw() +
     labs(
       title = paste0("Ortholog Overlap: ", label),

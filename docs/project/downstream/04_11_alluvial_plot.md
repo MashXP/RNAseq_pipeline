@@ -1,7 +1,7 @@
 # Unified Alluvial Analysis (04_11)
 
 ## Overview
-The `04_11_alluvial_plot.R` script is the primary visualization engine for cross-species functional conservation. It uses `ggalluvial` to track the "flow" of Hallmark pathway significance between Human and Canine transcriptomes, enabling both fine-grained comparison of specific cell-line pairs and high-level panoramic views of the entire study.
+The `04_11_alluvial_plot.R` script is the primary visualization engine for cross-species functional conservation. It uses `ggalluvial` to track the "flow" of Hallmark pathway significance between Human and Canine transcriptomes, enabling both fine-grained comparison of specific cell-line pairs and high-level global views of the entire study.
 
 ---
 
@@ -11,8 +11,8 @@ The `04_11_alluvial_plot.R` script is the primary visualization engine for cross
     - **Human GSEA Results**: `../results/human/tables/03_gsea_hallmark_*.csv`
     - **Canine GSEA Results**: `../results/canine/tables/03_gsea_hallmark_*.csv`
 - **Output**: 
-    - **Figures**: `../results/comparative/figures/04_11_alluvial_[comp/master]_[Name].png`
-    - **Tables**: `../results/comparative/tables/04_11_alluvial_[comp/master]_[Name].csv`
+    - **Figures**: `../results/comparative/figures/04_11_alluvial_[Name].png`
+    - **Tables**: `../results/comparative/tables/04_11_alluvial_gene_flow_[summary/detailed].csv`
 
 ---
 
@@ -20,15 +20,18 @@ The `04_11_alluvial_plot.R` script is the primary visualization engine for cross
 
 ### 1. Individual Comparative Plots
 Generates 2-way alluvials between corresponding cell lines (e.g., Human H9 vs. Canine UL1).
-- **Metric**: Displays **Global Conservation** (all pathways) and **Signal Conservation** (significant in human).
-- **Labels**: Strata boxes show the status name and the raw count `(n)`.
-- **Naming**: `04_11_alluvial_comp_[Drug]_[Human]_vs_[Canine].png`
+- **Naming**: `04_11_alluvial_[Drug]_[Human]_vs_[Canine].png`
 
-### 2. Master Panoramic Flows (Huge Alluvials)
-Generates multi-axis flows (4+ axes) to connect the entire experimental design.
-- **Phenotypic Chains**: `H9 -> SUPM2 -> UL1 -> CNK89`. Visualizes how the drug response evolves across the "Indolent-to-Aggressive" spectrum in both species.
-- **Drug-Species Bridge**: `Human:Romi -> Human:Kroma -> Canine:Romi -> Canine:Kroma`. Proves mechanisitic conservation between the two therapeutic agents across the species barrier.
-- **Naming**: `04_11_alluvial_master_[romidepsin/kromastat/bridge].png`
+### 2. Global Panoramic Flows
+Generates multi-axis flows (4 axes) to connect the entire experimental design.
+- **Phenotypic Chains**: Visualizes how the drug response evolves across the "Indolent-to-Aggressive" spectrum.
+- **Drug-Species Bridge**: `Human:Romi -> Human:Kroma -> Canine:Romi -> Canine:Kroma`. Proves mechanistic conservation.
+- **Sub-grouping**: Includes specific flows for **Aggressive** and **Indolent** cell line pairs.
+- **Naming**: `04_11_alluvial_hallmark_[Drug].png` or `04_11_alluvial_[aggressive/indolent].png`
+
+### 3. Gene-Level Flow Analysis
+Tracks individual gene response classes (shared_up, specific_to_human, etc.) across matched pairs.
+- **Naming**: `04_11_alluvial_gene_flow.png`
 
 ---
 
@@ -44,5 +47,5 @@ Generates multi-axis flows (4+ axes) to connect the entire experimental design.
 ## Execution
 Run from the project root:
 ```bash
-mamba run -n cancer_rnaseq Rscript scripts_downstream/04_11_alluvial_plot.R
+./run down
 ```

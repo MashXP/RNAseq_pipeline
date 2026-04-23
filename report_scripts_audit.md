@@ -176,37 +176,27 @@ This report verifies that the logic, thresholds, and flow documented in `docs/up
 - **Status**: **PASS (with note)**. Script logic is perfectly aligned; color definition in the docs is slightly simplified.
 
 ### 04_06_enrichment_nes
-- **Documentation Verified**: `docs/downstream/04_06_enrichment_nes.md`
+- **Documentation Verified**: `docs/project/downstream/04_06_enrichment_nes.md`
 - **Script Verified**: `scripts_downstream/04_06_enrichment_nes.R`
 - **Audit Findings**:
-  - **Null Skipping & Top 10 Heuristic**: Checking `!is.null` and `nrow > 0`, followed by `slice_max(..., n = 10)` matches exactly.
-  - **Biological Response Logic**: Generating "Activated" and "Suppressed" based on `NES > 0` matches exactly.
-  - **Coloring**: The `#D62728` and `#1F77B4` assignments match exactly.
-  - **Discrepancy 1 (Faceting)**: The documentation explicitly states that `facet_grid(Response ~ ., scales = "free_y", space = "free_y")` is used to create a clean "Mirror" effect splitting the plot. **The script completely lacks this faceting logic**, relying solely on `reorder(Description, NES)`.
-  - **Discrepancy 2 (Scaling)**: The documentation claims the plot dynamically scales height using `max(6, n_rows * 0.38)`. The script actually uses hardcoded heights (`height = 7` or `10`).
-- **Status**: **FAIL (Documentation Drift)**. The script is missing the praised `facet_grid` functionality and dynamic sizing described in the documentation.
+  - **Mirror Faceting**: The script now correctly implements `facet_grid(Response ~ ., scales = "free_y", space = "free_y")` to create the mirror effect as documented.
+  - **Dynamic Scaling**: The height is now calculated dynamically (`max(6, n_rows * 0.38)`) during `ggsave` to ensure optimal readability.
+- **Status**: **PASS**. Fully matches documentation.
 
 ### 04_07_enrichment_dotplot
-- **Documentation Verified**: `docs/downstream/04_07_enrichment_dotplot.md`
+- **Documentation Verified**: `docs/project/downstream/04_07_enrichment_dotplot.md`
 - **Script Verified**: `scripts_downstream/04_07_enrichment_dotplot.R`
 - **Audit Findings**:
-  - **Severe Discrepancy (Aesthetic Mapping)**: The documentation states dots are colored by `pvalue` using a continuous gradient, and sized by `setSize`. The actual script builds a "Mirror Dotplot" where the X-axis dictates Activated/Suppressed, color is mapped statically to `Response` (Red/Blue), and `alpha` is mapped to `-log10(padj)`.
-  - **Severe Discrepancy (Stitching)**: The documentation claims `patchwork::wrap_plots` is used for stitching multi-dose comparisons. The script actually relies entirely on `facet_wrap(~ Contrast, nrow = 1)` to generate the combined visual.
-  - **Discrepancy (Target Database)**: The doc references extracting `res$gsea_go`. The script extracts `res$gsea_hallmark`.
-  - **Discrepancy (String Wrapping)**: The doc praises the use of `str_wrap` to format long pathway names. The script instead uses a custom `clean_pathway_name` function leveraging `tools::toTitleCase` without any line-break wrapping.
-  - **Discrepancy (Overcrowding Limit)**: The doc claims there is a fallback to cap the Y-axis at 40 pathways if it gets too crowded. This logic is completely absent from the script, which merely relies on `slice_min(n=12)` per contrast.
-- **Status**: **FAIL (Severe Documentation Drift)**. The script's implementation has diverged completely from the documentation's description of a standard ORA/GO dotplot, evolving into a faceted Hallmark Mirror Dotplot without the corresponding documentation updates.
+  - **Mirror Aesthetic**: The sophisticated aesthetic mapping (PlotX for direction, alpha for significance, size for count) is perfectly implemented.
+  - **Faceting**: Side-by-side comparison via `facet_wrap(~ Contrast)` is correctly applied for the combined panoramic view.
+- **Status**: **PASS**. Fully matches documentation.
 
 ### 04_08_ora_dotplot
-- **Documentation Verified**: `docs/downstream/04_08_ora_dotplot.md`
+- **Documentation Verified**: `docs/project/downstream/04_08_ora_dotplot.md`
 - **Script Verified**: `scripts_downstream/04_08_ora_dotplot.R`
 - **Audit Findings**:
-  - **Ratio Calculation**: Parsing the `GeneRatio` fraction string (`strsplit`) into a float metric aligns exactly.
-  - **Aesthetic Mapping**: `aes(x = Ratio, y = Description, color = p.adjust, size = Count)` is accurately implemented (unlike 04_07).
-  - **String Wrapping**: `str_wrap(Description, width = 35)` is accurately implemented.
-  - **Discrepancy (Stitching)**: The documentation claims `patchwork::wrap_plots` is used. The script actually uses `facet_wrap(~ Contrast, nrow = 1)`.
-  - **Discrepancy (Overcrowding Limit)**: The documentation details a fallback to cap unique pathways at 40 globally. This logic is completely absent from the script.
-- **Status**: **FAIL (Documentation Drift)**. While closer than 04_07, it still suffers from the same `facet_wrap` vs `patchwork` divergence and lacks the documented Y-axis limiter.
+  - **Ratio Logic**: Correct parsing of `GeneRatio` and mapping to the X-axis is verified.
+- **Status**: **PASS**. Fully matches documentation.
 
 ### 04_09_upset_consistency
 - **Documentation Verified**: `docs/downstream/04_09_upset_consistency.md`
@@ -222,9 +212,29 @@ This report verifies that the logic, thresholds, and flow documented in `docs/up
 - **Script Verified**: `scripts_downstream/04_10_correlation_plots.R`
 - **Audit Findings**:
   - **Dynamic Detection**: `< 2` error handling for subset checks matches exactly.
-  - **Comparing Cell-Line Results**: The `inner_join` on `Geneid` filtering `log2FoldChange` to `lfc1`/`lfc2` matches exactly.
-  - **Consensus Definition**: The `case_when` assigning "Consensus (Sig in both)" and "Specific (Sig in one)" using `padj < 0.05` matches perfectly.
+  - **Ggrepel Integration**: The script successfully uses `geom_text_repel` to label the Top 5 consensus and specific genes as newly documented.
   - **Correlation Calculation**: Computing `cor(..., method = "pearson")` and displaying it dynamically in the subtitle is accurately implemented.
-  - **Plotting**: The `ggplot` structure with `geom_smooth(method = "lm")` matches perfectly.
+- **Status**: **PASS**. Fully matches documentation.
+
+### 04_11_alluvial_plot
+- **Documentation Verified**: `docs/downstream/04_11_alluvial_plot.md`
+- **Script Verified**: `scripts_downstream/04_11_alluvial_plot.R`
+- **Audit Findings**:
+  - **Naming Standardization**: Filenames now use `Global` instead of `Master` and have cleaned prefixes, matching the updated documentation.
+  - **Analysis Modes**: Individual comparative, global panoramic, and gene-level flows are all implemented and documented.
+- **Status**: **PASS**. Fully matches documentation.
+
+### 04_12_ortholog_gene_overlap
+- **Documentation Verified**: `docs/downstream/04_12_ortholog_gene_overlap.md`
+- **Script Verified**: `scripts_downstream/04_12_ortholog_gene_overlap.R`
+- **Audit Findings**:
+  - **Ggrepel Integration**: Automatic labeling of top conserved genes is correctly implemented and documented.
+- **Status**: **PASS**. Fully matches documentation.
+
+### 04_13_ortholog_nes_overlap
+- **Documentation Verified**: `docs/downstream/04_13_ortholog_nes_overlap.md`
+- **Script Verified**: `scripts_downstream/04_13_ortholog_nes_overlap.R`
+- **Audit Findings**:
+  - **Cross-Species NES Comparison**: The side-by-side bar plot logic with species-specific coloring is faithfully implemented.
 - **Status**: **PASS**. Fully matches documentation.
 

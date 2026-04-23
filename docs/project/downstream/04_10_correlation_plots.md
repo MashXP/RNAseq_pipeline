@@ -9,13 +9,14 @@ This is the "Proof of Mechanism" script. While other plots show that genes chang
     - **Results RData**: `./.RData/[Group]/02_deseq_results.RData` (Contains cell-line specific DGE results).
 - **Processing**: Inner-joining LFCs between two cell lines, Consensus classification (LFC > 2.0), Pearson correlation calculation.
 - **Output**: 
-    - **Consistency Figure**: `../results/[Group]/figures/04_10_lfc_correlation.png` (Side-by-side Romi vs Krom).
+    - **Consistency Figure**: `../results/[Group]/figures/04_10_lfc_correlation.png` (Side-by-side Romi vs Krom with top gene labels).
 
 ---
 
 ## 0.1 Library Rationales
 This script utilizes the following libraries for directional analysis. See [**libraries.md**](libraries.md) for full technical justifications.
 - `ggplot2`: For LFC-LFC scatter plotting.
+- `ggrepel`: For non-overlapping gene labels.
 - `patchwork`: For horizontal stitching of drug-specific correlation plots.
 - `tidyverse`: For `inner_join` and data filtering.
 
@@ -48,16 +49,20 @@ merged <- inner_join(
 
 ---
 
-## 3. Defining "Consensus"
+## 3. Defining "Consensus" & Automatic Labeling
 ```r
-status = case_when(
-  (is_sig1 & is_sig2) ~ "Consensus (Sig in both)",
-  (is_sig1 | is_sig2) ~ "Specific (Sig in one)",
-  TRUE ~ "Non-significant"
-)
+consensus_top <- merged %>% 
+  filter(status == "Consensus (Sig in both)") %>%
+  mutate(abs_lfc = (abs(lfc1) + abs(lfc2))/2) %>%
+  slice_max(order_by = abs_lfc, n = 5)
+
+specific_top <- merged %>%
+  filter(status == "Specific (Sig in one)") %>%
+  mutate(abs_lfc = pmax(abs(lfc1), abs(lfc2))) %>%
+  slice_max(order_by = abs_lfc, n = 5)
 ```
-- **The Job**: Identifies which genes are "Universal Hits" (Consensus) vs "Model-Specific Hits."
-- **Why it matters**: A "Red" dot on this plot (Consensus) is a high-value target. It means the drug's effect on that gene is so robust that it works regardless of the cell type.
+- **The Job**: Identifies which genes are "Universal Hits" (Consensus) vs "Model-Specific Hits" and automatically selects the top 5 from each category for labeling.
+- **Why it matters**: A "Red" dot on this plot (Consensus) is a high-value target. Labeling the top 5 consensus genes allows your mentor to instantly see the most robust targets (e.g., *HMGCS1* or *SQLE*) that respond to the drug regardless of the cell type.
 
 ---
 
@@ -75,23 +80,24 @@ subtitle = paste(cl1, "vs", cl2, "| R =", round(corr_val, 3))
 
 ---
 
-## 5. LFC-LFC Plotting
+## 5. LFC-LFC Plotting with Ggrepel
 ```r
 ggplot(merged, aes(x = lfc1, y = lfc2, color = status)) +
   geom_point(alpha = 0.4, size = 1) +
-  geom_smooth(method = "lm", color = "black", linetype = "dashed", size = 0.5)
+  geom_text_repel(data = label_df, aes(label = label), size = 3, max.overlaps = 20)
 ```
 - **The Job**: 
     1. Plots the Fold Change of one cell line on the X-axis and the other on the Y-axis.
     2. Adds a "Trend Line" to visualize the relationship.
-- **The Reasoning**: This creates a "Diagonal Cloud." If the points follow the dashed line, it visually proves that the stronger the drug hits a gene in H9, the stronger it hits it in SUPM2.
+    3. Overlays the names of the most impactful genes using `geom_text_repel`.
+- **The Reasoning**: This creates a "Diagonal Cloud." The inclusion of `ggrepel` labels transforms a simple scatter plot into a biological map, allowing researchers to identify specific gene targets at a glance.
 
 ---
 
 ## 6. Summary Output
 - **Title**: Describes the "Mechanism Consistency."
-- **Combined Plot**: Showcases Romidepsin and Kromastat side-by-side. 
-- **Result**: `04_lfc_correlation.png` — a final, high-impact proof that your drugs have a reliable and predictable biological effect across different biological systems.
+- **Subtitle**: Includes a legend for the cell line mapping: `(I): Indolent | (A): Aggressive`.
+- **Result**: `04_10_lfc_correlation.png` — a final, high-impact proof that your drugs have a reliable and predictable biological effect across different biological systems.
 
 ---
 
@@ -101,7 +107,7 @@ This plot is the ultimate test of **Biological Reproducibility**.
 1. **The R-Value (Pearson Correlation)**:
     - **R > 0.7**: Strong evidence that the drug's mechanism is **Conserved**. The drug does the same thing to both cell lines.
     - **R < 0.4**: Evidence of **Cell-Line Specificity**. The drug affects the cancer line differently than the healthy line. 
-2. **Consensus Genes (Red Dots)**: These are the "Universal Hits" that passed the **|LFC| > 2.0** and **padj < 0.05** thresholds in BOTH cell lines. If a gene is Red and far from the center, it is a **High-Confidence Target** that responds to the drug regardless of the biological background.
+2. **Consensus Genes (Red Dots)**: These are the "Universal Hits" that passed the **|LFC| > 2.0** and **padj < 0.05** thresholds in BOTH cell lines. The labeled genes are the **Highest-Confidence Targets**.
 3. **The Diagonal Cloud**: 
     - Most points should cluster along the diagonal dashed line. This means that if a gene was upregulated in Model A, it was also upregulated in Model B.
 4. **Outliers (Dots far from the line)**: These represent "Model-Specific" biology. For example, a gene that is inhibited in cancer but not in healthy cells would appear far away from the diagonal.

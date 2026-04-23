@@ -5,6 +5,7 @@ library(DESeq2)
 library(ggplot2)
 library(tidyverse)
 library(patchwork)
+library(ggrepel)
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -69,9 +70,25 @@ create_corr_plot <- function(drug_name, stub) {
   # Calculate Pearson Correlation
   corr_val <- cor(merged$lfc1, merged$lfc2, method = "pearson", use = "complete.obs")
   
+  # Annotations: Top 5 Consensus, Top 5 Specific
+  consensus_top <- merged %>% 
+    filter(status == "Consensus (Sig in both)") %>%
+    mutate(abs_lfc = (abs(lfc1) + abs(lfc2))/2) %>%
+    slice_max(order_by = abs_lfc, n = 5) %>%
+    mutate(label = gene_label)
+    
+  specific_top <- merged %>%
+    filter(status == "Specific (Sig in one)") %>%
+    mutate(abs_lfc = pmax(abs(lfc1), abs(lfc2))) %>%
+    slice_max(order_by = abs_lfc, n = 5) %>%
+    mutate(label = ifelse(is_sig1, paste0(gene_label, " (I)"), paste0(gene_label, " (A)")))
+    
+  label_df <- bind_rows(consensus_top, specific_top)
+
   ggplot(merged, aes(x = lfc1, y = lfc2, color = status)) +
     geom_point(alpha = 0.4, size = 1) +
     geom_smooth(method = "lm", color = "black", linetype = "dashed", linewidth = 0.5) +
+    geom_text_repel(data = label_df, aes(label = label), size = 3, max.overlaps = 20, show.legend = FALSE) +
     scale_color_manual(values = c(
       "Consensus (Sig in both)" = "#D62728", # Premium Red
       "Specific (Sig in one)" = "#1F77B4",   # Premium Blue
@@ -95,7 +112,11 @@ if (!is.null(p_romi) && !is.null(p_krom)) {
   p_combined <- p_romi + p_krom + 
     plot_annotation(
       title = paste0("Pathway Directionality Consensus: ", group_name),
-      theme = theme(plot.title = element_text(size = 18, face = "bold", hjust = 0.5))
+      subtitle = paste0("(I): Indolent (", cl1, ") | (A): Aggressive (", cl2, ")"),
+      theme = theme(
+        plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 12, face = "italic", hjust = 0.5)
+      )
     )
   
   ggsave(file.path(res_dir, "figures/04_10_lfc_correlation.png"), p_combined, 

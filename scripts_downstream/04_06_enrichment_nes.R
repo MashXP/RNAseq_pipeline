@@ -47,10 +47,16 @@ make_nes_plot <- function(hallmark_res, dose_label) {
     ) %>%
     group_by(Response) %>%
     slice_max(order_by = abs(NES), n = 10) %>%
-    ungroup()
-  
-  ggplot(hall_df, aes(x = NES, y = reorder(Description, NES), fill = Response)) +
+    ungroup() %>%
+    mutate(Response = factor(Response, levels = c("Activated", "Romi higher", "Suppressed", "Krom higher")))
+
+  # Dynamic height calculation based on number of pathways
+  n_rows <- nrow(hall_df)
+  plot_height <- max(6, n_rows * 0.38)
+
+  p <- ggplot(hall_df, aes(x = NES, y = reorder(Description, NES), fill = Response)) +
     geom_col(width = 0.8) +
+    facet_grid(Response ~ ., scales = "free_y", space = "free_y") +
     scale_fill_manual(
       values = c("Activated" = "#D62728", "Suppressed" = "#1F77B4",
                  "Romi higher" = "#D62728", "Krom higher" = "#1F77B4"),
@@ -63,7 +69,9 @@ make_nes_plot <- function(hallmark_res, dose_label) {
       axis.text.y = element_text(size = 9, face = "bold"),
       axis.title.x = element_text(size = 10),
       plot.title = element_text(size = 12, face = "bold", hjust = 0.5, margin = margin(b = 5)),
-      plot.subtitle = element_text(size = 10, hjust = 0.5, margin = margin(b = 10))
+      plot.subtitle = element_text(size = 10, hjust = 0.5, margin = margin(b = 10)),
+      strip.background = element_blank(),
+      strip.text = element_blank()
     ) +
     labs(
       title = {
@@ -77,9 +85,11 @@ make_nes_plot <- function(hallmark_res, dose_label) {
                   paste0("Global: ", str_replace_all(dose_label, "_", " "))
                 }
               },
-      subtitle = if(is_direct) str_wrap("Positive NES favors Romidepsin; negative NES favors Kromastat", width = 50) else NULL,
+      subtitle = if(is_direct) "Positive NES favors Romidepsin;\nnegative NES favors Kromastat" else NULL,
       x = "Normalized Enrichment Score (NES)", y = "Hallmark Pathway"
     )
+  
+  return(list(plot = p, height = plot_height))
 }
 
 nes_plots <- list()
@@ -87,13 +97,15 @@ for (contrast in names(enrichment_results_all)) {
   hallmark_res <- enrichment_results_all[[contrast]]$gsea_hallmark
   if (!is.null(hallmark_res) && nrow(as.data.frame(hallmark_res)) > 0) {
     safe_name <- str_replace_all(contrast, "[^a-zA-Z0-9]", "_")
-    p <- make_nes_plot(hallmark_res, contrast)
+    res <- make_nes_plot(hallmark_res, contrast)
+    p <- res$plot
+    h <- res$height
     nes_plots[[contrast]] <- p
 
-    # Save individual plot for ALL contrasts (including QC and global pooled)
+    # Save individual plot for ALL contrasts
     ggsave(
       paste0(res_dir, "/figures/04_06_hallmark_nes_", safe_name, ".png"),
-      p, width = 8, height = 7, limitsize = FALSE
+      p, width = 8, height = h, limitsize = FALSE
     )
   }
 }

@@ -11,7 +11,7 @@ This script identifies **Direct Gene Conservation**. While GSEA (03) and Alluvia
     - **Genome Annotations**: GTF files for both species (to verify gene symbols).
 - **Processing**: Inner join on Gene Symbols, significance filtering (padj < 0.05, |LFC| > 2), and correlation mapping.
 - **Output**: 
-    - **Scatter Plots**: `../results/comparative/figures/04_12_ortholog_scatter_[Contrast].png`
+    - **Scatter Plots**: `../results/comparative/figures/04_12_ortholog_scatter_[Contrast].png` (With top gene labels).
     - **Panoramic Heatmap**: `../results/comparative/figures/04_12_conserved_ortholog_heatmap.png`
     - **Summary Table**: `../results/comparative/tables/04_12_ortholog_overlap_summary.csv`
 
@@ -42,9 +42,19 @@ merged <- inner_join(human_res, canine_res, by = "gene_label") %>%
 
 ---
 
-## 3. High-Resolution Scatter Plots
-- **The Job**: Visualizes every matched gene on a grid (Human X-axis vs. Canine Y-axis).
-- **Why it matters**: A high correlation (points clustering along a diagonal line) proves that the drug is behaving identically in both species. The points highlighted in Red (Shared Up) and Blue (Shared Down) represent the "Universal Mechanism" of your therapeutic agent.
+## 3. High-Resolution Scatter Plots with Ggrepel
+```r
+label_df <- merged %>%
+  filter(status != "other") %>%
+  mutate(abs_lfc = (abs(h_lfc) + abs(c_lfc))/2) %>%
+  group_by(status) %>%
+  slice_max(order_by = abs_lfc, n = 5)
+
+ggplot(merged, aes(x = h_lfc, y = c_lfc, color = status)) +
+  geom_text_repel(data = label_df, aes(label = gene_label), size = 3)
+```
+- **The Job**: Visualizes every matched gene on a grid (Human X-axis vs. Canine Y-axis) and overlays names of the most conserved genes.
+- **Why it matters**: A high correlation proves that the drug is behaving identically in both species. The inclusion of `ggrepel` labels (identifying genes like *PCNA* or *MCM4*) provides immediate biological evidence of a conserved transcriptomic program.
 
 ---
 
