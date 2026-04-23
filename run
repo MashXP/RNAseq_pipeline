@@ -102,33 +102,28 @@ if [ "$RUN_DOWNSTREAM" = true ]; then
         cd scripts_downstream/
         
         CSV_FILE="../drPhuong_Sample_Data_Table.csv"
-        # Extract groups from CSV
-        groups=$(python3 "../scripts_upstream/utils/parse_samples.py" "$CSV_FILE" | awk '{print $5}' | sort -u)
+        # Extract species from CSV
+        species_list=$(python3 "../scripts_upstream/utils/parse_samples.py" "$CSV_FILE" | awk '{print $4}' | sort -u)
 
-        for group in $groups; do
+        for species in $species_list; do
             echo "========================================================="
-            echo "Running downstream analysis for Group: $group"
+            echo "Running downstream analysis for Species: $species"
             echo "========================================================="
 
-            # Get species for this group
-            species=$(python3 "../scripts_upstream/utils/parse_samples.py" "$CSV_FILE" | awk -v grp="$group" '$5 == grp {print $4}' | head -n 1)
+            Rscript 01_data_prep.R "$species"
+            Rscript 02_deseq2_dge.R "$species"
+            Rscript 03_enrichment.R "$species"
             
-            echo "-> Species detected: $species"
+            Rscript 04_01_pca.R "$species"
+            Rscript 04_02_volcano.R "$species"
+            Rscript 04_03_venn.R "$species"
+            Rscript 04_04_heatmap_pathway.R "$species"
+            Rscript 04_05_heatmap_variable.R "$species"
+            Rscript 04_06_enrichment_nes.R "$species"
+            Rscript 04_07_enrichment_dotplot.R "$species"
+            Rscript 04_08_ora_dotplot.R "$species"
 
-            Rscript 01_data_prep.R "$group" "$species"
-            Rscript 02_deseq2_dge.R "$group" "$species"
-            Rscript 03_enrichment.R "$group" "$species"
-            
-            Rscript 04_01_pca.R "$group" "$species"
-            Rscript 04_02_volcano.R "$group" "$species"
-            Rscript 04_03_venn.R "$group" "$species"
-            Rscript 04_04_heatmap_pathway.R "$group" "$species"
-            Rscript 04_05_heatmap_variable.R "$group" "$species"
-            Rscript 04_06_enrichment_nes.R "$group" "$species"
-            Rscript 04_07_enrichment_dotplot.R "$group" "$species"
-            Rscript 04_08_ora_dotplot.R "$group" "$species"
-
-            echo "Done with Group: $group"
+            echo "Done with Species: $species"
         done
     ) || { echo "Downstream analysis failed at some step. Exiting."; exit 1; }
     

@@ -115,7 +115,7 @@ rsync -avzP -e 'ssh -p 6820' phongdinh@trongchinh.zapto.org:/mnt/22T/phongdinh/R
 To force a re-run of specific steps, delete the corresponding output directories:
 *   **STAR Index**: `rm -rf _data/index/*` (Production) or `_data/index_test/*` (Test)
 *   **BAM Alignment**: `rm -rf _data/bam/*` or `_data/bam_test/*`
-*   **Counts**: `rm -rf _data/counts/*` or `_data/counts_test/*`
+*   **FeatureCounts**: `rm -rf _data/featurecounts/*` or `_data/featurecounts_test/*`
 
 > [!IMPORTANT]
 > **Do NOT delete** `_data/fastq_trimmed/` unless you want to re-run Trimmomatic (slow). FASTQ quality is independent of mapping indices.

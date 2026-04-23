@@ -1,12 +1,12 @@
 # Downstream Dissection: 01_data_prep.R
 
-While `00_bridge.R` handles your mentor's data, `01_data_prep.R` is the engine that processes the raw output from your own upstream pipeline (`_data/counts/`). It transforms technical filenames into human-readable sample names.
+`01_data_prep.R` is the engine that processes the raw output from your upstream pipeline (`_data/featurecounts/`). It transforms technical filenames into human-readable sample names and prepares the data for multifactorial analysis.
 
 ---
 
 ## 0. Data Flow (I/O)
-- **Input**: 
-    - **Count Matrix**: `_data/counts/gene_counts_[Group].txt` (Raw featureCounts output).
+- **Input**:
+    - **Count Matrix**: `_data/featurecounts/[Species]/[Species]_featurecounts_counts.tsv` (Raw featureCounts output).
     - **Metadata**: `_data/drPhuong_Sample_Data_Table.csv` (CSV, mapping groups to treatments).
 - **Processing**: Filters by Group, creates `display_names`, reorders matrix columns, and filters low-signal genes.
 - **Output**: 

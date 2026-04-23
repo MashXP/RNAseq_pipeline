@@ -87,7 +87,6 @@ The pipeline is split into an upstream BASH execution engine and a downstream R 
 
 | Script | Biological Goal | Technical Focus | Documentation |
 | :--- | :--- | :--- | :--- |
-| `01_bridge_data_prep.R` | Translate mentor counts | Data formatting | [Docs](docs/project/downstream/01_bridge_data_prep.md) |
 | `01_data_prep.R` | Clean & organize | Metadata integration | [Docs](docs/project/downstream/01_data_prep.md) |
 | `02_deseq2_dge.R` | DGE Engine | DESeq2, apeglm | [Docs](docs/project/downstream/02_deseq2_dge.md) |
 | `03_enrichment.R` | Functional analysis | GSEA, GO, KEGG | [Docs](docs/project/downstream/03_enrichment.md) |
