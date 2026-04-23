@@ -19,7 +19,7 @@ if (species_name == "Human") {
   org_db <- org.Hs.eg.db
   msig_species <- "Homo sapiens"
   kegg_org <- 'hsa'
-} else if (species_name == "Dog") {
+} else if (species_name == "Canine") {
   library(org.Cf.eg.db)
   org_db <- org.Cf.eg.db
   msig_species <- "Canis lupus familiaris"

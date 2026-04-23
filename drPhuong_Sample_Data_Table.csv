@@ -1,29 +1,29 @@
 Sample details (paired-end):,,,,
 File1,File2,Treatment,Cell line,Group
-27_R1_001.fastq.gz,27_R2_001.fastq.gz,DMSO_Romi,Dog,UL1
-28_R1_001.fastq.gz,28_R2_001.fastq.gz,DMSO_Romi,Dog,UL1
-29_R1_001.fastq.gz,29_R2_001.fastq.gz,DMSO_Romi,Dog,UL1
-30_R1_001.fastq.gz,30_R2_001.fastq.gz,Romi_6nM,Dog,UL1
-31_R1_001.fastq.gz,31_R2_001.fastq.gz,Romi_6nM,Dog,UL1
-32_R1_001.fastq.gz,32_R2_001.fastq.gz,Romi_6nM,Dog,UL1
-33_R1_001.fastq.gz,33_R2_001.fastq.gz,DMSO_Kromastat,Dog,UL1
-34_R1_001.fastq.gz,34_R2_001.fastq.gz,DMSO_Kromastat,Dog,UL1
-35_R1_001.fastq.gz,35_R2_001.fastq.gz,DMSO_Kromastat,Dog,UL1
-36_R1_001.fastq.gz,36_R2_001.fastq.gz,Kromastat_6nM,Dog,UL1
-37_R1_001.fastq.gz,37_R2_001.fastq.gz,Kromastat_6nM,Dog,UL1
-38_R1_001.fastq.gz,38_R2_001.fastq.gz,Kromastat_6nM,Dog,UL1
-39_R1_001.fastq.gz,39_R2_001.fastq.gz,DMSO_Romi,Dog,CNK89
-40_R1_001.fastq.gz,40_R2_001.fastq.gz,DMSO_Romi,Dog,CNK89
-41_R1_001.fastq.gz,41_R2_001.fastq.gz,DMSO_Romi,Dog,CNK89
-42_R1_001.fastq.gz,42_R2_001.fastq.gz,Romi_6nM,Dog,CNK89
-43_R1_001.fastq.gz,43_R2_001.fastq.gz,Romi_6nM,Dog,CNK89
-44_R1_001.fastq.gz,44_R2_001.fastq.gz,Romi_6nM,Dog,CNK89
-45_R1_001.fastq.gz,45_R2_001.fastq.gz,DMSO_Kromastat,Dog,CNK89
-46_R1_001.fastq.gz,46_R2_001.fastq.gz,DMSO_Kromastat,Dog,CNK89
-47_R1_001.fastq.gz,47_R2_001.fastq.gz,DMSO_Kromastat,Dog,CNK89
-48_R1_001.fastq.gz,48_R2_001.fastq.gz,Kromastat_6nM,Dog,CNK89
-49_R1_001.fastq.gz,49_R2_001.fastq.gz,Kromastat_6nM,Dog,CNK89
-50_R1_001.fastq.gz,50_R2_001.fastq.gz,Kromastat_6nM,Dog,CNK89
+27_R1_001.fastq.gz,27_R2_001.fastq.gz,DMSO_Romi,Canine,UL1
+28_R1_001.fastq.gz,28_R2_001.fastq.gz,DMSO_Romi,Canine,UL1
+29_R1_001.fastq.gz,29_R2_001.fastq.gz,DMSO_Romi,Canine,UL1
+30_R1_001.fastq.gz,30_R2_001.fastq.gz,Romi_6nM,Canine,UL1
+31_R1_001.fastq.gz,31_R2_001.fastq.gz,Romi_6nM,Canine,UL1
+32_R1_001.fastq.gz,32_R2_001.fastq.gz,Romi_6nM,Canine,UL1
+33_R1_001.fastq.gz,33_R2_001.fastq.gz,DMSO_Kromastat,Canine,UL1
+34_R1_001.fastq.gz,34_R2_001.fastq.gz,DMSO_Kromastat,Canine,UL1
+35_R1_001.fastq.gz,35_R2_001.fastq.gz,DMSO_Kromastat,Canine,UL1
+36_R1_001.fastq.gz,36_R2_001.fastq.gz,Kromastat_6nM,Canine,UL1
+37_R1_001.fastq.gz,37_R2_001.fastq.gz,Kromastat_6nM,Canine,UL1
+38_R1_001.fastq.gz,38_R2_001.fastq.gz,Kromastat_6nM,Canine,UL1
+39_R1_001.fastq.gz,39_R2_001.fastq.gz,DMSO_Romi,Canine,CNK89
+40_R1_001.fastq.gz,40_R2_001.fastq.gz,DMSO_Romi,Canine,CNK89
+41_R1_001.fastq.gz,41_R2_001.fastq.gz,DMSO_Romi,Canine,CNK89
+42_R1_001.fastq.gz,42_R2_001.fastq.gz,Romi_6nM,Canine,CNK89
+43_R1_001.fastq.gz,43_R2_001.fastq.gz,Romi_6nM,Canine,CNK89
+44_R1_001.fastq.gz,44_R2_001.fastq.gz,Romi_6nM,Canine,CNK89
+45_R1_001.fastq.gz,45_R2_001.fastq.gz,DMSO_Kromastat,Canine,CNK89
+46_R1_001.fastq.gz,46_R2_001.fastq.gz,DMSO_Kromastat,Canine,CNK89
+47_R1_001.fastq.gz,47_R2_001.fastq.gz,DMSO_Kromastat,Canine,CNK89
+48_R1_001.fastq.gz,48_R2_001.fastq.gz,Kromastat_6nM,Canine,CNK89
+49_R1_001.fastq.gz,49_R2_001.fastq.gz,Kromastat_6nM,Canine,CNK89
+50_R1_001.fastq.gz,50_R2_001.fastq.gz,Kromastat_6nM,Canine,CNK89
 51_R1_001.fastq.gz,51_R2_001.fastq.gz,DMSO_Romi,Human,H9
 52_R1_001.fastq.gz,52_R2_001.fastq.gz,DMSO_Romi,Human,H9
 53_R1_001.fastq.gz,53_R2_001.fastq.gz,DMSO_Romi,Human,H9
@@ -55,7 +55,7 @@ Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz,Genomic sequence (DNA),FASTA,http
 Homo_sapiens.GRCh38.113.gtf.gz,Gene IDs and genomic locations,GTF,https://ftp.ensembl.org/pub/release-113/gtf/homo_sapiens/,
 Homo_sapiens.GRCh38.113.entrez.tsv.gz,Gene annotations (symbols and descriptions),TSV,https://ftp.ensembl.org/pub/release-113/tsv/homo_sapiens/,
 ,,,,
-Genome files (Dog):,,,,
+Genome files (Canine):,,,,
 File,Description,Format,LINK,
 Canis_lupus_familiaris.ROS_Cfam_1.0.dna.toplevel.fa.gz,Genomic sequence (DNA),FASTA,https://ftp.ensembl.org/pub/release-113/fasta/canis_lupus_familiaris/dna/,
 Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf.gz,Gene IDs and genomic locations,GTF,https://ftp.ensembl.org/pub/release-113/gtf/canis_lupus_familiaris/,

@@ -18,7 +18,7 @@ species_name <- if (length(args) >= 2) args[2] else str_to_title(args[1])
 if (species_name == "Human") {
   library(org.Hs.eg.db)
   org_db <- org.Hs.eg.db
-} else if (species_name == "Dog") {
+} else if (species_name == "Canine") {
   library(org.Cf.eg.db)
   org_db <- org.Cf.eg.db
 } else {
@@ -46,7 +46,7 @@ vsd <- vst(dds, blind=FALSE)
 # 1.6 Create clean Sample Names for display
 # --- DEVIATION: Standardize naming with pathway heatmap logic (04_04)
 display_names <- rownames(colData(vsd)) %>%
-  str_remove_all("human_|dog_") %>% 
+  str_remove_all("human_|canine_") %>% 
   str_replace_all("DMSO", "D") %>%
   str_replace_all("Romidepsin|Romi", "R") %>%
   str_replace_all("Kromastat|Kroma", "K") %>%

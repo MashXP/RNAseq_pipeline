@@ -38,18 +38,18 @@ fi
 sample_species=$(python3 "$UTILS_DIR/parse_samples.py" "$CSV_FILE" | grep "^$sample_name " | awk '{print $4}')
 ```
 - **The Job**: Uses a combination of Python, `grep`, and `awk` to extract the "Species" column for the current sample.
-- **Why it matters**: In your cross-species project (Human cancer vs Dog lymphoma), the script must "know" the species of every sample *individually* as it runs through the background.
+- **Why it matters**: In your cross-species project (Human cancer vs Canine lymphoma), the script must "know" the species of every sample *individually* as it runs through the background.
 
 ### 2.3 Dynamic refFlat Selection
 ```bash
 if [ "$sample_species" == "Human" ]; then
     REFFLAT="$GENOME_DIR/Human/Homo_sapiens.GRCh38.113.refFlat"
 else
-    REFFLAT="$GENOME_DIR/Dog/Canis_lupus_familiaris.ROS_Cfam_1.0.113.refFlat"
+    REFFLAT="$GENOME_DIR/Canine/Canis_lupus_familiaris.ROS_Cfam_1.0.113.refFlat"
 fi
 ```
 - **The Job**: Switches the "Map" file based on the detected species.
-- **The Reasoning**: Picard's Intron/Exon counting requires the exact coordinates of every gene. This block ensures we don't accidentally check Dog reads against a Human map.
+- **The Reasoning**: Picard's Intron/Exon counting requires the exact coordinates of every gene. This block ensures we don't accidentally check Canine reads against a Human map.
 
 ---
 
@@ -65,7 +65,7 @@ picard -Xmx${JAVA_MEM_PER_SAMPLE}g CollectRnaSeqMetrics \
 - **The Job**: Categorizes every mapped read into Exonic, Intronic, or UTR (Untranslated Region).
 - **Key Parameters**:
     - `STRAND=SECOND_READ_TRANSCRIPTION_STRAND`: 
-        - **Reasoning**: This matches the "Reverse-Stranded" library kit (Human/Dog TruSeq). If we use the wrong strand, your counts will be 0.
+        - **Reasoning**: This matches the "Reverse-Stranded" library kit (Human/Canine TruSeq). If we use the wrong strand, your counts will be 0.
     - `RIBOSOMAL_INTERVALS=null`: We ignore rRNA here because we already handle biotypes in the next step (04).
     - **Atmocity (`.tmp`)**: We only write to temporary files during the run.
 

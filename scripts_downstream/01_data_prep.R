@@ -7,8 +7,8 @@ args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
   stop("Usage: Rscript 01_data_prep.R <Species>")
 }
-species_name <- str_to_title(args[1]) # Force "Human" or "Dog" for CSV filtering
-group_name <- tolower(args[1])      # Force "human" or "dog" for path consistency
+species_name <- str_to_title(args[1]) # Force "Human" or "Canine" for CSV filtering
+group_name <- tolower(args[1])      # Force "human" or "canine" for path consistency
 
 message("Preparing downstream data for Species: ", species_name)
 

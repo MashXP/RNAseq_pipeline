@@ -26,7 +26,7 @@ metadata_raw <- read_csv("../drPhuong_Sample_Data_Table.csv", skip = 1) %>%
   filter(!is.na(Treatment)) %>%
   filter(Group == group_name)
 ```
-- **The Job**: Reads your experimental design table and filters it down to a single "Group" (e.g., Human-H9 or Dog-UL1).
+- **The Job**: Reads your experimental design table and filters it down to a single "Group" (e.g., Human-H9 or Canine-UL1).
 - **The Reasoning**: Large-scale analysis is better managed one "Cell Line Group" at a time to ensure high specificity in the results.
 
 ---

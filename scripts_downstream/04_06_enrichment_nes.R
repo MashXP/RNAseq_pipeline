@@ -66,9 +66,9 @@ make_nes_plot <- function(hallmark_res, dose_label) {
       plot.subtitle = element_text(size = 10, hjust = 0.5, margin = margin(b = 10))
     ) +
     labs(
-      title = if(grepl("^(H9|SUPM2)_", dose_label)) {
-                cl_prefix <- str_extract(dose_label, "^(H9|SUPM2)")
-                rest <- sub("^(H9|SUPM2)_", "", dose_label)
+      title = if(grepl("^(H9|SUPM2|UL1|CNK89)_", dose_label)) {
+                cl_prefix <- str_extract(dose_label, "^(H9|SUPM2|UL1|CNK89)")
+                rest <- sub("^(H9|SUPM2|UL1|CNK89)_", "", dose_label)
                 paste0(cl_prefix, ": ", str_replace_all(rest, "_", " "))
               } else {
                 paste0("Global: ", str_replace_all(dose_label, "_", " "))

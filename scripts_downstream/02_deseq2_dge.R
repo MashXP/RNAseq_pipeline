@@ -34,7 +34,7 @@ extract_gtf_attribute <- function(attr_text, key) {
 gtf_path <- if (tolower(species_name) == "human") {
   "../_data/genome/Human/Homo_sapiens.GRCh38.113.gtf"
 } else {
-  "../_data/genome/Dog/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf"
+  "../_data/genome/Canine/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf"
 }
 
 gene_map <- data.frame(gene_id = character(), gene_name = character())

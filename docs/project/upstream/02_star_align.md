@@ -1,6 +1,6 @@
 # Upstream Dissection: 02_star_align.sh
 
-This script takes the clean, trimmed reads and maps them to the 3 billion letters of the Human or Dog genome. This is the core "computational" step of the upstream pipeline.
+This script takes the clean, trimmed reads and maps them to the 3 billion letters of the Human or Canine genome. This is the core "computational" step of the upstream pipeline.
 
 ---
 
@@ -53,7 +53,7 @@ STAR --genomeDir "$INDEX_DIR/$species" \
 ```
 - **The Job**: The main mapping engine.
 - **Key Parameters**:
-    - `--genomeDir`: Pulls the specific index for either Human or Dog based on your CSV metadata.
+    - `--genomeDir`: Pulls the specific index for either Human or Canine based on your CSV metadata.
     - `--readFilesCommand gunzip -c`: Tells STAR to uncompress your data "on the fly" so you don't waste disk space.
     - `--outSAMtype BAM SortedByCoordinate`: Maps the reads AND sorts them by chromosome coordinate. This is essential for the next step (QC) and for viewing the results in a genome browser (like IGV).
     - `--quantMode GeneCounts`: Generates a "first look" at the number of reads per gene.

@@ -16,7 +16,7 @@ This report verifies that the logic, thresholds, and flow documented in `docs/up
 - **Script Verified**: `scripts_upstream/01_genome_prep.sh`
 - **Audit Findings**:
   - **Safety Flags**: `set -e` and `set -o pipefail` are accurately documented and implemented.
-  - **Genomic Sources**: Links perfectly match Ensembl Release 113 for Human and Dog.
+  - **Genomic Sources**: Links perfectly match Ensembl Release 113 for Human and Canine.
   - **Picard refFlat Transformation**: The `awk` parsing logic to convert the 12-column GenePred output into the 11-column refFlat format matches character-for-character.
   - **Trimming Logic (Trimmomatic)**: The JVM memory heuristic (`MEM_GB - 12`) and strict Illumina clip settings (`SLIDINGWINDOW:4:15 MINLEN:36`) are faithfully implemented in the script.
 - **Status**: **PASS**. Perfect alignment.
@@ -36,7 +36,7 @@ This report verifies that the logic, thresholds, and flow documented in `docs/up
 - **Script Verified**: `scripts_upstream/03_alignment_qc.sh`
 - **Audit Findings**:
   - **Resource & Concurrency Management**: Calculation for `PARALLEL_SAMPLES=4` and JVM allocation per thread (`128 / 4 - 4`) mathematically tracks with the script logic.
-  - **Dynamic refFlat Selection**: Python `parse_samples.py` combined with grep successfully pulls species info and dynamically points Picard to either the Human or Dog `.refFlat` map.
+  - **Dynamic refFlat Selection**: Python `parse_samples.py` combined with grep successfully pulls species info and dynamically points Picard to either the Human or Canine `.refFlat` map.
   - **Picard Parameters**: The execution uses the documented `--STRAND=SECOND_READ_TRANSCRIPTION_STRAND` (matching TruSeq kits) and correctly nulls ribosomal intervals.
   - **Background Job Control**: The `while` loop monitoring `jobs -r` combined with `wait` at the end functions perfectly as a traffic guard.
 - **Status**: **PASS**. Fully matches documentation.

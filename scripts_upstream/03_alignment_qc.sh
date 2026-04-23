@@ -57,7 +57,7 @@ run_qc() {
     if [ "$sample_species" == "Human" ]; then
         REFFLAT="$GENOME_DIR/Human/Homo_sapiens.GRCh38.113.refFlat"
     else
-        REFFLAT="$GENOME_DIR/Dog/Canis_lupus_familiaris.ROS_Cfam_1.0.113.refFlat"
+        REFFLAT="$GENOME_DIR/Canine/Canis_lupus_familiaris.ROS_Cfam_1.0.113.refFlat"
     fi
 
     if [ ! -f "$REFFLAT" ]; then

@@ -1,5 +1,5 @@
 # [[scripts_downstream/04_12_ortholog_gene_overlap.R]]
-# Goal: Human-Dog ortholog comparison of differential gene expression.
+# Goal: Human-Canine ortholog comparison of differential gene expression.
 # Implements mentor's gene-specific overlap logic for cross-species validation.
 
 library(tidyverse)
@@ -9,11 +9,11 @@ library(RColorBrewer)
 
 # Paths
 project_dir <- ".."
-human_results_dir <- file.path(project_dir, "results", "human", "tables")
-dog_results_dir   <- file.path(project_dir, "results", "dog", "tables")
-output_dir        <- file.path(project_dir, "results", "comparative")
-plots_dir         <- file.path(output_dir, "figures")
-tables_dir        <- file.path(output_dir, "tables")
+human_results_dir  <- file.path(project_dir, "results", "human", "tables")
+canine_results_dir <- file.path(project_dir, "results", "canine", "tables")
+output_dir         <- file.path(project_dir, "results", "comparative")
+plots_dir          <- file.path(output_dir, "figures")
+tables_dir         <- file.path(output_dir, "tables")
 
 dir.create(plots_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(tables_dir, recursive = TRUE, showWarnings = FALSE)
@@ -46,22 +46,22 @@ read_gtf_gene_map <- function(gtf_path) {
   return(out)
 }
 
-human_gtf <- file.path(project_dir, "_data", "genome", "Human", "Homo_sapiens.GRCh38.113.gtf")
-dog_gtf   <- file.path(project_dir, "_data", "genome", "Dog", "Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf")
+human_gtf  <- file.path(project_dir, "_data", "genome", "Human", "Homo_sapiens.GRCh38.113.gtf")
+canine_gtf <- file.path(project_dir, "_data", "genome", "Canine", "Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf")
 
-human_map <- read_gtf_gene_map(human_gtf)
-dog_map   <- read_gtf_gene_map(dog_gtf)
+human_map  <- read_gtf_gene_map(human_gtf)
+canine_map <- read_gtf_gene_map(canine_gtf)
 
 # Join on gene_name (the common bridge)
-ortholog_tbl <- inner_join(human_map, dog_map, by = "gene_name", suffix = c("_human", "_dog"))
+ortholog_tbl <- inner_join(human_map, canine_map, by = "gene_name", suffix = c("_human", "_canine"))
 message("Matched ", nrow(ortholog_tbl), " orthologs by gene symbol.")
 
 # 2. Comparison Logic
 # We compare matched contrasts between species
 comparisons <- data.frame(
   label = c("Romi 6nM", "Kromastat 6nM"),
-  human_stub = c("02_dge_Romi_6nM_vs_DMSO_Romi.csv", "02_dge_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
-  dog_stub   = c("02_dge_Romi_6nM_vs_DMSO_Romi.csv", "02_dge_Kromastat_6nM_vs_DMSO_Kromastat.csv")
+  human_stub  = c("02_dge_Romi_6nM_vs_DMSO_Romi.csv", "02_dge_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
+  canine_stub = c("02_dge_Romi_6nM_vs_DMSO_Romi.csv", "02_dge_Kromastat_6nM_vs_DMSO_Kromastat.csv")
 )
 
 all_merged_results <- list()
@@ -70,10 +70,10 @@ for (i in 1:nrow(comparisons)) {
   label <- comparisons$label[i]
   message("\n--- Comparing cross-species response for: ", label, " ---")
   
-  human_file <- file.path(human_results_dir, comparisons$human_stub[i])
-  dog_file   <- file.path(dog_results_dir, comparisons$dog_stub[i])
+  human_file  <- file.path(human_results_dir, comparisons$human_stub[i])
+  canine_file <- file.path(canine_results_dir, comparisons$canine_stub[i])
   
-  if (!file.exists(human_file) || !file.exists(dog_file)) {
+  if (!file.exists(human_file) || !file.exists(canine_file)) {
     message("  Warning: One or both species files missing for ", label)
     next
   }
@@ -82,15 +82,15 @@ for (i in 1:nrow(comparisons)) {
     select(gene_label, log2FoldChange, padj) %>%
     rename(h_lfc = log2FoldChange, h_padj = padj)
     
-  dog_res <- read_csv(dog_file, show_col_types = FALSE) %>%
+  canine_res <- read_csv(canine_file, show_col_types = FALSE) %>%
     select(gene_label, log2FoldChange, padj) %>%
-    rename(d_lfc = log2FoldChange, d_padj = padj)
+    rename(c_lfc = log2FoldChange, c_padj = padj)
     
-  merged <- inner_join(human_res, dog_res, by = "gene_label") %>%
+  merged <- inner_join(human_res, canine_res, by = "gene_label") %>%
     mutate(
       status = case_when(
-        h_padj < 0.05 & d_padj < 0.05 & h_lfc >= 2.0 & d_lfc >= 2.0 ~ "shared_up",
-        h_padj < 0.05 & d_padj < 0.05 & h_lfc <= -2.0 & d_lfc <= -2.0 ~ "shared_down",
+        h_padj < 0.05 & c_padj < 0.05 & h_lfc >= 2.0 & c_lfc >= 2.0 ~ "shared_up",
+        h_padj < 0.05 & c_padj < 0.05 & h_lfc <= -2.0 & c_lfc <= -2.0 ~ "shared_down",
         TRUE ~ "other"
       ),
       comparison = label
@@ -99,7 +99,7 @@ for (i in 1:nrow(comparisons)) {
   all_merged_results[[label]] <- merged
   
   # A. Scatter Plot
-  p <- ggplot(merged, aes(x = h_lfc, y = d_lfc, color = status)) +
+  p <- ggplot(merged, aes(x = h_lfc, y = c_lfc, color = status)) +
     geom_point(alpha = 0.5, size = 1.2) +
     scale_color_manual(values = c("shared_up" = "#D62728", "shared_down" = "#1F77B4", "other" = "grey80")) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
@@ -109,7 +109,7 @@ for (i in 1:nrow(comparisons)) {
       title = paste0("Ortholog Overlap: ", label),
       subtitle = "Criteria: padj < 0.05 & |log2FC| > 2",
       x = "Human log2FC",
-      y = "Dog log2FC"
+      y = "Canine log2FC"
     )
     
   safe_name <- str_replace_all(label, " ", "_")
@@ -123,7 +123,7 @@ for (i in 1:nrow(comparisons)) {
 message("\n--- Generating Conserved Ortholog Heatmap ---")
 master_df <- bind_rows(all_merged_results) %>%
   filter(status != "other") %>%
-  mutate(mean_abs_lfc = (abs(h_lfc) + abs(d_lfc)) / 2) %>%
+  mutate(mean_abs_lfc = (abs(h_lfc) + abs(c_lfc)) / 2) %>%
   arrange(desc(mean_abs_lfc))
 
 if (nrow(master_df) >= 2) {
@@ -135,9 +135,9 @@ if (nrow(master_df) >= 2) {
     
   heatmap_data <- master_df %>%
     filter(gene_label %in% top_genes) %>%
-    select(gene_label, h_lfc, d_lfc, comparison) %>%
-    pivot_longer(cols = c(h_lfc, d_lfc), names_to = "species", values_to = "lfc") %>%
-    mutate(Species = ifelse(species == "h_lfc", "Human", "Dog")) %>%
+    select(gene_label, h_lfc, c_lfc, comparison) %>%
+    pivot_longer(cols = c(h_lfc, c_lfc), names_to = "species", values_to = "lfc") %>%
+    mutate(Species = ifelse(species == "h_lfc", "Human", "Canine")) %>%
     select(-species) %>%
     pivot_wider(names_from = c(comparison, Species), values_from = lfc) %>%
     column_to_rownames("gene_label")

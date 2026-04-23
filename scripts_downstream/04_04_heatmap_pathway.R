@@ -121,7 +121,7 @@ for (contrast in names(enrichment_results_all)) {
   
   # 4. Shorten Sample Names for the plot (Thesis-Ready Aesthetics)
   colnames(mat) <- colnames(mat) %>%
-    str_remove_all("human_|dog_") %>% 
+    str_remove_all("human_|canine_") %>% 
     str_replace_all("DMSO", "D") %>%
     str_replace_all("Romidepsin|Romi", "R") %>%
     str_replace_all("Kromastat|Kroma", "K") %>%
@@ -350,7 +350,7 @@ if ("cell_line" %in% colnames(colData(dds))) {
     
     # Shorten Names
     colnames(mat) <- colnames(mat) %>%
-      str_remove_all("human_|dog_") %>% 
+      str_remove_all("human_|canine_") %>% 
       str_replace_all("DMSO", "D") %>%
       str_replace_all("Romidepsin|Romi", "R") %>%
       str_replace_all("Kromastat|Kroma", "K") %>%

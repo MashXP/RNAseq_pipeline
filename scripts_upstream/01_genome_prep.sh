@@ -21,8 +21,8 @@ declare -A FASTA_URLS
 declare -A GTF_URLS
 FASTA_URLS[Human]="https://ftp.ensembl.org/pub/release-113/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.primary_assembly.fa.gz"
 GTF_URLS[Human]="https://ftp.ensembl.org/pub/release-113/gtf/homo_sapiens/Homo_sapiens.GRCh38.113.gtf.gz"
-FASTA_URLS[Dog]="https://ftp.ensembl.org/pub/release-113/fasta/canis_lupus_familiaris/dna/Canis_lupus_familiaris.ROS_Cfam_1.0.dna.toplevel.fa.gz"
-GTF_URLS[Dog]="https://ftp.ensembl.org/pub/release-113/gtf/canis_lupus_familiaris/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf.gz"
+FASTA_URLS[Canine]="https://ftp.ensembl.org/pub/release-113/fasta/canis_lupus_familiaris/dna/Canis_lupus_familiaris.ROS_Cfam_1.0.dna.toplevel.fa.gz"
+GTF_URLS[Canine]="https://ftp.ensembl.org/pub/release-113/gtf/canis_lupus_familiaris/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf.gz"
 
 # 2. Downloading Genome Files
 echo "================================================================================"
@@ -30,7 +30,7 @@ echo "   GENOME PREPARATION: Downloading, Extracting, and Indexing"
 echo "================================================================================"
 mkdir -p "$GENOME_DIR"
 
-for species in Human Dog; do
+for species in Human Canine; do
     echo "Processing Genome for: $species"
     
     # Organize genome files into species subdirectories

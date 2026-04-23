@@ -29,7 +29,7 @@ This script utilizes the following libraries for functional annotation. See [**l
 if (species_name == "Human") {
   library(org.Hs.eg.db)
   kegg_org <- 'hsa'
-} else if (species_name == "Dog") {
+} else if (species_name == "Canine") {
   library(org.Cf.eg.db)
   kegg_org <- 'cfa'
 }

@@ -104,9 +104,9 @@ for (contrast in names(results_list)) {
     coord_cartesian(clip = "off") +
     theme_bw(base_size = 14) +
     labs(
-      title = if(grepl("^(H9|SUPM2)_", contrast)) {
-                cl_prefix <- str_extract(contrast, "^(H9|SUPM2)")
-                rest <- sub("^(H9|SUPM2)_", "", contrast)
+      title = if(grepl("^(H9|SUPM2|UL1|CNK89)_", contrast)) {
+                cl_prefix <- str_extract(contrast, "^(H9|SUPM2|UL1|CNK89)")
+                rest <- sub("^(H9|SUPM2|UL1|CNK89)_", "", contrast)
                 paste0(cl_prefix, ": ", str_replace_all(rest, "_", " "))
               } else {
                 paste0("Global: ", str_replace_all(contrast, "_", " "))

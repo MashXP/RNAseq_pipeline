@@ -1,6 +1,6 @@
 # Upstream Dissection: 01_genome_prep.sh
 
-This script is the "janitor" and the "librarian" of the pipeline. It handles the raw data cleaning and builds the genomic references for both Human and Dog models.
+This script is the "janitor" and the "librarian" of the pipeline. It handles the raw data cleaning and builds the genomic references for both Human and Canine models.
 
 ---
 
@@ -24,14 +24,14 @@ BASE_DIR=$(dirname "$(realpath "$0")")
 FASTA_URLS[Human]="https://ftp.ensembl.org/pub/release-113/fasta/homo_sapiens/dna/..."
 GTF_URLS[Human]="https://ftp.ensembl.org/pub/release-113/gtf/homo_sapiens/..."
 ```
-- **The Job**: Maps species names (Human/Dog) to specific Ensembl 113 download links.
+- **The Job**: Maps species names (Human/Canine) to specific Ensembl 113 download links.
 - **The Reasoning**: Centralizes your external dependencies. If you ever need to upgrade to Ensembl 114, you only change these lines.
 
 ---
 
 ## 3. The Species Loop: Mapping & Preparation
 ```bash
-for species in Human Dog; do
+for species in Human Canine; do
     ...
 done
 ```

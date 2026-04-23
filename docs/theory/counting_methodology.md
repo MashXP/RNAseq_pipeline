@@ -44,7 +44,7 @@ Our verification testing (**verify_mentor_discrepancy.R**) proved that while bot
 ## 6. Venn Diagram Principles: Directionality & Precision
 Comparing your drug treatments requires consistent logic. We have implemented two key principles:
 
-1.  **Why we use Ensembl IDs for overlaps**: Different genes can sometimes share the same Symbol (e.g., pseudogenes). By using Ensembl IDs for the Venn circle calculations, we ensure 100% mathematical precision. We only map back to Symbols for the final report to ensure legibility.
+1.  **Why we use Ensembl IDs for overlaps**: Different genes can sometimes share the same Symbol (e.g., pseucanineenes). By using Ensembl IDs for the Venn circle calculations, we ensure 100% mathematical precision. We only map back to Symbols for the final report to ensure legibility.
 2.  **The Importance of Directionality (Up vs. Down)**: 
     *   An **"All DEGs"** Venn can be misleading. A gene might show up in the "Shared" overlap even if it's going **UP** in drug A and **DOWN** in drug B.
     *   By separating **"Up-regulated"** and **"Down-regulated"** Venns, we isolate the truly **Conserved Mechanisms**—the specific biological pathways that both drugs are activating or silencing in the same way.

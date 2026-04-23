@@ -1,5 +1,5 @@
 # [[scripts_downstream/04_11_alluvial_plot.R]]
-# Goal: Unified Alluvial Analysis engine for Human-Dog comparative transcriptomics.
+# Goal: Unified Alluvial Analysis engine for Human-Canine comparative transcriptomics.
 # Generates both individual 2-way comparisons and master multi-axis panoramic flows.
 
 library(ggalluvial)
@@ -7,7 +7,7 @@ library(tidyverse)
 
 # Path Setup (Relative to scripts_downstream/)
 human_tables_dir <- "../results/human/tables"
-dog_tables_dir   <- "../results/dog/tables"
+canine_tables_dir   <- "../results/canine/tables"
 output_dir       <- "../results/comparative/figures"
 table_dir        <- "../results/comparative/tables"
 
@@ -53,10 +53,10 @@ nodes <- list(
   h_supm2_r = file.path(human_tables_dir, "03_gsea_hallmark_SUPM2_Romi_6nM_vs_DMSO_Romi.csv"),
   h_h9_k    = file.path(human_tables_dir, "03_gsea_hallmark_H9_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
   h_supm2_k = file.path(human_tables_dir, "03_gsea_hallmark_SUPM2_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
-  d_ul1_r   = file.path(dog_tables_dir, "03_gsea_hallmark_UL1_Romi_6nM_vs_DMSO_Romi.csv"),
-  d_cnk89_r = file.path(dog_tables_dir, "03_gsea_hallmark_CNK89_Romi_6nM_vs_DMSO_Romi.csv"),
-  d_ul1_k   = file.path(dog_tables_dir, "03_gsea_hallmark_UL1_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
-  d_cnk89_k = file.path(dog_tables_dir, "03_gsea_hallmark_CNK89_Kromastat_6nM_vs_DMSO_Kromastat.csv")
+  d_ul1_r   = file.path(canine_tables_dir, "03_gsea_hallmark_UL1_Romi_6nM_vs_DMSO_Romi.csv"),
+  d_cnk89_r = file.path(canine_tables_dir, "03_gsea_hallmark_CNK89_Romi_6nM_vs_DMSO_Romi.csv"),
+  d_ul1_k   = file.path(canine_tables_dir, "03_gsea_hallmark_UL1_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
+  d_cnk89_k = file.path(canine_tables_dir, "03_gsea_hallmark_CNK89_Kromastat_6nM_vs_DMSO_Kromastat.csv")
 )
 
 message("Merging datasets for unified analysis...")
@@ -124,10 +124,10 @@ make_alluvial_plot <- function(df, axes_cols, labels, title, filename_base, is_m
 # --- Part 1: Individual Comparative Plots ---
 message("Generating individual comparisons...")
 comparisons <- list(
-  list(cols = c("h_h9_r", "d_ul1_r"), labels = c("Human:H9", "Dog:UL1"), title = "Romidepsin Response (H9 vs UL1)", name = "04_11_alluvial_comp_Romi_H9_vs_UL1"),
-  list(cols = c("h_supm2_r", "d_cnk89_r"), labels = c("Human:SUPM2", "Dog:CNK89"), title = "Romidepsin Response (SUPM2 vs CNK89)", name = "04_11_alluvial_comp_Romi_SUPM2_vs_CNK89"),
-  list(cols = c("h_h9_k", "d_ul1_k"), labels = c("Human:H9", "Dog:UL1"), title = "Kromastat Response (H9 vs UL1)", name = "04_11_alluvial_comp_Kroma_H9_vs_UL1"),
-  list(cols = c("h_supm2_k", "d_cnk89_k"), labels = c("Human:SUPM2", "Dog:CNK89"), title = "Kromastat Response (SUPM2 vs CNK89)", name = "04_11_alluvial_comp_Kroma_SUPM2_vs_CNK89")
+  list(cols = c("h_h9_r", "d_ul1_r"), labels = c("Human:H9", "Canine:UL1"), title = "Romidepsin Response (H9 vs UL1)", name = "04_11_alluvial_comp_Romi_H9_vs_UL1"),
+  list(cols = c("h_supm2_r", "d_cnk89_r"), labels = c("Human:SUPM2", "Canine:CNK89"), title = "Romidepsin Response (SUPM2 vs CNK89)", name = "04_11_alluvial_comp_Romi_SUPM2_vs_CNK89"),
+  list(cols = c("h_h9_k", "d_ul1_k"), labels = c("Human:H9", "Canine:UL1"), title = "Kromastat Response (H9 vs UL1)", name = "04_11_alluvial_comp_Kroma_H9_vs_UL1"),
+  list(cols = c("h_supm2_k", "d_cnk89_k"), labels = c("Human:SUPM2", "Canine:CNK89"), title = "Kromastat Response (SUPM2 vs CNK89)", name = "04_11_alluvial_comp_Kroma_SUPM2_vs_CNK89")
 )
 
 for (comp in comparisons) {
@@ -141,7 +141,7 @@ make_alluvial_plot(
   master_df,
   axes_cols = c("h_h9_r", "h_supm2_r", "d_ul1_r", "d_cnk89_r"),
   labels    = c("H9 (Romi)", "SUPM2 (Romi)", "UL1 (Romi)", "CNK89 (Romi)"),
-  title     = "Master Romidepsin Phenotypic Flow (Healthy -> Cancer | Human -> Dog)",
+  title     = "Master Romidepsin Phenotypic Flow (Healthy -> Cancer | Human -> Canine)",
   filename_base = "04_11_alluvial_master_romidepsin"
 )
 
@@ -150,7 +150,7 @@ make_alluvial_plot(
   master_df,
   axes_cols = c("h_h9_k", "h_supm2_k", "d_ul1_k", "d_cnk89_k"),
   labels    = c("H9 (Kroma)", "SUPM2 (Kroma)", "UL1 (Kroma)", "CNK89 (Kroma)"),
-  title     = "Master Kromastat Phenotypic Flow (Healthy -> Cancer | Human -> Dog)",
+  title     = "Master Kromastat Phenotypic Flow (Healthy -> Cancer | Human -> Canine)",
   filename_base = "04_11_alluvial_master_kromastat"
 )
 
@@ -158,7 +158,7 @@ make_alluvial_plot(
 make_alluvial_plot(
   master_df,
   axes_cols = c("h_supm2_r", "h_supm2_k", "d_cnk89_r", "d_cnk89_k"),
-  labels    = c("Human:Romi", "Human:Kroma", "Dog:Romi", "Dog:Kroma"),
+  labels    = c("Human:Romi", "Human:Kroma", "Canine:Romi", "Canine:Kroma"),
   title     = "Master Drug-Species Bridge (Aggressive/Cancer Lines)",
   filename_base = "04_11_alluvial_master_bridge_aggressive"
 )

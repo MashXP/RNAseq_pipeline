@@ -12,7 +12,7 @@ for sp in $species_list; do
     ...
 done
 ```
-- **The Job**: This loop reads your CSV and identifies the unique Species (e.g., Human or Dog).
+- **The Job**: This loop reads your CSV and identifies the unique Species (e.g., Human or Canine).
 - **The Reasoning**:
     - **Efficiency**: It processes all samples from the same species at once.
     - **Modularity**: This generates one consolidated count table per species in the `_data/featurecounts/` directory, which simplifies the multi-cell-line comparisons required for the "Krom vs Romi" study.
@@ -24,11 +24,11 @@ done
 if [ "$sp" == "Human" ]; then
     GTF_FILE="$GENOME_DIR/Human/Homo_sapiens.GRCh38.113.gtf"
 else
-    GTF_FILE="$GENOME_DIR/Dog/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf"
+    GTF_FILE="$GENOME_DIR/Canine/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf"
 fi
 ```
 - **The Job**: Automatically selects the correct mapping file for the current species.
-- **The Reasoning**: Human (GRCh38) and Dog (ROS_Cfam_1.0) have entirely different genetic coordinates. Using the wrong GTF would result in exactly zero counts. This block ensures matching-model accuracy.
+- **The Reasoning**: Human (GRCh38) and Canine (ROS_Cfam_1.0) have entirely different genetic coordinates. Using the wrong GTF would result in exactly zero counts. This block ensures matching-model accuracy.
 
 ---
 

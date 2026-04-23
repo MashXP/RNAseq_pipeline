@@ -32,12 +32,14 @@ for sp in $species_list; do
     echo "-----------------------------------------------------"
     echo "Processing Species: $sp"
     
-    mkdir -p "$FEATURECOUNTS_DIR/$sp"
+    # Use lowercase for paths
+    sp_lower=$(echo "$sp" | tr '[:upper:]' '[:lower:]')
+    mkdir -p "$FEATURECOUNTS_DIR/$sp_lower"
 
     if [ "$sp" == "Human" ]; then
         GTF_FILE="$GENOME_DIR/Human/Homo_sapiens.GRCh38.113.gtf"
     else
-        GTF_FILE="$GENOME_DIR/Dog/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf"
+        GTF_FILE="$GENOME_DIR/Canine/Canis_lupus_familiaris.ROS_Cfam_1.0.113.gtf"
     fi
 
     if [ ! -f "$GTF_FILE" ]; then
@@ -61,21 +63,21 @@ for sp in $species_list; do
     fi
 
     echo "1. Counting Reads per Gene (gene_id)..."
-    featureCounts -p -s 2 -T "$THREADS" -t exon -g gene_id -a "$GTF_FILE" -o "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_counts.tsv" $files
+    featureCounts -p -s 2 -T "$THREADS" -t exon -g gene_id -a "$GTF_FILE" -o "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_counts.tsv" $files
 
     echo "2. Counting Reads per Biotype (gene_biotype)..."
     # Output to raw file first, then process with biotype_to_multiqc.py
-    featureCounts -p -s 2 -T "$THREADS" -t exon -g gene_biotype -a "$GTF_FILE" -o "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_biotype_counts_raw.tsv" $files
+    featureCounts -p -s 2 -T "$THREADS" -t exon -g gene_biotype -a "$GTF_FILE" -o "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_biotype_counts_raw.tsv" $files
 
     if python3 -c "import pandas" &> /dev/null; then
         echo "3. Processing Biotypes..."
         python3 "$UTILS_DIR/biotype_to_multiqc.py" \
-            "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_biotype_counts_raw.tsv" \
-            "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_biotype_counts.tsv"
+            "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_biotype_counts_raw.tsv" \
+            "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_biotype_counts.tsv"
     else
-        echo "Warning: pandas not found. Skipping biotype processing. Raw file saved as ${sp}_featurecounts_biotype_counts_raw.tsv"
-        mv "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_biotype_counts_raw.tsv" "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_biotype_counts.tsv"
-        mv "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_biotype_counts_raw.tsv.summary" "$FEATURECOUNTS_DIR/$sp/${sp}_featurecounts_biotype_counts.tsv.summary"
+        echo "Warning: pandas not found. Skipping biotype processing. Raw file saved as ${sp_lower}_featurecounts_biotype_counts_raw.tsv"
+        mv "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_biotype_counts_raw.tsv" "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_biotype_counts.tsv"
+        mv "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_biotype_counts_raw.tsv.summary" "$FEATURECOUNTS_DIR/$sp_lower/${sp_lower}_featurecounts_biotype_counts.tsv.summary"
     fi 
 done
 
