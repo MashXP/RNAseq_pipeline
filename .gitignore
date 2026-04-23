@@ -14,7 +14,7 @@
 _data/bam/
 _data/qc/
 _data/qc_raw
-_data/counts/
+_data/featurecounts/
 _data/fastq_trimmed/
 _data/genome/
 _data/index/
@@ -75,3 +75,4 @@ test_neo
 
 verify_discrepancy.R
 cancer_downstream
+_hpc/counts
