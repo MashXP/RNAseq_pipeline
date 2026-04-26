@@ -14,7 +14,7 @@ The PCA plot visualizes the overall transcriptomic variance across the 24 human 
 
 ### 1.2 Quality Control:
 - **Replicate Fidelity**: Replicates for each condition are tightly clustered, confirming high technical reproducibility. 
-- **Control Consistency**: Crucially, the **DMSO_Romi** and **DMSO_Kromastat** samples for each cell line are clumped together at the baseline. This confirms that the control state is stable and consistent across groups, providing a robust reference for calculating differential expression.
+- **Control Consistency**: Crucially, the **DMSO_Romidepsin** and **DMSO_Kromastat** samples for each cell line are clumped together at the baseline. This confirms that the control state is stable and consistent across groups, providing a robust reference for calculating differential expression.
 
 ### 1.3 Sub-PCA (Cell Line Specific):
 To remove the overwhelming variance of the cell line identity and focus on drug effects, we analyzed the lines individually:
@@ -33,10 +33,10 @@ The combined dashboard provides a bird's-eye view of all 8 contrasts used to val
 [Volcano Plot Overview|1000](../../results/human/figures/04_02_volcano_combined.png)
 
 #### 2.1.1 Control Group Validation
-- **Contrast**: `DMSO_Kromastat_vs_DMSO_Romi`
+- **Contrast**: `DMSO_Kromastat_vs_DMSO_Romidepsin`
 - **Finding**: **0 Significant DEGs**. 
 
-![DMSO Control Validation|500](../../results/human/figures/04_02_volcano_DMSO_Kromastat_vs_DMSO_Romi.png)
+![DMSO Control Validation|500](../../results/human/figures/04_02_volcano_DMSO_Kromastat_vs_DMSO_Romidepsin.png)
 
 - **Conclusion**: This "blank" plot confirms that the two control groups are identical. Any downstream results are strictly due to the drug treatments.
 
@@ -54,7 +54,7 @@ Romidepsin induces a broader and more balanced transcriptomic response, while Kr
 ### 2.2 Global Head-to-Head: Romidepsin vs. Kromastat
 This contrast directly compares the two drugs at the same 6nM dose to identify unique mechanisms of action.
 
-![Romi vs Kroma Volcano|500](../../results/human/figures/04_02_volcano_Romi_6nM_vs_Kromastat_6nM.png)
+![Romidepsin vs Kromastat Volcano|500](../../results/human/figures/04_02_volcano_Romidepsin_6nM_vs_Kromastat_6nM.png)
 
 - **Genes higher in Romidepsin (Red)**: Includes **419 genes** (e.g., `CALCOCO1`, `CRISPLD2`, and `BAIAP2`). These represent pathways where Romidepsin has a more potent "overdrive" effect compared to Kromastat.
 - **Genes higher in Kromastat (Blue)**: Includes **158 genes** (e.g., `LPXN`, `SLC38A1`, and `SASH3`). Despite being less potent overall, Kromastat uniquely or more strongly regulates these specific targets.
@@ -65,7 +65,7 @@ This contrast directly compares the two drugs at the same 6nM dose to identify u
 > - **Global Counts**: [04_02_dge_summary_stats.csv](../../results/human/tables/04_02_dge_summary_stats.csv)
 > - **Top Genes (5 Up / 5 Down)**: [04_02_top_dge_genes.csv](../../results/human/tables/04_02_top_dge_genes.csv)
 
-#### Top Differential Representatives (Romi vs. Kroma)
+#### Top Differential Representatives (Romidepsin vs. Kromastat)
 
 | Direction | Gene Symbol | log2FoldChange | padj |
 | :--- | :--- | ---: | ---: |
@@ -96,8 +96,8 @@ To understand if drug sensitivity varies between backgrounds, we analyzed the li
 
 | Cell Line             | Romidepsin (6nM)                                                                           | Kromastat (6nM)                                                                                       |
 | :-------------------- | :----------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
-| **H9 (Healthy-like)** | ![H9 Romi\|500](../../results/human/figures/04_02_volcano_H9_Romi_6nM_vs_DMSO_Romi.png)       | ![H9 Kroma\|500](../../results/human/figures/04_02_volcano_H9_Kromastat_6nM_vs_DMSO_Kromastat.png)       |
-| **SUPM2 (Cancer)**    | ![SUPM2 Romi\|500](../../results/human/figures/04_02_volcano_SUPM2_Romi_6nM_vs_DMSO_Romi.png) | ![SUPM2 Kroma\|500](../../results/human/figures/04_02_volcano_SUPM2_Kromastat_6nM_vs_DMSO_Kromastat.png) |
+| **H9 (Healthy-like)** | ![H9 Romidepsin\|500](../../results/human/figures/04_02_volcano_H9_Romidepsin_6nM_vs_DMSO_Romidepsin.png)       | ![H9 Kromastat\|500](../../results/human/figures/04_02_volcano_H9_Kromastat_6nM_vs_DMSO_Kromastat.png)       |
+| **SUPM2 (Cancer)**    | ![SUPM2 Romidepsin\|500](../../results/human/figures/04_02_volcano_SUPM2_Romidepsin_6nM_vs_DMSO_Romidepsin.png) | ![SUPM2 Kromastat\|500](../../results/human/figures/04_02_volcano_SUPM2_Kromastat_6nM_vs_DMSO_Kromastat.png) |
 
 #### Key Observations:
 1. **Response Magnitude**: The cancer cell line (**SUPM2**) shows a higher number of DEGs (**4,840**) compared to the healthy-like line (**H9: 3,910**) when treated with Romidepsin. A similar trend holds for Kromastat, suggesting a higher transcriptomic reactivity in the cancer background across HDAC inhibitors.
@@ -147,14 +147,14 @@ To ensure these overlaps are biologically meaningful and not due to chance, we c
 | **Down-regulated** | 2.95e-90 | 0.090 | **26.9x** |
 
 > [!TIP]
-> **Full Statistical Report**: The complete overlap metrics (including Romi/Kroma set sizes) are exported to: [04_03_venn_rigor_stats.csv](../../results/human/tables/04_03_venn_rigor_stats.csv)
+> **Full Statistical Report**: The complete overlap metrics (including Romidepsin/Kromastat set sizes) are exported to: [04_03_venn_rigor_stats.csv](../../results/human/tables/04_03_venn_rigor_stats.csv)
 
 **Conclusion**: The overlap is highly significant (p < 2e-16). The **26.9x Representation Factor** for down-regulated genes is particularly striking; it suggests that while Romidepsin silences fewer genes than it activates, the ones it *does* share with Kromastat are part of an extremely rigid, conserved silencing program.
 
 ### 3.2 Top Shared Targets
 These genes represent the "Core Response" triggered by both inhibitors, strictly sorted by combined significance:
 
-| Direction | Gene Symbol | LFC (Romi) | LFC (Kroma) | Max padj | Biological Context |
+| Direction | Gene Symbol | LFC (Romidepsin) | LFC (Kromastat) | Max padj | Biological Context |
 | :--- | :--- | ---: | ---: | :--- | :--- |
 | **Up-regulated** 🔴 | **EPAS1** | +3.05 | +2.93 | 0.0 | Hypoxia/Angiogenesis |
 | | **GSN** | +4.71 | +4.09 | 3.73e-225 | Cytoskeleton/Apoptosis |
@@ -170,7 +170,7 @@ These genes represent the "Core Response" triggered by both inhibitors, strictly
 #### Chromatin Sanity Check: RCC1/RCC2 Suppression
 While `RCC1/RCC2` fall slightly below the strict |LFC| > 2.0 threshold in the Kromastat group, their suppression is statistically undeniable across both inhibitors. This confirms a shared impact on **Regulators of Chromosome Condensation**, a key feature of Class I HDAC inhibition.
 
-| Gene | Log2FC (Romi) | padj (Romi) | Log2FC (Kroma) | padj (Kroma) |
+| Gene | Log2FC (Romidepsin) | padj (Romidepsin) | Log2FC (Kromastat) | padj (Kromastat) |
 | :--- | ---: | :--- | ---: | :--- |
 | **RCC2** | -2.77 | 0.0 | -1.64 | 6.63e-121 |
 | **RCC1** | -1.97 | 0.0 | -1.09 | 2.73e-97 |
@@ -211,9 +211,9 @@ This suggests that the "potency gap" observed in the PCA is largely driven by Ro
 This section summarizes the global biological shifts using the Normalized Enrichment Score (NES) from Gene Set Enrichment Analysis (GSEA), providing a quantitative rank of the pathways most impacted by drug treatment.
 
 > [!NOTE]
-> **Combined Plot Curation**: The combined NES barplot is curated to the **5 biologically informative contrasts** (H9 and SUPM2 per-drug, plus the direct Romi vs. Kromastat comparison). Three contrasts are intentionally excluded from the combined figure but are preserved as individual plots for reference:
-> - **`DMSO_Kromastat_vs_DMSO_Romi`**: Vehicle QC baseline — near-empty by design, confirming biological equivalence of control conditions.
-> - **`Romi_6nM_vs_DMSO_Romi`** and **`Kromastat_6nM_vs_DMSO_Kromastat`**: Global contrasts that pool H9 and SUPM2 together, producing statistically weaker and harder-to-interpret signals compared to the cell-line-specific analyses.
+> **Combined Plot Curation**: The combined NES barplot is curated to the **5 biologically informative contrasts** (H9 and SUPM2 per-drug, plus the direct Romidepsin vs. Kromastat comparison). Three contrasts are intentionally excluded from the combined figure but are preserved as individual plots for reference:
+> - **`DMSO_Kromastat_vs_DMSO_Romidepsin`**: Vehicle QC baseline — near-empty by design, confirming biological equivalence of control conditions.
+> - **`Romidepsin_6nM_vs_DMSO_Romidepsin`** and **`Kromastat_6nM_vs_DMSO_Kromastat`**: Global contrasts that pool H9 and SUPM2 together, producing statistically weaker and harder-to-interpret signals compared to the cell-line-specific analyses.
 
 ![Combined Hallmark NES](../../results/human/figures/04_06_hallmark_nes_combined.png)
 ### 6.1 Global Functional Response
@@ -221,7 +221,7 @@ The global analysis identifies the core transcriptomic shifts triggered by each 
 
 | Romidepsin (6nM) vs DMSO                                                                | Kromastat (6nM) vs DMSO                                                                            |
 | :-------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------- |
-| ![Romi NES\|600](../../results/human/figures/04_06_hallmark_nes_Romi_6nM_vs_DMSO_Romi.png) | ![Kroma NES\|600](../../results/human/figures/04_06_hallmark_nes_Kromastat_6nM_vs_DMSO_Kromastat.png) |
+| ![Romidepsin NES\|600](../../results/human/figures/04_06_hallmark_nes_Romidepsin_6nM_vs_DMSO_Romidepsin.png) | ![Kromastat NES\|600](../../results/human/figures/04_06_hallmark_nes_Kromastat_6nM_vs_DMSO_Kromastat.png) |
 
 #### **Observations**:
 - **Conserved Suppression**: Both drugs trigger a massive "Proliferation Crash," with **Myc Targets V1**, **E2f Targets**, and **G2m Checkpoint** as the top suppressed signatures. **Tnfa Signaling via Nfkb** leads all activated signatures for both drugs (NES ≈ +2.24), representing a universal chromatin-stress response.
@@ -234,11 +234,11 @@ Individual analysis of the H9 lineage reveals how these drugs affect a "healthy"
 
 | H9: Romidepsin (6nM)                                                                          | H9: Kromastat (6nM)                                                                                      |
 | :-------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------- |
-| ![H9 Romi NES\|500](../../results/human/figures/04_06_hallmark_nes_H9_Romi_6nM_vs_DMSO_Romi.png) | ![H9 Kroma NES\|500](../../results/human/figures/04_06_hallmark_nes_H9_Kromastat_6nM_vs_DMSO_Kromastat.png) |
+| ![H9 Romidepsin NES\|500](../../results/human/figures/04_06_hallmark_nes_H9_Romidepsin_6nM_vs_DMSO_Romidepsin.png) | ![H9 Kromastat NES\|500](../../results/human/figures/04_06_hallmark_nes_H9_Kromastat_6nM_vs_DMSO_Kromastat.png) |
 
 - **Shared Core**: Both drugs show the canonical proliferation crash (**Myc Targets V1**, **Myc Targets V2**, **E2f Targets**, **G2m Checkpoint**) as the dominant suppressed signatures in H9.
-- **Romi-Specific Suppression in H9**: Romidepsin additionally suppresses **Allograft Rejection** and **IL2-STAT5 Signaling** in H9 — both immune-modulatory pathways — confirming a more immunosuppressive character even in the healthy background.
-- **Divergent Activation in H9**: While both drugs activate **Apoptosis** and the **P53 Pathway** in H9, Kromastat induces a more robust activation of these signatures (Kroma NES ≈ +1.89 vs Romi NES ≈ +1.65). This indicates Kromastat engages a cleaner, p53-driven apoptotic programme in the healthy lineage, whereas Romidepsin's response is more dominated by broader cytotoxic stress.
+- **Romidepsin-Specific Suppression in H9**: Romidepsin additionally suppresses **Allograft Rejection** and **IL2-STAT5 Signaling** in H9 — both immune-modulatory pathways — confirming a more immunosuppressive character even in the healthy background.
+- **Divergent Activation in H9**: While both drugs activate **Apoptosis** and the **P53 Pathway** in H9, Kromastat induces a more robust activation of these signatures (Kromastat NES ≈ +1.89 vs Romidepsin NES ≈ +1.65). This indicates Kromastat engages a cleaner, p53-driven apoptotic programme in the healthy lineage, whereas Romidepsin's response is more dominated by broader cytotoxic stress.
 
 ---
 
@@ -247,21 +247,21 @@ The cancer-specific response highlights the "Growth Crushing" effectiveness of e
 
 | SUPM2: Romidepsin (6nM)                                                                             | SUPM2: Kromastat (6nM)                                                                                         |
 | :-------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------- |
-| ![SUPM2 Romi NES\|600](../../results/human/figures/04_06_hallmark_nes_SUPM2_Romi_6nM_vs_DMSO_Romi.png) | ![SUPM2 Kroma NES\|600](../../results/human/figures/04_06_hallmark_nes_SUPM2_Kromastat_6nM_vs_DMSO_Kromastat.png) |
+| ![SUPM2 Romidepsin NES\|600](../../results/human/figures/04_06_hallmark_nes_SUPM2_Romidepsin_6nM_vs_DMSO_Romidepsin.png) | ![SUPM2 Kromastat NES\|600](../../results/human/figures/04_06_hallmark_nes_SUPM2_Kromastat_6nM_vs_DMSO_Kromastat.png) |
 
 - **Leading Suppression**: In both SUPM2 plots, **E2f Targets** is the single most suppressed hallmark (NES ≈ −3.0), overtaking **Myc Targets V1** — reflecting maximal disruption of the G1/S transition in the cancer background.
 - **Conserved Stress Activation in SUPM2**: Both drugs show significant activation of **Apoptosis**, **P53 Pathway**, and **KRAS Signaling Up** in the cancer background. This co-activation of apoptotic and oncogenic stress pathways is a signature of terminal cancer cell stress — cells simultaneously dying and mounting a survival response.
-- **Divergent Inflammatory Response in SUPM2**: While both drugs activate **Complement** (Romi NES ≈ +2.05, Kroma NES ≈ +2.33), Kromastat triggers a broader immune and inflammatory activation profile, including significantly stronger activation of **Il2 Stat5 Signaling** and the **Inflammatory Response** hallmark compared to Romidepsin.
+- **Divergent Inflammatory Response in SUPM2**: While both drugs activate **Complement** (Romidepsin NES ≈ +2.05, Kromastat NES ≈ +2.33), Kromastat triggers a broader immune and inflammatory activation profile, including significantly stronger activation of **Il2 Stat5 Signaling** and the **Inflammatory Response** hallmark compared to Romidepsin.
 
 ---
 
 ### 6.4 Direct Comparison: Romidepsin vs. Kromastat
 This contrast directly visualizes the functional difference between the two drugs at the same 6nM molarity.
 
-![Romi vs Kroma NES|600](../../results/human/figures/04_06_hallmark_nes_Romi_6nM_vs_Kromastat_6nM.png)
+![Romidepsin vs Kromastat NES|600](../../results/human/figures/04_06_hallmark_nes_Romidepsin_6nM_vs_Kromastat_6nM.png)
 
-- **Romi is more suppressive of immune signalling**: The "Suppressed" panel (pathways MORE active in Kromastat than Romidepsin) is dominated by **Interferon Alpha Response (NES −2.36)**, **Allograft Rejection (NES −2.34)**, and **Interferon Gamma Response (NES −2.19)**. This quantitatively confirms that Kromastat preserves immune signalling that Romidepsin shuts down.
-- **Romi shows a stronger non-immune stress response**: The "Activated" panel (pathways MORE active in Romi vs Kroma) shows **Tnfa Signaling via Nfkb**, **Myogenesis**, **Heme Metabolism**, and **Coagulation** — confirming Romidepsin triggers a more intense cytotoxic stress response.
+- **Romidepsin is more suppressive of immune signalling**: The "Suppressed" panel (pathways MORE active in Kromastat than Romidepsin) is dominated by **Interferon Alpha Response (NES −2.36)**, **Allograft Rejection (NES −2.34)**, and **Interferon Gamma Response (NES −2.19)**. This quantitatively confirms that Kromastat preserves immune signalling that Romidepsin shuts down.
+- **Romidepsin shows a stronger non-immune stress response**: The "Activated" panel (pathways MORE active in Romidepsin vs Kromastat) shows **Tnfa Signaling via Nfkb**, **Myogenesis**, **Heme Metabolism**, and **Coagulation** — confirming Romidepsin triggers a more intense cytotoxic stress response.
 
 ---
 
@@ -288,8 +288,8 @@ This section cross-validates the NES barplot findings using the multi-contrast H
 
 > [!NOTE]
 > **Combined Plot Curation**: Consistent with the NES barplot (Section 6), the combined dotplot is curated to the **5 biologically informative contrasts**. The following are excluded from the combined figure but preserved as individual saved plots:
-> - **`DMSO_Kromastat_vs_DMSO_Romi`**: Vehicle QC baseline — near-empty by design. Its individual plot confirms biological equivalence of control conditions.
-> - **`Romi_6nM_vs_DMSO_Romi`** and **`Kromastat_6nM_vs_DMSO_Kromastat`**: Global contrasts pooling both cell lines, producing weaker and harder-to-interpret signals.
+> - **`DMSO_Kromastat_vs_DMSO_Romidepsin`**: Vehicle QC baseline — near-empty by design. Its individual plot confirms biological equivalence of control conditions.
+> - **`Romidepsin_6nM_vs_DMSO_Romidepsin`** and **`Kromastat_6nM_vs_DMSO_Kromastat`**: Global contrasts pooling both cell lines, producing weaker and harder-to-interpret signals.
 
 ### 7.1 Global Overview
 
@@ -306,13 +306,13 @@ The combined plot reveals an immediately clear architecture:
 
 #### **Romidepsin (H9 and SUPM2)**
 
-|                                      H9 — Romi 6nM vs. DMSO                                       |                                        SUPM2 — Romi 6nM vs. DMSO                                        |
+|                                      H9 — Romidepsin 6nM vs. DMSO                                       |                                        SUPM2 — Romidepsin 6nM vs. DMSO                                        |
 | :-----------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------: |
-| ![H9 Romi Dotplot\|500](../../results/human/figures/04_07_gsea_dotplot_H9_Romi_6nM_vs_DMSO_Romi.png) | ![SUPM2 Romi Dotplot\|500](../../results/human/figures/04_07_gsea_dotplot_SUPM2_Romi_6nM_vs_DMSO_Romi.png) |
+| ![H9 Romidepsin Dotplot\|500](../../results/human/figures/04_07_gsea_dotplot_H9_Romidepsin_6nM_vs_DMSO_Romidepsin.png) | ![SUPM2 Romidepsin Dotplot\|500](../../results/human/figures/04_07_gsea_dotplot_SUPM2_Romidepsin_6nM_vs_DMSO_Romidepsin.png) |
 
 - **Suppression** is the dominant signal. Large, dark blue dots for **Myc Targets V1**, **E2f Targets**, **G2m Checkpoint**, and **Myc Targets V2** appear in both H9 and SUPM2, indicating a potent and consistent proliferative shutdown.
 - **Immune suppression** is visible specifically in the Romidepsin panels: **Allograft Rejection**, **Interferon Alpha Response**, and **Interferon Gamma Response** all carry blue dots of moderate-to-large size — these are entirely absent from the Kromastat panels, confirming drug-specific immune-sparing divergence.
-- **SUPM2+Romi** uniquely shows co-activation of **Apoptosis** and **Kras Signaling Up** — the terminal stress signature observed in the NES barplots is confirmed here with high leading-edge counts (large dot size).
+- **SUPM2+Romidepsin** uniquely shows co-activation of **Apoptosis** and **Kras Signaling Up** — the terminal stress signature observed in the NES barplots is confirmed here with high leading-edge counts (large dot size).
 
 ---
 
@@ -328,11 +328,11 @@ The combined plot reveals an immediately clear architecture:
 
 ---
 
-#### **Direct Romi vs. Kromastat Comparison**
+#### **Direct Romidepsin vs. Kromastat Comparison**
 
-| Romi 6nM vs. Kromastat 6nM |
+| Romidepsin 6nM vs. Kromastat 6nM |
 | :---: |
-| ![Romi vs Kromastat Dotplot\|500](../../results/human/figures/04_07_gsea_dotplot_Romi_6nM_vs_Kromastat_6nM.png) |
+| ![Romidepsin vs Kromastat Dotplot\|500](../../results/human/figures/04_07_gsea_dotplot_Romidepsin_6nM_vs_Kromastat_6nM.png) |
 
 - **Suppressed (blue, right side)** — pathways where Romidepsin drives **lower activity than Kromastat**: **Myc Targets V1**, **G2m Checkpoint**, **E2f Targets**, **Allograft Rejection**, **Interferon Alpha Response**, **Interferon Gamma Response**, **Mtorc1 Signaling**, and **Il2 Stat5 Signaling**. This indicates Kromastat preserves both proliferative and immune signalling infrastructure at a comparatively higher level.
 - **Activated (red, left side)** — pathways where Romidepsin shows **higher activity than Kromastat**: **Tnfa Signaling via Nfkb**, **Myogenesis**, **Heme Metabolism**, and **Coagulation** — a stress-inflammatory signature unique to Romidepsin's mechanism.
@@ -366,11 +366,11 @@ We analyzed the overlap of significant DEGs (defined by `padj < 0.05` and `|log2
 
 | Observation Category | Key Finding | Biological Interpretation |
 |:---|:---|:---|
-| **Magnitude of Response** | SUPM2 Romi has the largest set (~7500+ DEGs [REVERIFY]) | Romidepsin triggers a massively broader transcriptional response in SUPM2, confirming its heightened sensitivity compared to other conditions. |
-| **Comparative Potency** | H9 Romi is the second largest set (~5500+ DEGs [REVERIFY]) | Romidepsin consistently acts as a highly potent perturbagen across different cellular backgrounds. |
+| **Magnitude of Response** | SUPM2 Romidepsin has the largest set (~7500+ DEGs [REVERIFY]) | Romidepsin triggers a massively broader transcriptional response in SUPM2, confirming its heightened sensitivity compared to other conditions. |
+| **Comparative Potency** | H9 Romidepsin is the second largest set (~5500+ DEGs [REVERIFY]) | Romidepsin consistently acts as a highly potent perturbagen across different cellular backgrounds. |
 | **Drug Selectivity** | Kromastat sets are notably smaller (~3000–4000 DEGs [REVERIFY]) | Consistent with its targeted profile, Kromastat acts as a more selective perturbagen, inducing a focused transcriptome-wide footprint. |
-| **Cell-Line Specificity** | Largest unique intersection = SUPM2 Romi (2,641) [REVERIFY] | A significant core of genes is uniquely regulated by Romidepsin in SUPM2, likely representing cell-line-specific sensitivity pathways. |
-| **Mechanism Consistency** | H9 Krom ∩ SUPM2 Krom consensus (2,364 DEGs) [REVERIFY] | Despite smaller absolute set sizes, Kromastat displays high cross-cell-line concordance, indicating a very stable mechanistic action. |
+| **Cell-Line Specificity** | Largest unique intersection = SUPM2 Romidepsin (2,641) [REVERIFY] | A significant core of genes is uniquely regulated by Romidepsin in SUPM2, likely representing cell-line-specific sensitivity pathways. |
+| **Mechanism Consistency** | H9 Kromastat ∩ SUPM2 Kromastat consensus (2,364 DEGs) [REVERIFY] | Despite smaller absolute set sizes, Kromastat displays high cross-cell-line concordance, indicating a very stable mechanistic action. |
 | **Conserved HDAC Core** | 4-way all-condition overlap (45 genes) [REVERIFY] | These 45 genes are significant across ALL conditions and cell lines, representing the "gold-standard" conserved targets of HDAC inhibition. |
 
 ### 8.2 Global Transcriptomic Concordance (LFC Correlation)
@@ -381,10 +381,10 @@ While intersectional analysis uses binary cutoffs, the LFC correlation evaluates
 
 | Analysis Dimension | Resulting Observation | Biological Significance |
 |:---|:---|:---|
-| **Global Correlation** | Moderate R values for both (Romi: 0.537, Krom: 0.483) | There is a clear, statistically significant positive correlation in drug-induced regulation across both cell lines, proving a conserved mechanism. |
-| **Directional Consensus** | Romi R (0.537) > Krom R (0.483) | Romidepsin yields slightly higher cross-line concordance, as its stronger primary signal effectively overcomes baseline cell-line noise. |
+| **Global Correlation** | Moderate R values for both (Romidepsin: 0.537, Krom: 0.483) | There is a clear, statistically significant positive correlation in drug-induced regulation across both cell lines, proving a conserved mechanism. |
+| **Directional Consensus** | Romidepsin R (0.537) > Kromastat R (0.483) | Romidepsin yields slightly higher cross-line concordance, as its stronger primary signal effectively overcomes baseline cell-line noise. |
 | **Consensus Mapping** | Dominant "Consensus" (red) cluster along the diagonal | The majority of biologically relevant DEGs agree in both direction and significance, validating the use of multifactorial modeling. |
-| **Sensitivity Profile** | Romi has a significantly wider LFC range (±15) | SUPM2's response to Romidepsin includes extreme LFC outliers, further confirming the extreme sensitivity of this model. |
+| **Sensitivity Profile** | Romidepsin has a significantly wider LFC range (±15) | SUPM2's response to Romidepsin includes extreme LFC outliers, further confirming the extreme sensitivity of this model. |
 | **Modulation Precision** | Kromastat range is compressed (−4 to +8 LFC) | Kromastat provides a more refined, less disruptive transcriptomic modulation compared to the global shock induced by Romidepsin. |
 | **Divergence Clusters** | "Specific" (blue) dots scattered off-diagonal | These represent true biological divergence between the cell lines, ensuring the models capture a representative range of T-cell lymphoma heterogeneity. |
 
