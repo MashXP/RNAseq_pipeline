@@ -32,8 +32,8 @@ percent_var <- round(100 * attr(pca_data, "percentVar"))
 
 # Shared dose colour palette (Intuitive Distinct Palette)
 dose_palette <- c(
-  "DMSO_Romi"      = "grey85",
-  "Romi_6nM"       = "#E41A1C", # Brighter Red
+  "DMSO_Romidepsin"      = "grey85",
+  "Romidepsin_6nM"       = "#E41A1C", # Brighter Red
   "DMSO_Kromastat" = "grey70",
   "Kromastat_6nM"  = "#377EB8"  # Brighter Blue
 )
@@ -42,7 +42,7 @@ dose_palette <- c(
 p_combined <- ggplot(pca_data, aes(PC1, PC2, color = condition, shape = cell_line)) +
   geom_point(size = 4, alpha = 0.8) +
   scale_color_manual(values = dose_palette) +
-  theme_bw(base_size = 14) +
+  theme_bw(base_size = 21) +
   labs(
     title = paste0("Species-Level PCA: ", species_name),
     subtitle = "Color = Treatment | Shape = Cell Line",
@@ -51,7 +51,7 @@ p_combined <- ggplot(pca_data, aes(PC1, PC2, color = condition, shape = cell_lin
   ) +
   theme(panel.grid.minor = element_blank())
 
-ggsave(file.path(res_dir, "figures/04_01_pca_combined.png"), p_combined, width = 10, height = 7, bg = "white")
+ggsave(file.path(res_dir, "figures/04_01_pca_combined.png"), p_combined, width = 11, height = 7, bg = "white")
 message("[OK] Saved Combined PCA: 04_01_pca_combined.png")
 
 # 4. Individual Cell-Line PCAs
@@ -70,7 +70,7 @@ for (cl in cell_lines) {
     p_cell <- ggplot(pca_cell_data, aes(PC1, PC2, color = condition)) +
       geom_point(size = 5) +
       scale_color_manual(values = dose_palette) +
-      theme_bw(base_size = 14) +
+      theme_bw(base_size = 21) +
       labs(
         title = paste0("Cell-Line PCA: ", cl),
         subtitle = paste0("Species: ", species_name),
@@ -80,7 +80,7 @@ for (cl in cell_lines) {
       theme(panel.grid.minor = element_blank())
     
     filename_cl <- paste0("04_01_pca_", cl, ".png")
-    ggsave(file.path(res_dir, "figures", filename_cl), p_cell, width = 8, height = 6, bg = "white")
+    ggsave(file.path(res_dir, "figures", filename_cl), p_cell, width = 9, height = 6, bg = "white")
     message("  [OK] Saved Sub-PCA: ", filename_cl)
   }
 }

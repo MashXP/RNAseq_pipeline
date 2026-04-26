@@ -32,7 +32,7 @@ directions <- list(
 )
 
 priority_contrasts <- c(
-  "Romi_6nM_vs_DMSO_Romi",
+  "Romidepsin_6nM_vs_DMSO_Romidepsin",
   "Kromastat_6nM_vs_DMSO_Kromastat"
 )
 
@@ -71,13 +71,16 @@ for (dir_name in names(directions)) {
     str_replace_all("_", " ")
   names(sig_list) <- clean_names
   
-  p_venn <- ggVennDiagram(sig_list) +
+  p_venn <- ggVennDiagram(sig_list, label_alpha = 0, label_size = 6.5, set_size = 6) +
     scale_fill_gradient(low = "white", high = dir_colors[dir_name]) + 
     scale_x_continuous(expand = expansion(mult = .4)) + 
     scale_y_continuous(expand = expansion(mult = .1)) +
     coord_cartesian(clip = "off") +
     labs(title = paste0(dir_name, " DEGs"), fill = "Count") +
-    theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
+    theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 24),
+          legend.title = element_text(size = 18, face = "bold"),
+          legend.text = element_text(size = 15),
+          legend.key.height = unit(1, "cm"),
           plot.margin = margin(10, 10, 10, 10))
 
   venn_plots[[dir_name]] <- p_venn
@@ -98,8 +101,8 @@ for (dir_name in names(directions)) {
   
   rigor_summary <- rbind(rigor_summary, data.frame(
     Direction = dir_name,
-    Set1_Romi = n_romi,
-    Set2_Kroma = n_kroma,
+    Set1_Romidepsin = n_romi,
+    Set2_Kromastat = n_kroma,
     Shared = n_shared,
     P_Overlap = p_overlap,
     Jaccard_Index = jaccard,
@@ -115,11 +118,11 @@ for (dir_name in names(directions)) {
       filter(Geneid %in% shared_ids) %>%
       select(Geneid, log2FoldChange, padj)
     
-    shared_table <- inner_join(romi_df, kroma_df, by = "Geneid", suffix = c("_Romi", "_Kroma")) %>%
+    shared_table <- inner_join(romi_df, kroma_df, by = "Geneid", suffix = c("_Romidepsin", "_Kromastat")) %>%
       mutate(
         direction = dir_name, 
-        max_padj = pmax(padj_Romi, padj_Kroma, na.rm = TRUE),
-        avg_abs_lfc = (abs(log2FoldChange_Romi) + abs(log2FoldChange_Kroma)) / 2
+        max_padj = pmax(padj_Romidepsin, padj_Kromastat, na.rm = TRUE),
+        avg_abs_lfc = (abs(log2FoldChange_Romidepsin) + abs(log2FoldChange_Kromastat)) / 2
       ) %>%
       arrange(max_padj, desc(avg_abs_lfc))
     
@@ -156,8 +159,8 @@ if (length(venn_plots) > 0) {
       title = paste0("Directional Venn Comparisons: ", group_name),
       subtitle = "Criteria: padj < 0.05 & |log2FoldChange| > 2",
       theme = theme(
-        plot.title = element_text(size = 22, face = "bold", hjust = 0.5),
-        plot.subtitle = element_text(size = 14, hjust = 0.5)
+        plot.title = element_text(size = 33, face = "bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 21, hjust = 0.5)
       )
     )
   

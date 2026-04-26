@@ -20,26 +20,26 @@ dir.create(tables_dir, recursive = TRUE, showWarnings = FALSE)
 # Format: list(label, human_file, canine_file)
 comparison_list <- list(
   # a/ Pooled Data
-  list(id = "Romi", label = "Globally Pooled: Romidepsin", 
-       h_file = "03_gsea_hallmark_Romi_6nM_vs_DMSO_Romi.csv", 
-       c_file = "03_gsea_hallmark_Romi_6nM_vs_DMSO_Romi.csv"),
-  list(id = "Kroma", label = "Globally Pooled: Kromastat", 
+  list(id = "Romidepsin", label = "Globally Pooled: Romidepsin", 
+       h_file = "03_gsea_hallmark_Romidepsin_6nM_vs_DMSO_Romidepsin.csv", 
+       c_file = "03_gsea_hallmark_Romidepsin_6nM_vs_DMSO_Romidepsin.csv"),
+  list(id = "Kromastat", label = "Globally Pooled: Kromastat", 
        h_file = "03_gsea_hallmark_Kromastat_6nM_vs_DMSO_Kromastat.csv", 
        c_file = "03_gsea_hallmark_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
        
   # b/ Specific Cell Line Matches
-  list(id = "H9_CNK89_Kroma", label = "H9 (Human) vs CNK89 (Canine) - Kromastat", 
+  list(id = "H9_CNK89_Kromastat", label = "H9 (Human) vs CNK89 (Canine) - Kromastat", 
        h_file = "03_gsea_hallmark_H9_Kromastat_6nM_vs_DMSO_Kromastat.csv", 
        c_file = "03_gsea_hallmark_CNK89_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
-  list(id = "H9_CNK89_Romi", label = "H9 (Human) vs CNK89 (Canine) - Romidepsin", 
-       h_file = "03_gsea_hallmark_H9_Romi_6nM_vs_DMSO_Romi.csv", 
-       c_file = "03_gsea_hallmark_CNK89_Romi_6nM_vs_DMSO_Romi.csv"),
-  list(id = "SUPM2_UL1_Kroma", label = "SUPM2 (Human) vs UL1 (Canine) - Kromastat", 
+  list(id = "H9_CNK89_Romidepsin", label = "H9 (Human) vs CNK89 (Canine) - Romidepsin", 
+       h_file = "03_gsea_hallmark_H9_Romidepsin_6nM_vs_DMSO_Romidepsin.csv", 
+       c_file = "03_gsea_hallmark_CNK89_Romidepsin_6nM_vs_DMSO_Romidepsin.csv"),
+  list(id = "SUPM2_UL1_Kromastat", label = "SUPM2 (Human) vs UL1 (Canine) - Kromastat", 
        h_file = "03_gsea_hallmark_SUPM2_Kromastat_6nM_vs_DMSO_Kromastat.csv", 
        c_file = "03_gsea_hallmark_UL1_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
-  list(id = "SUPM2_UL1_Romi", label = "SUPM2 (Human) vs UL1 (Canine) - Romidepsin", 
-       h_file = "03_gsea_hallmark_SUPM2_Romi_6nM_vs_DMSO_Romi.csv", 
-       c_file = "03_gsea_hallmark_UL1_Romi_6nM_vs_DMSO_Romi.csv")
+  list(id = "SUPM2_UL1_Romidepsin", label = "SUPM2 (Human) vs UL1 (Canine) - Romidepsin", 
+       h_file = "03_gsea_hallmark_SUPM2_Romidepsin_6nM_vs_DMSO_Romidepsin.csv", 
+       c_file = "03_gsea_hallmark_UL1_Romidepsin_6nM_vs_DMSO_Romidepsin.csv")
 )
 
 # 3. Plotting Function
@@ -77,17 +77,18 @@ plot_nes_overlap <- function(pair) {
     geom_bar(stat = "identity", position = "dodge", width = 0.7) +
     coord_flip() +
     scale_fill_manual(values = c("Human" = "#E377C2", "Canine" = "#2CA02C")) +
-    theme_minimal() +
+    theme_minimal(base_size = 18) +
     labs(title = paste0("Pathway NES Comparison: ", pair$label),
          x = "Hallmark Pathway",
          y = "Normalized Enrichment Score (NES)") +
     theme(
-      axis.text.y = element_text(size = 7),
+      axis.text.y = element_text(size = 10.5),
       panel.grid.minor = element_blank(),
-      legend.position = "bottom"
+      legend.position = "bottom",
+      plot.margin = margin(10, 160, 10, 10)
     )
 
-  ggsave(file.path(plots_dir, paste0("04_13_nes_bar_", pair$id, ".png")), p, width = 10, height = 12, bg = "white")
+  ggsave(file.path(plots_dir, paste0("04_13_nes_bar_", pair$id, ".png")), p, width = 14, height = 12, bg = "white", dpi = 300)
   write_csv(merged, file.path(tables_dir, paste0("04_13_nes_overlap_", pair$id, ".csv")))
 }
 

@@ -128,8 +128,8 @@ for (contrast in names(enrichment_results_all)) {
   colnames(mat) <- colnames(mat) %>%
     str_remove_all("human_|canine_") %>% 
     str_replace_all("DMSO", "D") %>%
-    str_replace_all("Romidepsin|Romi", "R") %>%
-    str_replace_all("Kromastat|Kroma", "K") %>%
+    str_replace_all("Romidepsin", "R") %>%
+    str_replace_all("Kromastat", "K") %>%
     str_replace_all("6nM", "") %>%
     str_replace_all("(?i)replicate|rep", "") %>%
     str_replace_all("_+", "_") %>%
@@ -158,8 +158,8 @@ for (contrast in names(enrichment_results_all)) {
   )
   
   dose_palette <- c(
-    "DMSO_Romi"      = "grey85",
-    "Romi_6nM"       = "#E41A1C", # Brighter Red
+    "DMSO_Romidepsin"      = "grey85",
+    "Romidepsin_6nM"       = "#E41A1C", # Brighter Red
     "DMSO_Kromastat" = "grey70",
     "Kromastat_6nM"  = "#377EB8"  # Brighter Blue
   )
@@ -173,7 +173,7 @@ for (contrast in names(enrichment_results_all)) {
   top_ha <- HeatmapAnnotation(df = col_meta_ordered[, c("Treatment", "Cell_Line"), drop=FALSE], 
                               col = ha_list,
                               show_legend = FALSE,
-                              annotation_name_gp = gpar(fontsize = 10, fontface = "bold"))
+                              annotation_name_gp = gpar(fontsize = 15, fontface = "bold"))
   
   # Prepare Row Labels
   labels_display <- heatmap_df$gene_label
@@ -189,27 +189,27 @@ for (contrast in names(enrichment_results_all)) {
     row_split = pathway_factor,
     row_title_side = "right",
     row_title_rot = 0,
-    row_title_gp = gpar(fontsize = 9, fontface = "bold"),
+    row_title_gp = gpar(fontsize = 13.5, fontface = "bold"),
     cluster_rows = FALSE,
     cluster_columns = FALSE, # We manually ordered them
     column_split = factor(conditions, levels = unique(conditions)),
     column_gap = unit(2, "mm"),
     show_row_names = FALSE,
     right_annotation = rowAnnotation(
-      id = anno_text(labels_display, gp = gpar(fontsize = 8)),
+      id = anno_text(labels_display, gp = gpar(fontsize = 12)),
       Pathway = pathway_factor,
       col = list(Pathway = pw_palette),
       show_legend = FALSE,
       annotation_name_rot = 45,
       annotation_name_side = "bottom",
-      annotation_name_gp = gpar(fontsize = 10, fontface = "bold"),
+      annotation_name_gp = gpar(fontsize = 15, fontface = "bold"),
       show_annotation_name = c(id = FALSE, Pathway = TRUE)
     ),
     top_annotation = top_ha,
     column_title = wrapped_title,
-    column_title_gp = gpar(fontsize = 12, fontface = "bold"),
+    column_title_gp = gpar(fontsize = 18, fontface = "bold"),
     column_names_rot = 45,
-    column_names_gp = gpar(fontsize = 10),
+    column_names_gp = gpar(fontsize = 15),
     show_heatmap_legend = FALSE # Custom legend handling
   )
   
@@ -258,7 +258,7 @@ lgd_shorthand = Legend(labels = c("D = DMSO", "R = Romidepsin", "K = Kromastat")
                                        function(x, y, w, h) {}))
 
 lgd_condition = Legend(title = "Treatment", 
-                       at = c("DMSO_Romi", "Romi_6nM", "DMSO_Kromastat", "Kromastat_6nM"), 
+                       at = c("DMSO_Romidepsin", "Romidepsin_6nM", "DMSO_Kromastat", "Kromastat_6nM"), 
                        legend_gp = gpar(fill = c("grey85", "#E41A1C", "grey70", "#377EB8")))
 
 lgd_cell = Legend(title = "Cell Line", 
@@ -278,7 +278,7 @@ if ("cell_line" %in% colnames(colData(dds))) {
   cell_lines <- unique(as.character(colData(dds)$cell_line))
   
   for (cl in cell_lines) {
-    c1 <- paste0(cl, "_Romi_6nM_vs_DMSO_Romi")
+    c1 <- paste0(cl, "_Romidepsin_6nM_vs_DMSO_Romidepsin")
     c2 <- paste0(cl, "_Kromastat_6nM_vs_DMSO_Kromastat")
     
     if (!all(c(c1, c2) %in% names(results_list))) next
@@ -343,7 +343,7 @@ if ("cell_line" %in% colnames(colData(dds))) {
     pathway_factor_shared <- factor(shared_df$pathway_display, levels = unique(shared_df$pathway_display))
     
     # 4. Extract matrix for all relevant samples
-    relevant_conds <- c("DMSO_Romi", "Romi_6nM", "DMSO_Kromastat", "Kromastat_6nM")
+    relevant_conds <- c("DMSO_Romidepsin", "Romidepsin_6nM", "DMSO_Kromastat", "Kromastat_6nM")
     sample_ids <- colnames(dds)[colData(dds)$cell_line == cl & colData(dds)$condition %in% relevant_conds]
     
     dds_cl <- dds[, sample_ids]
@@ -359,8 +359,8 @@ if ("cell_line" %in% colnames(colData(dds))) {
     colnames(mat) <- colnames(mat) %>%
       str_remove_all("human_|canine_") %>% 
       str_replace_all("DMSO", "D") %>%
-      str_replace_all("Romidepsin|Romi", "R") %>%
-      str_replace_all("Kromastat|Kroma", "K") %>%
+      str_replace_all("Romidepsin", "R") %>%
+      str_replace_all("Kromastat", "K") %>%
       str_replace_all("6nM", "") %>%
       str_replace_all("(?i)replicate|rep", "") %>%
       str_replace_all("_+", "_") %>%
@@ -372,8 +372,8 @@ if ("cell_line" %in% colnames(colData(dds))) {
     col_meta$Cell_Line <- cl
     
     # Mentor's order: Treatment first, then DMSO
-    # We'll use: Romi, DMSO_Romi, Kroma, DMSO_Kroma (Adjusted to match image logic)
-    image_order <- c("Romi_6nM", "DMSO_Romi", "Kromastat_6nM", "DMSO_Kromastat")
+    # We'll use: Romidepsin, DMSO_Romidepsin, Kromastat, DMSO_Kromastat (Adjusted to match image logic)
+    image_order <- c("Romidepsin_6nM", "DMSO_Romidepsin", "Kromastat_6nM", "DMSO_Kromastat")
     col_order <- order(factor(col_meta$Treatment, levels = image_order))
     mat <- mat[, col_order]
     col_meta_ordered <- col_meta[col_order, , drop = FALSE]
@@ -381,14 +381,14 @@ if ("cell_line" %in% colnames(colData(dds))) {
     # Dynamic palette for the shared heatmap section
     cl_all <- unique(as.character(colData(dds)$cell_line))
     ha_list <- list(
-      Treatment = c("DMSO_Romi" = "grey85", "Romi_6nM" = "#E41A1C", "DMSO_Kromastat" = "grey70", "Kromastat_6nM" = "#377EB8"),
+      Treatment = c("DMSO_Romidepsin" = "grey85", "Romidepsin_6nM" = "#E41A1C", "DMSO_Kromastat" = "grey70", "Kromastat_6nM" = "#377EB8"),
       Cell_Line = setNames(colorRampPalette(c("#7FC97F", "#BEAED4"))(length(cl_all)), cl_all)
     )
     
     top_ha <- HeatmapAnnotation(df = col_meta_ordered[, c("Treatment", "Cell_Line"), drop=FALSE], 
                                 col = ha_list,
                                 show_legend = FALSE,
-                                annotation_name_gp = gpar(fontsize = 10, fontface = "bold"))
+                                annotation_name_gp = gpar(fontsize = 15, fontface = "bold"))
     
     n_pw_s <- nlevels(pathway_factor_shared)
     pw_palette_s <- setNames(
@@ -405,27 +405,27 @@ if ("cell_line" %in% colnames(colData(dds))) {
       row_split = pathway_factor_shared,
       row_title_side = "right",
       row_title_rot = 0,
-      row_title_gp = gpar(fontsize = 9, fontface = "bold"),
+      row_title_gp = gpar(fontsize = 13.5, fontface = "bold"),
       cluster_rows = FALSE,
       cluster_columns = FALSE,
       column_split = factor(col_meta_ordered$Treatment, levels = image_order),
       column_gap = unit(2, "mm"),
       show_row_names = FALSE,
       right_annotation = rowAnnotation(
-        id = anno_text(shared_df$gene_label, gp = gpar(fontsize = 8)),
+        id = anno_text(shared_df$gene_label, gp = gpar(fontsize = 12)),
         Pathway = pathway_factor_shared,
         col = list(Pathway = pw_palette_s),
         show_legend = FALSE,
         annotation_name_rot = 45,
         annotation_name_side = "bottom",
-        annotation_name_gp = gpar(fontsize = 10, fontface = "bold"),
+        annotation_name_gp = gpar(fontsize = 15, fontface = "bold"),
         show_annotation_name = c(id = FALSE, Pathway = TRUE)
       ),
       top_annotation = top_ha,
       column_title = wrapped_title,
-      column_title_gp = gpar(fontsize = 12, fontface = "bold"),
+      column_title_gp = gpar(fontsize = 18, fontface = "bold"),
       column_names_rot = 45,
-      column_names_gp = gpar(fontsize = 10),
+      column_names_gp = gpar(fontsize = 15),
       show_heatmap_legend = FALSE
     )
     

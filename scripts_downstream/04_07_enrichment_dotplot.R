@@ -77,12 +77,12 @@ make_gsea_plot_single <- function(df_dose, dose_label, top_n = 10) {
     ) +
     scale_alpha_continuous(name = "-log10(padj)", range = c(0.4, 1)) +
     scale_size_continuous(name = "Leading Edge", range = c(3, 10)) +
-    theme_bw(base_size = 11) +
+    theme_bw(base_size = 16.5) +
     theme(
-      axis.text.x = element_text(size = 10, face = "bold"),
-      axis.text.y = element_text(size = 9, face = "bold"),
+      axis.text.x = element_text(size = 15, face = "bold"),
+      axis.text.y = element_text(size = 13.5, face = "bold"),
       panel.grid.major.y = element_line(linewidth = 0.2, color = "grey90"),
-      plot.title = element_text(hjust = 0.5, face = "bold", size = 11)
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 16.5)
     ) +
     labs(title = paste0("GSEA Hallmark: ", dose_label), x = NULL, y = NULL) +
     guides(
@@ -109,13 +109,13 @@ if (!is.null(gsea_combined) && nrow(gsea_combined) > 0) {
 
   # --- COMBINED FACET PLOT (single ggplot, global Y-axis, mentor style) ---
   # Curated combined dotplot -- exclude statistically weaker and QC-only contrasts:
-  #   - DMSO_Kromastat_vs_DMSO_Romi: vehicle QC baseline, near-empty by design
-  #   - Romi_6nM_vs_DMSO_Romi: global pooled across both cell lines, weaker signal
+  #   - DMSO_Kromastat_vs_DMSO_Romidepsin: vehicle QC baseline, near-empty by design
+  #   - Romidepsin_6nM_vs_DMSO_Romidepsin: global pooled across both cell lines, weaker signal
   #   - Kromastat_6nM_vs_DMSO_Kromastat: global pooled, same reason
   # These are preserved as individual saves above for reference.
   COMBINED_EXCLUDE <- c(
-    "DMSO_Kromastat_vs_DMSO_Romi",
-    "Romi_6nM_vs_DMSO_Romi",
+    "DMSO_Kromastat_vs_DMSO_Romidepsin",
+    "Romidepsin_6nM_vs_DMSO_Romidepsin",
     "Kromastat_6nM_vs_DMSO_Kromastat"
   )
   gsea_combined_curated <- gsea_combined %>%
@@ -159,15 +159,15 @@ if (!is.null(gsea_combined) && nrow(gsea_combined) > 0) {
     scale_alpha_continuous(name = "-log10(padj)", range = c(0.4, 1)) +
     scale_size_continuous(name = "Leading Edge", range = c(3, 10)) +
     facet_wrap(~ Contrast, nrow = 1) +
-    theme_bw(base_size = 11) +
+    theme_bw(base_size = 16.5) +
     theme(
-      strip.text = element_text(face = "bold", size = 9),
+      strip.text = element_text(face = "bold", size = 13.5),
       strip.background = element_rect(fill = "grey92"),
-      axis.text.x = element_text(size = 9, face = "bold"),
-      axis.text.y = element_text(size = 9, face = "bold"),
+      axis.text.x = element_text(size = 13.5, face = "bold"),
+      axis.text.y = element_text(size = 13.5, face = "bold"),
       panel.grid.major.y = element_line(linewidth = 0.2, color = "grey90"),
       panel.spacing = unit(0.5, "lines"),
-      plot.title = element_text(hjust = 0.5, face = "bold", size = 13)
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 19.5)
     ) +
     labs(
       title = paste0("GSEA Hallmark Comparison: ", species_name),

@@ -48,8 +48,8 @@ vsd <- vst(dds, blind=FALSE)
 display_names <- rownames(colData(vsd)) %>%
   str_remove_all("human_|canine_") %>% 
   str_replace_all("DMSO", "D") %>%
-  str_replace_all("Romidepsin|Romi", "R") %>%
-  str_replace_all("Kromastat|Kroma", "K") %>%
+  str_replace_all("Romidepsin", "R") %>%
+  str_replace_all("Kromastat", "K") %>%
   str_replace_all("6nM", "") %>%
   str_replace_all("(?i)replicate|rep", "") %>%
   str_replace_all("_+", "_") %>%
@@ -58,8 +58,8 @@ display_names <- rownames(colData(vsd)) %>%
 colData(vsd)$display_name <- display_names
 colnames(vsd) <- display_names
 
-# Order VSD columns by cell_line then condition (Explicitly Romi first)
-colData(vsd)$condition <- factor(colData(vsd)$condition, levels = c("DMSO_Romi", "Romi_6nM", "DMSO_Kromastat", "Kromastat_6nM"))
+# Order VSD columns by cell_line then condition (Explicitly Romidepsin first)
+colData(vsd)$condition <- factor(colData(vsd)$condition, levels = c("DMSO_Romidepsin", "Romidepsin_6nM", "DMSO_Kromastat", "Kromastat_6nM"))
 vsd <- vsd[, order(colData(vsd)$cell_line, colData(vsd)$condition)]
 
 # Color palettes (Intuitive Distinct Palette)
@@ -67,8 +67,8 @@ conditions <- colData(vsd)$condition
 cell_lines <- colData(vsd)$cell_line
 
 dose_palette <- c(
-  "DMSO_Romi"      = "grey85",
-  "Romi_6nM"       = "#E41A1C", # Brighter Red
+  "DMSO_Romidepsin"      = "grey85",
+  "Romidepsin_6nM"       = "#E41A1C", # Brighter Red
   "DMSO_Kromastat" = "grey70",
   "Kromastat_6nM"  = "#377EB8"  # Brighter Blue
 )
@@ -92,7 +92,7 @@ col_fun_var <- colorRamp2(c(-1, 0, 1), c("#3B4CC0", "white", "#B40426"))
 
 conditions_var <- as.character(colData(vsd)$condition)
 cell_lines_var <- as.character(colData(vsd)$cell_line)
-drug_groups_var <- factor(ifelse(grepl("Romi", conditions_var), "Romidepsin", "Kromastat"), levels = c("Romidepsin", "Kromastat"))
+drug_groups_var <- factor(ifelse(grepl("Romidepsin", conditions_var), "Romidepsin", "Kromastat"), levels = c("Romidepsin", "Kromastat"))
 
 top_ha_var <- HeatmapAnnotation(
   Dose     = conditions_var,
@@ -102,7 +102,7 @@ top_ha_var <- HeatmapAnnotation(
     CellLine = cl_palette
   ),
   show_annotation_name = TRUE,
-  annotation_name_gp   = gpar(fontsize = 8, fontface = "bold"),
+  annotation_name_gp   = gpar(fontsize = 12, fontface = "bold"),
   show_legend          = TRUE
 )
 
@@ -113,14 +113,14 @@ ht_var <- Heatmap(
   cluster_rows      = TRUE,
   cluster_columns   = FALSE,
   column_split      = data.frame(cell_lines_var, drug_groups_var),
-  column_title_gp   = gpar(fontsize = 9, fontface = "bold"),
+  column_title_gp   = gpar(fontsize = 13.5, fontface = "bold"),
   column_title_rot  = 0,
   column_gap        = unit(c(2, 10, 2), "mm"),
   top_annotation    = top_ha_var,
   show_row_names    = TRUE,
-  row_names_gp      = gpar(fontsize = 8),
+  row_names_gp      = gpar(fontsize = 12),
   column_names_rot  = 45,
-  column_names_gp   = gpar(fontsize = 10),
+  column_names_gp   = gpar(fontsize = 15),
   use_raster        = FALSE,
   height            = unit(nrow(mat_var) * 6, "mm"),
   width             = unit(ncol(mat_var) * 10, "mm"),
@@ -153,7 +153,7 @@ draw(ht_var,
      align_heatmap_legend   = "heatmap_top",
      padding                = unit(c(10, 30, 10, 20), "mm"),
      column_title           = "Top 50 Most Variable Genes",
-     column_title_gp        = gpar(fontsize = 12, fontface = "bold"))
+     column_title_gp        = gpar(fontsize = 18, fontface = "bold"))
 dev.off()
 message("[OK] Top-var heatmap  -> 04_05_heatmap_top_variable.png",
         "  (", nrow(mat_var), " rows x ", ncol(mat_var), " cols",

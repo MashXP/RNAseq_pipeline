@@ -59,12 +59,12 @@ make_ora_plot_single <- function(df_dose, dose_label, top_n = 15) {
       name = "padj"
     ) +
     scale_size_continuous(name = "Count", range = c(3, 10)) +
-    theme_bw(base_size = 10) +
+    theme_bw(base_size = 15) +
     theme(
-      axis.text.x = element_text(size = 9),
-      axis.text.y = element_text(size = 9, hjust = 1),
+      axis.text.x = element_text(size = 13.5),
+      axis.text.y = element_text(size = 13.5, hjust = 1),
       panel.grid.minor = element_blank(),
-      plot.title = element_text(hjust = 0.5, face = "bold", size = 11)
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 16.5)
     ) +
     labs(title = paste0("ORA GO: ", dose_label),
          x = "Gene Ratio", y = NULL) +
@@ -91,13 +91,13 @@ if (!is.null(ora_combined) && nrow(ora_combined) > 0) {
 
   # --- COMBINED FACET PLOT (single ggplot, global Y-axis) ---
   # Curated combined ORA plot -- exclude statistically weaker and QC-only contrasts:
-  #   - DMSO_Kromastat_vs_DMSO_Romi: vehicle QC baseline, near-empty by design
-  #   - Romi_6nM_vs_DMSO_Romi: global pooled across both cell lines, weaker signal
+  #   - DMSO_Kromastat_vs_DMSO_Romidepsin: vehicle QC baseline, near-empty by design
+  #   - Romidepsin_6nM_vs_DMSO_Romidepsin: global pooled across both cell lines, weaker signal
   #   - Kromastat_6nM_vs_DMSO_Kromastat: global pooled, same reason
   # These are preserved as individual saves above for reference.
   COMBINED_EXCLUDE <- c(
-    "DMSO_Kromastat_vs_DMSO_Romi",
-    "Romi_6nM_vs_DMSO_Romi",
+    "DMSO_Kromastat_vs_DMSO_Romidepsin",
+    "Romidepsin_6nM_vs_DMSO_Romidepsin",
     "Kromastat_6nM_vs_DMSO_Kromastat"
   )
   ora_combined_curated <- ora_combined %>%
@@ -138,15 +138,15 @@ if (!is.null(ora_combined) && nrow(ora_combined) > 0) {
     ) +
     scale_size_continuous(name = "Count", range = c(3, 10)) +
     facet_wrap(~ Contrast, nrow = 1) +
-    theme_bw(base_size = 11) +
+    theme_bw(base_size = 16.5) +
     theme(
-      strip.text = element_text(face = "bold", size = 9),
+      strip.text = element_text(face = "bold", size = 13.5),
       strip.background = element_rect(fill = "grey92"),
-      axis.text.x = element_text(size = 9),
-      axis.text.y = element_text(size = 9, hjust = 1),
+      axis.text.x = element_text(size = 13.5),
+      axis.text.y = element_text(size = 13.5, hjust = 1),
       panel.grid.minor = element_blank(),
       panel.spacing = unit(0.5, "lines"),
-      plot.title = element_text(hjust = 0.5, face = "bold", size = 13)
+      plot.title = element_text(hjust = 0.5, face = "bold", size = 19.5)
     ) +
     labs(
       title = paste0("GO ORA Comparison: ", species_name),

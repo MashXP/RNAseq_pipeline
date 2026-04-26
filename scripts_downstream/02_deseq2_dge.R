@@ -62,9 +62,9 @@ results_list <- list()
 # Primary Contrasts (Species-wide)
 # Each runs its own independent model (~ cell_line + condition)
 drug_contrasts <- list(
-  list(name = "Romi_6nM_vs_DMSO_Romi",       levels = c("Romi_6nM", "DMSO_Romi")),
+  list(name = "Romidepsin_6nM_vs_DMSO_Romidepsin",       levels = c("Romidepsin_6nM", "DMSO_Romidepsin")),
   list(name = "Kromastat_6nM_vs_DMSO_Kromastat",  levels = c("Kromastat_6nM", "DMSO_Kromastat")),
-  list(name = "Romi_6nM_vs_Kromastat_6nM",   levels = c("Romi_6nM", "Kromastat_6nM"))
+  list(name = "Romidepsin_6nM_vs_Kromastat_6nM",   levels = c("Romidepsin_6nM", "Kromastat_6nM"))
 )
 
 for (drug_comp in drug_contrasts) {

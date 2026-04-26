@@ -14,11 +14,20 @@ table_dir        <- "../results/comparative/tables"
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 
-# Colors for statuses (Synced with NES plots)
+# Colors for statuses and flows
 status_colors <- c(
   "Activated" = "#D62728",       # Red
   "Suppressed" = "#1F77B4",      # Blue
   "Non-significant" = "#D1D1D1"  # Grey
+)
+
+flow_colors <- c(
+  "concordant_activated" = "#D62728",    # Red
+  "concordant_suppressed" = "#1F77B4",  # Blue
+  "discordant" = "#9467BD",             # Purple
+  "human_only" = "#E377C2",             # Pink
+  "canine_only" = "#2CA02C",            # Green
+  "Non-significant" = "#D1D1D1"         # Grey
 )
 
 # Helper: Clean Hallmark names
@@ -49,12 +58,12 @@ read_gsea_status <- function(file_path, padj_cutoff = 0.05) {
 
 # Master Dataset Loading
 nodes <- list(
-  h_h9_r    = file.path(human_tables_dir, "03_gsea_hallmark_H9_Romi_6nM_vs_DMSO_Romi.csv"),
-  h_supm2_r = file.path(human_tables_dir, "03_gsea_hallmark_SUPM2_Romi_6nM_vs_DMSO_Romi.csv"),
+  h_h9_r    = file.path(human_tables_dir, "03_gsea_hallmark_H9_Romidepsin_6nM_vs_DMSO_Romidepsin.csv"),
+  h_supm2_r = file.path(human_tables_dir, "03_gsea_hallmark_SUPM2_Romidepsin_6nM_vs_DMSO_Romidepsin.csv"),
   h_h9_k    = file.path(human_tables_dir, "03_gsea_hallmark_H9_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
   h_supm2_k = file.path(human_tables_dir, "03_gsea_hallmark_SUPM2_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
-  d_ul1_r   = file.path(canine_tables_dir, "03_gsea_hallmark_UL1_Romi_6nM_vs_DMSO_Romi.csv"),
-  d_cnk89_r = file.path(canine_tables_dir, "03_gsea_hallmark_CNK89_Romi_6nM_vs_DMSO_Romi.csv"),
+  d_ul1_r   = file.path(canine_tables_dir, "03_gsea_hallmark_UL1_Romidepsin_6nM_vs_DMSO_Romidepsin.csv"),
+  d_cnk89_r = file.path(canine_tables_dir, "03_gsea_hallmark_CNK89_Romidepsin_6nM_vs_DMSO_Romidepsin.csv"),
   d_ul1_k   = file.path(canine_tables_dir, "03_gsea_hallmark_UL1_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
   d_cnk89_k = file.path(canine_tables_dir, "03_gsea_hallmark_CNK89_Kromastat_6nM_vs_DMSO_Kromastat.csv")
 )
@@ -71,19 +80,67 @@ master_df[is.na(master_df)] <- "Non-significant"
 total_n <- nrow(master_df)
 
 # Unified Plotting Function
-make_alluvial_plot <- function(df, axes_cols, labels, title, filename_base, is_master = FALSE) {
-  plot_data <- df %>%
-    select(ID, all_of(axes_cols)) %>%
-    group_by_at(axes_cols) %>%
-    summarise(Freq = n(), .groups = 'drop')
+make_alluvial_plot <- function(df, axes_cols, labels, title, filename_base, ref_cols = NULL) {
+  is_two_way <- length(axes_cols) == 2
   
+  if (is_two_way) {
+    # Add flow classification for 2-way pathway comparison
+    plot_df <- df %>%
+      mutate(
+        flow_class = case_when(
+          !!sym(axes_cols[1]) == "Activated" & !!sym(axes_cols[2]) == "Activated" ~ "concordant_activated",
+          !!sym(axes_cols[1]) == "Suppressed" & !!sym(axes_cols[2]) == "Suppressed" ~ "concordant_suppressed",
+          !!sym(axes_cols[1]) != "Non-significant" & !!sym(axes_cols[2]) != "Non-significant" & !!sym(axes_cols[1]) != !!sym(axes_cols[2]) ~ "discordant",
+          !!sym(axes_cols[1]) != "Non-significant" & !!sym(axes_cols[2]) == "Non-significant" ~ "human_only",
+          !!sym(axes_cols[1]) == "Non-significant" & !!sym(axes_cols[2]) != "Non-significant" ~ "canine_only",
+          TRUE ~ "Non-significant"
+        )
+      )
+    
+    plot_data <- plot_df %>%
+      filter(flow_class != "Non-significant") %>%
+      group_by_at(c(axes_cols, "flow_class")) %>%
+      summarise(Freq = n(), .groups = 'drop')
+      
+    fill_col <- "flow_class"
+    fill_scale <- scale_fill_manual(values = flow_colors, name = "Pathway Flow")
+  } else if (!is.null(ref_cols)) {
+    # Multi-axis plot with cross-species flow classification based on ref_cols
+    plot_df <- df %>%
+      mutate(
+        flow_class = case_when(
+          !!sym(ref_cols[1]) == "Activated" & !!sym(ref_cols[2]) == "Activated" ~ "concordant_activated",
+          !!sym(ref_cols[1]) == "Suppressed" & !!sym(ref_cols[2]) == "Suppressed" ~ "concordant_suppressed",
+          !!sym(ref_cols[1]) != "Non-significant" & !!sym(ref_cols[2]) != "Non-significant" & !!sym(ref_cols[1]) != !!sym(ref_cols[2]) ~ "discordant",
+          !!sym(ref_cols[1]) != "Non-significant" & !!sym(ref_cols[2]) == "Non-significant" ~ "human_only",
+          !!sym(ref_cols[1]) == "Non-significant" & !!sym(ref_cols[2]) != "Non-significant" ~ "canine_only",
+          TRUE ~ "Non-significant"
+        )
+      )
+    
+    plot_data <- plot_df %>%
+      group_by_at(c(axes_cols, "flow_class")) %>%
+      summarise(Freq = n(), .groups = 'drop')
+    
+    fill_col <- "flow_class"
+    fill_scale <- scale_fill_manual(values = flow_colors, name = "Cross-Species Flow (Romidepsin ref)")
+  } else {
+    plot_df <- df
+    plot_data <- plot_df %>%
+      group_by_at(axes_cols) %>%
+      summarise(Freq = n(), .groups = 'drop')
+    
+    fill_col <- axes_cols[1]
+    fill_scale <- scale_fill_manual(values = status_colors, name = "Initial State")
+  }
+
   # Calculate conservation if exactly 2 axes
   subtitle_str <- "Conserved Hallmark Pathways across conditions"
-  if (length(axes_cols) == 2) {
-    cons_n <- sum(df[[axes_cols[1]]] == df[[axes_cols[2]]])
-    cons_pct <- round(100 * cons_n / nrow(df), 1)
+  if (is_two_way) {
+    cons_n <- sum(plot_df[[axes_cols[1]]] == plot_df[[axes_cols[2]]])
+    cons_pct <- round(100 * cons_n / nrow(plot_df), 1)
     
-    h_sig <- df %>% filter(!!sym(axes_cols[1]) != "Non-significant")
+    h_sig <- plot_df %>% filter(!!sym(axes_cols[1]) != "Non-significant")
     if (nrow(h_sig) > 0) {
       sig_cons_n <- sum(h_sig[[axes_cols[1]]] == h_sig[[axes_cols[2]]])
       sig_cons_pct <- round(100 * sig_cons_n / nrow(h_sig), 1)
@@ -97,37 +154,44 @@ make_alluvial_plot <- function(df, axes_cols, labels, title, filename_base, is_m
     mapping[[paste0("axis", i)]] <- sym(axes_cols[i])
   }
   
+  # Dynamic expand: 4-axis needs more horizontal padding than 2-axis
+  x_expand <- if (length(axes_cols) <= 2) c(.18, .18) else c(.25, .25)
+  # Dynamic width: 4-axis plots need more canvas
+  plot_width <- if (length(axes_cols) <= 2) 16 else 22
+
   p <- ggplot(plot_data, mapping) +
-    geom_alluvium(aes(fill = !!sym(axes_cols[1])), width = 1/4, alpha = 0.75, color = "white", linewidth = 0.2) +
+    geom_alluvium(aes(fill = !!sym(fill_col)), width = 1/4, alpha = 0.75, color = "white", linewidth = 0.2) +
     geom_stratum(width = 1/4, fill = "white", color = "black", linewidth = 0.7, alpha = 0.3) +
     geom_text(stat = "stratum", aes(label = after_stat(paste0(stratum, "\n(", count, ")"))), 
-              size = 3.5, fontface = "bold", color = "black") +
-    scale_x_discrete(limits = labels, expand = c(.12, .12)) +
-    scale_fill_manual(values = status_colors) +
-    theme_minimal(base_size = 14) +
+              size = 5.25, fontface = "bold", color = "black") +
+    scale_x_discrete(limits = labels, expand = x_expand) +
+    fill_scale +
+    coord_cartesian(clip = "off") +
+    theme_minimal(base_size = 21) +
     theme(
       panel.grid = element_blank(),
       axis.text.y = element_blank(),
       axis.title = element_blank(),
-      axis.text.x = element_text(size = 10, face = "bold"),
-      legend.position = "none"
+      axis.text.x = element_text(size = 15, face = "bold"),
+      legend.position = "bottom",
+      plot.margin = margin(10, 40, 10, 40)
     ) +
-    labs(title = title, subtitle = subtitle_str, caption = paste0("N = ", nrow(df), " Hallmark Pathways"))
+    labs(title = title, subtitle = subtitle_str, caption = paste0("N = ", nrow(plot_df), " Hallmark Pathways"))
 
-  ggsave(file.path(output_dir, paste0(filename_base, ".png")), p, width = 12, height = 8, bg = "white")
+  ggsave(file.path(output_dir, paste0(filename_base, ".png")), p, width = plot_width, height = 9, bg = "white", dpi = 300)
   
   # Export table for this specific plot
-  write_csv(df %>% select(ID, all_of(axes_cols)), 
+  write_csv(plot_df %>% select(ID, all_of(axes_cols)), 
             file.path(table_dir, paste0(filename_base, ".csv")))
 }
 
 # --- Part 1: Individual Comparative Plots ---
 message("Generating individual comparisons...")
 comparisons <- list(
-  list(cols = c("h_h9_r", "d_ul1_r"), labels = c("Human:H9", "Canine:UL1"), title = "Romidepsin Response (H9 vs UL1)", name = "04_11_alluvial_Romi_H9_vs_UL1"),
-  list(cols = c("h_supm2_r", "d_cnk89_r"), labels = c("Human:SUPM2", "Canine:CNK89"), title = "Romidepsin Response (SUPM2 vs CNK89)", name = "04_11_alluvial_Romi_SUPM2_vs_CNK89"),
-  list(cols = c("h_h9_k", "d_ul1_k"), labels = c("Human:H9", "Canine:UL1"), title = "Kromastat Response (H9 vs UL1)", name = "04_11_alluvial_Kroma_H9_vs_UL1"),
-  list(cols = c("h_supm2_k", "d_cnk89_k"), labels = c("Human:SUPM2", "Canine:CNK89"), title = "Kromastat Response (SUPM2 vs CNK89)", name = "04_11_alluvial_Kroma_SUPM2_vs_CNK89")
+  list(cols = c("h_h9_r", "d_ul1_r"), labels = c("Human:H9", "Canine:UL1"), title = "Romidepsin Response (H9 vs UL1)", name = "04_11_alluvial_Romidepsin_H9_vs_UL1"),
+  list(cols = c("h_supm2_r", "d_cnk89_r"), labels = c("Human:SUPM2", "Canine:CNK89"), title = "Romidepsin Response (SUPM2 vs CNK89)", name = "04_11_alluvial_Romidepsin_SUPM2_vs_CNK89"),
+  list(cols = c("h_h9_k", "d_ul1_k"), labels = c("Human:H9", "Canine:UL1"), title = "Kromastat Response (H9 vs UL1)", name = "04_11_alluvial_Kromastat_H9_vs_UL1"),
+  list(cols = c("h_supm2_k", "d_cnk89_k"), labels = c("Human:SUPM2", "Canine:CNK89"), title = "Kromastat Response (SUPM2 vs CNK89)", name = "04_11_alluvial_Kromastat_SUPM2_vs_CNK89")
 )
 
 for (comp in comparisons) {
@@ -140,25 +204,26 @@ message("Generating master panoramic flows...")
 make_alluvial_plot(
   master_df,
   axes_cols = c("h_h9_r", "h_supm2_r", "d_ul1_r", "d_cnk89_r"),
-  labels    = c("H9 (Romi)", "SUPM2 (Romi)", "UL1 (Romi)", "CNK89 (Romi)"),
+  labels    = c("H9 (Romidepsin)", "SUPM2 (Romidepsin)", "UL1 (Romidepsin)", "CNK89 (Romidepsin)"),
   title     = "Global Romidepsin Phenotypic Flow (Healthy -> Cancer | Human -> Canine)",
-  filename_base = "04_11_alluvial_hallmark_Romi"
+  filename_base = "04_11_alluvial_hallmark_Romidepsin"
 )
 
 # Global Kromastat Chain
 make_alluvial_plot(
   master_df,
   axes_cols = c("h_h9_k", "h_supm2_k", "d_ul1_k", "d_cnk89_k"),
-  labels    = c("H9 (Kroma)", "SUPM2 (Kroma)", "UL1 (Kroma)", "CNK89 (Kroma)"),
+  labels    = c("H9 (Kromastat)", "SUPM2 (Kromastat)", "UL1 (Kromastat)", "CNK89 (Kromastat)"),
   title     = "Global Kromastat Phenotypic Flow (Healthy -> Cancer | Human -> Canine)",
-  filename_base = "04_11_alluvial_hallmark_Kroma"
+  filename_base = "04_11_alluvial_hallmark_Kromastat"
 )
 
 # Global Drug Bridge (Aggressive Cancer)
 make_alluvial_plot(
   master_df,
   axes_cols = c("h_supm2_r", "h_supm2_k", "d_cnk89_r", "d_cnk89_k"),
-  labels    = c("Human:Romi", "Human:Kroma", "Canine:Romi", "Canine:Kroma"),
+  ref_cols  = c("h_supm2_r", "d_cnk89_r"),
+  labels    = c("Human:Romidepsin", "Human:Kromastat", "Canine:Romidepsin", "Canine:Kromastat"),
   title     = "Global Drug-Species Bridge (Aggressive Cell Lines)",
   filename_base = "04_11_alluvial_aggressive"
 )
@@ -167,8 +232,9 @@ make_alluvial_plot(
 make_alluvial_plot(
   master_df,
   axes_cols = c("h_h9_r", "h_h9_k", "d_ul1_r", "d_ul1_k"),
-  labels    = c("Human:Romi", "Human:Kroma", "Canine:Romi", "Canine:Kroma"),
-  title     = "Global Drug-Species Bridge (Indolent CellLines)",
+  ref_cols  = c("h_h9_r", "d_ul1_r"),
+  labels    = c("Human:Romidepsin", "Human:Kromastat", "Canine:Romidepsin", "Canine:Kromastat"),
+  title     = "Global Drug-Species Bridge (Indolent Cell Lines)",
   filename_base = "04_11_alluvial_indolent"
 )
 
@@ -180,8 +246,8 @@ make_alluvial_plot(
 message("\n--- Generating Gene-Level Alluvial Flow Plots ---")
 
 alluvial_pairs <- list(
-  list(drug = "Romi", human_cl = "H9", canine_cl = "UL1", h_file = "02_dge_H9_Romi_6nM_vs_DMSO_Romi.csv", c_file = "02_dge_UL1_Romi_6nM_vs_DMSO_Romi.csv"),
-  list(drug = "Romi", human_cl = "SUPM2", canine_cl = "CNK89", h_file = "02_dge_SUPM2_Romi_6nM_vs_DMSO_Romi.csv", c_file = "02_dge_CNK89_Romi_6nM_vs_DMSO_Romi.csv"),
+  list(drug = "Romidepsin", human_cl = "H9", canine_cl = "UL1", h_file = "02_dge_H9_Romidepsin_6nM_vs_DMSO_Romidepsin.csv", c_file = "02_dge_UL1_Romidepsin_6nM_vs_DMSO_Romidepsin.csv"),
+  list(drug = "Romidepsin", human_cl = "SUPM2", canine_cl = "CNK89", h_file = "02_dge_SUPM2_Romidepsin_6nM_vs_DMSO_Romidepsin.csv", c_file = "02_dge_CNK89_Romidepsin_6nM_vs_DMSO_Romidepsin.csv"),
   list(drug = "Krom", human_cl = "H9", canine_cl = "UL1", h_file = "02_dge_H9_Kromastat_6nM_vs_DMSO_Kromastat.csv", c_file = "02_dge_UL1_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
   list(drug = "Krom", human_cl = "SUPM2", canine_cl = "CNK89", h_file = "02_dge_SUPM2_Kromastat_6nM_vs_DMSO_Kromastat.csv", c_file = "02_dge_CNK89_Kromastat_6nM_vs_DMSO_Kromastat.csv")
 )
@@ -196,31 +262,31 @@ for (pair in alluvial_pairs) {
   
   h_df <- read_csv(h_path, show_col_types = FALSE) %>%
     mutate(h_state = case_when(
-      padj < 0.05 & log2FoldChange >= 2.0 ~ "Up",
-      padj < 0.05 & log2FoldChange <= -2.0 ~ "Down",
-      TRUE ~ "NotSig"
+      padj < 0.05 & log2FoldChange >= 2.0 ~ "Activated",
+      padj < 0.05 & log2FoldChange <= -2.0 ~ "Suppressed",
+      TRUE ~ "Non-significant"
     )) %>%
     select(gene_label, h_state, h_log2FC = log2FoldChange) %>% # Keep fold change
     distinct(gene_label, .keep_all = TRUE)
     
   c_df <- read_csv(c_path, show_col_types = FALSE) %>%
     mutate(c_state = case_when(
-      padj < 0.05 & log2FoldChange >= 2.0 ~ "Up",
-      padj < 0.05 & log2FoldChange <= -2.0 ~ "Down",
-      TRUE ~ "NotSig"
+      padj < 0.05 & log2FoldChange >= 2.0 ~ "Activated",
+      padj < 0.05 & log2FoldChange <= -2.0 ~ "Suppressed",
+      TRUE ~ "Non-significant"
     )) %>%
     select(gene_label, c_state, c_log2FC = log2FoldChange) %>% # Keep fold change
     distinct(gene_label, .keep_all = TRUE)
     
   pair_df <- inner_join(h_df, c_df, by = "gene_label") %>%
-    filter(h_state != "NotSig" | c_state != "NotSig") %>% # Only significant in at least one
+    filter(h_state != "Non-significant" | c_state != "Non-significant") %>% # Only significant in at least one
     mutate(
       flow_class = case_when(
-        h_state == "Up" & c_state == "Up" ~ "concordant_up",
-        h_state == "Down" & c_state == "Down" ~ "concordant_down",
-        h_state != "NotSig" & c_state != "NotSig" & h_state != c_state ~ "discordant",
-        h_state != "NotSig" & c_state == "NotSig" ~ "human_only",
-        h_state == "NotSig" & c_state != "NotSig" ~ "dog_only"
+        h_state == "Activated" & c_state == "Activated" ~ "concordant_activated",
+        h_state == "Suppressed" & c_state == "Suppressed" ~ "concordant_suppressed",
+        h_state != "Non-significant" & c_state != "Non-significant" & h_state != c_state ~ "discordant",
+        h_state != "Non-significant" & c_state == "Non-significant" ~ "human_only",
+        h_state == "Non-significant" & c_state != "Non-significant" ~ "canine_only"
       ),
       drug = pair$drug,
       human_cl = pair$human_cl,
@@ -237,27 +303,27 @@ if (length(all_alluvial_data) > 0) {
          aes(axis1 = human_cl, axis2 = h_state, axis3 = c_state, axis4 = canine_cl)) +
     geom_alluvium(aes(fill = flow_class), width = 1/8, alpha = 0.95, color = NA) + # Increased opacity, removed borders
     geom_stratum(width = 1/8, fill = "white", color = "grey30") +
-    geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 3, fontface = "bold") +
-    scale_x_discrete(limits = c("Human cell line", "Human state", "Dog state", "Dog cell line"), expand = c(.1, .1)) +
+    geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 4.5, fontface = "bold") +
+    scale_x_discrete(limits = c("Human cell line", "Human state", "Canine state", "Canine cell line"), expand = c(.18, .18)) +
     scale_fill_manual(values = c(
-      "concordant_up" = "#D62728", 
-      "concordant_down" = "#1F77B4", 
+      "concordant_activated" = "#D62728", 
+      "concordant_suppressed" = "#1F77B4", 
       "discordant" = "#9467BD", 
       "human_only" = "#E377C2", 
-      "dog_only" = "#2CA02C"
+      "canine_only" = "#2CA02C"
     )) +
     facet_wrap(~drug) + # Fixed scale for species-to-species magnitude comparison
     theme_minimal() +
     theme(
       panel.grid = element_blank(),
-      axis.text.y = element_text(size = 8),
+      axis.text.y = element_text(size = 12),
       legend.position = "bottom",
       plot.title = element_text(face = "bold", hjust = 0.5)
     ) +
-    labs(title = "Human-Dog ortholog response flows for matched cell-line pairs",
+    labs(title = "Human-Canine ortholog response flows for matched cell-line pairs",
          fill = "Flow class")
 
-  ggsave(file.path(output_dir, "04_11_alluvial_gene_flow.png"), p_alluvial, width = 14, height = 8, bg = "white", dpi = 300)
+  ggsave(file.path(output_dir, "04_11_alluvial_gene_flow.png"), p_alluvial, width = 18, height = 10, bg = "white", dpi = 300)
 
   # --- Part 4: Export Gene Flow Data Tables ---
   message("Exporting Gene Flow data tables...")
@@ -274,7 +340,7 @@ if (length(all_alluvial_data) > 0) {
   
   # 4.2 Detailed Sorted Gene List (Mentor's Style)
   # Priority: Concordant first, then species-specific
-  flow_priority <- c("concordant_up" = 1, "concordant_down" = 2, "discordant" = 3, "human_only" = 4, "dog_only" = 5)
+  flow_priority <- c("concordant_activated" = 1, "concordant_suppressed" = 2, "discordant" = 3, "human_only" = 4, "canine_only" = 5)
   
   gene_report <- full_alluvial_df %>%
     mutate(
@@ -286,9 +352,9 @@ if (length(all_alluvial_data) > 0) {
       Drug = drug,
       Comparison,
       `Human gene` = gene_label,
-      `Dog gene` = gene_label,
+      `Canine gene` = gene_label,
       `Human log2FC` = h_log2FC,
-      `Dog log2FC` = c_log2FC,
+      `Canine log2FC` = c_log2FC,
       FlowClass = flow_class
     )
     

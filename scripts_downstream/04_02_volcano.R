@@ -102,7 +102,7 @@ for (contrast in names(results_list)) {
     geom_vline(xintercept = c(-lfc_cutoff, lfc_cutoff), linetype = "dashed", color = "grey40", alpha = 0.7) +
     geom_hline(yintercept = -log10(padj_cutoff), linetype = "dashed", color = "grey40", alpha = 0.7) +
     coord_cartesian(clip = "off") +
-    theme_bw(base_size = 14) +
+    theme_bw(base_size = 18) +
     labs(
       title = {
                 cl_list <- unique(as.character(metadata$cell_line))
@@ -118,18 +118,22 @@ for (contrast in names(results_list)) {
       subtitle = if(grepl("vs_Kromastat", contrast)) "Positive log2FC means higher in Romidepsin;\nnegative log2FC means higher in Kromastat" else NULL,
       x = "log2foldChange",
       y = "-log10 adjusted p-value"
-    ) +
+    )
+    
+    is_drug_drug <- grepl("vs_Kromastat", contrast) && !grepl("DMSO", contrast)
+    
+    p <- p +
     annotate("text", x = -Inf, y = Inf, 
              label = if(grepl("vs_Kromastat", contrast)) paste0("Higher in Kromastat: ", down_count) else paste0("Downregulated: ", down_count), 
-             hjust = -0.05, vjust = -1.2, color = color_down, fontface = "bold", size = 5) +
+             hjust = -0.05, vjust = -1.2, color = color_down, fontface = "bold", size = if(is_drug_drug) 5.5 else 7.5) +
     annotate("text", x = Inf, y = Inf, 
              label = if(grepl("vs_Kromastat", contrast)) paste0("Higher in Romidepsin: ", up_count) else paste0("Upregulated: ", up_count), 
-             hjust = 1.05, vjust = -1.2, color = color_up, fontface = "bold", size = 5) +
+             hjust = 1.05, vjust = -1.2, color = color_up, fontface = "bold", size = if(is_drug_drug) 5.5 else 7.5) +
     theme(
       legend.position = "none",
       plot.title = element_text(face = "bold", hjust = 0.5, 
                                 margin = margin(b = if(grepl("vs_Kromastat", contrast)) 10 else 50)),
-      plot.subtitle = element_text(hjust = 0.5, margin = margin(b = 45)),
+      plot.subtitle = element_text(hjust = 0.5, size = if(is_drug_drug) 13.5 else 18, margin = margin(b = 45)),
       panel.grid.minor = element_blank(),
       plot.margin = margin(2.5, 1, 1, 1, "cm")
     )
@@ -138,7 +142,7 @@ for (contrast in names(results_list)) {
     p <- p + geom_text_repel(
       data = label_df,
       aes(label = gene_label),
-      size = 3.5,
+      size = 5.25,
       max.overlaps = 20,
       box.padding = 0.6,
       point.padding = 0.4,
@@ -151,7 +155,7 @@ for (contrast in names(results_list)) {
   volcano_plots[[contrast]] <- p
   
   safe_name <- str_replace_all(contrast, "[^a-zA-Z0-9]", "_")
-  ggsave(paste0(res_dir, "/figures/04_02_volcano_", safe_name, ".png"), p, width = 8, height = 7, dpi = 300, bg = "white")
+  ggsave(paste0(res_dir, "/figures/04_02_volcano_", safe_name, ".png"), p, width = 9, height = 7, dpi = 300, bg = "white")
 }
 
 # 5. Export Master Summary Tables
@@ -169,7 +173,7 @@ write.csv(final_top_genes_df, file.path(res_dir, "tables/04_02_top_dge_genes.csv
 # 5.3 Conserved Targets (H9 ∩ SUPM2)
 message("--- Identifying Conserved Targets across Cell Lines ---")
 conserved_list <- list()
-treatments <- c("Romi_6nM_vs_DMSO_Romi", "Kromastat_6nM_vs_DMSO_Kromastat", "Romi_6nM_vs_Kromastat_6nM")
+treatments <- c("Romidepsin_6nM_vs_DMSO_Romidepsin", "Kromastat_6nM_vs_DMSO_Kromastat", "Romidepsin_6nM_vs_Kromastat_6nM")
 
 for (tr in treatments) {
   cl_list <- unique(as.character(metadata$cell_line))

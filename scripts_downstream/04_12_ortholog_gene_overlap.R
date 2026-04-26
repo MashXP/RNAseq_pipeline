@@ -60,9 +60,9 @@ message("Matched ", nrow(ortholog_tbl), " orthologs by gene symbol.")
 # 2. Comparison Logic
 # We compare matched contrasts between species
 comparisons <- data.frame(
-  label = c("Romi 6nM", "Kromastat 6nM"),
-  human_stub  = c("02_dge_Romi_6nM_vs_DMSO_Romi.csv", "02_dge_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
-  canine_stub = c("02_dge_Romi_6nM_vs_DMSO_Romi.csv", "02_dge_Kromastat_6nM_vs_DMSO_Kromastat.csv")
+  label = c("Romidepsin 6nM", "Kromastat 6nM"),
+  human_stub  = c("02_dge_Romidepsin_6nM_vs_DMSO_Romidepsin.csv", "02_dge_Kromastat_6nM_vs_DMSO_Kromastat.csv"),
+  canine_stub = c("02_dge_Romidepsin_6nM_vs_DMSO_Romidepsin.csv", "02_dge_Kromastat_6nM_vs_DMSO_Kromastat.csv")
 )
 
 all_merged_results <- list()
@@ -113,8 +113,8 @@ for (i in 1:nrow(comparisons)) {
     scale_color_manual(values = c("shared_up" = "#D62728", "shared_down" = "#1F77B4", "other" = "grey80")) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "grey40") +
     geom_vline(xintercept = 0, linetype = "dashed", color = "grey40") +
-    geom_text_repel(data = label_df, aes(label = gene_label), size = 3, max.overlaps = 20) +
-    theme_bw() +
+    geom_text_repel(data = label_df, aes(label = gene_label), size = 4.5, max.overlaps = 20) +
+    theme_bw(base_size = 21) +
     labs(
       title = paste0("Ortholog Overlap: ", label),
       subtitle = "Criteria: padj < 0.05 & |log2FC| > 2",

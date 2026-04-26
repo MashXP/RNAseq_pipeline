@@ -32,7 +32,7 @@ get_sig_ids <- function(res_entry) {
 # Identify Cell Line Subsets dynamically from the results keys
 keys <- names(results_list)
 # We assume cell line subsets are the ones that are NOT the global pooled contrasts
-global_contrasts <- c("Romi_6nM_vs_DMSO_Romi", "Kromastat_6nM_vs_DMSO_Kromastat", "Romi_6nM_vs_Kromastat_6nM", "DMSO_Kromastat_vs_DMSO_Romi")
+global_contrasts <- c("Romidepsin_6nM_vs_DMSO_Romidepsin", "Kromastat_6nM_vs_DMSO_Kromastat", "Romidepsin_6nM_vs_Kromastat_6nM", "DMSO_Kromastat_vs_DMSO_Romidepsin")
 cell_lines <- unique(str_extract(keys[!keys %in% global_contrasts], "^[A-Za-z0-9]+(?=_)"))
 cell_lines <- cell_lines[!is.na(cell_lines)]
 
@@ -46,17 +46,17 @@ if (length(cell_lines) < 2) {
 message("--- Generating UpSet Consistency Report for ", group_name, " (", paste(cell_lines, collapse=", "), ") ---")
 
 # A. Romidepsin Consistency
-romi_case <- "Romi_6nM_vs_DMSO_Romi"
+romi_case <- "Romidepsin_6nM_vs_DMSO_Romidepsin"
 romi_sets <- list()
 for (cl in cell_lines) {
-  romi_sets[[paste0(cl, " Romi")]] <- get_sig_ids(results_list[[paste0(cl, "_", romi_case)]])
+  romi_sets[[paste0(cl, " Romidepsin")]] <- get_sig_ids(results_list[[paste0(cl, "_", romi_case)]])
 }
 
 # B. Kromastat Consistency
 krom_case <- "Kromastat_6nM_vs_DMSO_Kromastat"
 krom_sets <- list()
 for (cl in cell_lines) {
-  krom_sets[[paste0(cl, " Krom")]] <- get_sig_ids(results_list[[paste0(cl, "_", krom_case)]])
+  krom_sets[[paste0(cl, " Kromastat")]] <- get_sig_ids(results_list[[paste0(cl, "_", krom_case)]])
 }
 
 # C. Combine for a 4-way comparison if possible
@@ -86,7 +86,7 @@ if (length(all_sets) >= 2) {
          main.bar.color = "#D62728", # Red for intersections
          sets.bar.color = "#1F77B4", # Blue for sets
          matrix.color = "#1F77B4",
-         text.scale = c(1.5, 1.2, 1.2, 1.0, 1.2, 1.2), # 4th is Set Size axis labels
+         text.scale = c(2.25, 1.8, 1.8, 1.5, 1.8, 1.8), # 4th is Set Size axis labels
          point.size = 3.5, 
          line.size = 1.0)
   
@@ -95,7 +95,7 @@ if (length(all_sets) >= 2) {
   
   
   grid.text(paste0("Consistency Matrix: ", group_name), 
-            x = 0.65, y = 0.95, gp = gpar(fontsize = 16, fontface = "bold"))
+            x = 0.65, y = 0.95, gp = gpar(fontsize = 24, fontface = "bold"))
   
   dev.off()
   message("[OK] UpSet plot saved -> 04_09_upset_consistency.png")

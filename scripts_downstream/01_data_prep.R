@@ -34,7 +34,7 @@ metadata <- metadata %>%
   mutate(Rep = row_number()) %>%
   ungroup() %>%
   mutate(display_name = paste0(cell_line, "_", condition, "_", Rep)) %>%
-  mutate(condition = factor(condition, levels = c("DMSO_Romi", "Romi_6nM", "DMSO_Kromastat", "Kromastat_6nM"))) %>%
+  mutate(condition = factor(condition, levels = c("DMSO_Romidepsin", "Romidepsin_6nM", "DMSO_Kromastat", "Kromastat_6nM"))) %>%
   select(OriginalSample, display_name, condition, cell_line)
 
 # 2. Load Gene Counts

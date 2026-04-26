@@ -23,7 +23,7 @@ load(paste0("./.RData/", group_name, "/02_deseq_results.RData"))
 # Identify Cell Line Subsets dynamically from the results keys
 keys <- names(results_list)
 # We assume cell line subsets are the ones that are NOT the global pooled contrasts
-global_contrasts <- c("Romi_6nM_vs_DMSO_Romi", "Kromastat_6nM_vs_DMSO_Kromastat", "Romi_6nM_vs_Kromastat_6nM", "DMSO_Kromastat_vs_DMSO_Romi")
+global_contrasts <- c("Romidepsin_6nM_vs_DMSO_Romidepsin", "Kromastat_6nM_vs_DMSO_Kromastat", "Romidepsin_6nM_vs_Kromastat_6nM", "DMSO_Kromastat_vs_DMSO_Romidepsin")
 cell_lines <- unique(str_extract(keys[!keys %in% global_contrasts], "^[A-Za-z0-9]+(?=_)"))
 cell_lines <- cell_lines[!is.na(cell_lines)]
 
@@ -94,33 +94,33 @@ create_corr_plot <- function(drug_name, stub) {
       "Specific (Sig in one)" = "#1F77B4",   # Premium Blue
       "Non-significant" = "grey80"
     )) +
-    theme_bw(base_size = 12) +
+    theme_bw(base_size = 18) +
     labs(
       title = paste0(drug_name, " Mechanism Consistency"),
       subtitle = paste0(cl1, " vs ", cl2, " | R = ", round(corr_val, 3), " | |LFC| > ", lfc_thresh),
       x = paste0("log2FoldChange (", cl1, ")"),
       y = paste0("log2FoldChange (", cl2, ")"),
       color = "Significance"
-    ) +
-    theme(legend.position = "bottom")
+    )
 }
 
-p_romi <- create_corr_plot("Romidepsin", "Romi_6nM_vs_DMSO_Romi")
+p_romi <- create_corr_plot("Romidepsin", "Romidepsin_6nM_vs_DMSO_Romidepsin")
 p_krom <- create_corr_plot("Kromastat", "Kromastat_6nM_vs_DMSO_Kromastat")
 
 if (!is.null(p_romi) && !is.null(p_krom)) {
-  p_combined <- p_romi + p_krom + 
+  p_combined <- (p_romi + p_krom) + 
+    plot_layout(guides = "collect") +
     plot_annotation(
-      title = paste0("Pathway Directionality Consensus: ", group_name),
+      title = paste0("Transcriptome Response Consistency: ", group_name),
       subtitle = paste0("(I): Indolent (", cl1, ") | (A): Aggressive (", cl2, ")"),
       theme = theme(
-        plot.title = element_text(size = 18, face = "bold", hjust = 0.5),
-        plot.subtitle = element_text(size = 12, face = "italic", hjust = 0.5)
+        plot.title = element_text(size = 27, face = "bold", hjust = 0.5, margin = margin(b = 10, t = 10)),
+        plot.subtitle = element_text(size = 18, face = "italic", hjust = 0.5, margin = margin(b = 10))
       )
-    )
+    ) & theme(legend.position = "bottom")
   
   ggsave(file.path(res_dir, "figures/04_10_lfc_correlation.png"), p_combined, 
-         width = 12, height = 7, dpi = 300, bg = "white")
+         width = 14, height = 9, dpi = 300, bg = "white")
   
   message("[OK] Correlation plot saved -> 04_10_lfc_correlation.png")
 }
