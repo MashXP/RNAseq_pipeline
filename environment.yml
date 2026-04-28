@@ -13,6 +13,8 @@ dependencies:
   - ucsc-gtftogenepred
   - trimmomatic
   - fastqc
+  - rmats
+  - rmats2sashimiplot
   
   # Python Stack
   - python=3.9
