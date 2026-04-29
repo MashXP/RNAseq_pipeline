@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=128G
 #SBATCH --time=48:00:00
-#SBATCH --output=hpc_download_log_%j.txt
-#SBATCH --error=hpc_download_error_%j.txt
+#SBATCH --output=_data/logs/hpc_download_log_%j.txt
+#SBATCH --error=_data/logs/hpc_download_error_%j.txt
 
 echo "========================================================="
 echo "   Starting Google Drive Download job"

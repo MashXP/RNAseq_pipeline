@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
 #SBATCH --time=4:00:00
-#SBATCH --output=hpc_test_micro_log.txt
-#SBATCH --error=hpc_test_micro_error.txt
+#SBATCH --output=_data/logs/hpc_test_micro_log.txt
+#SBATCH --error=_data/logs/hpc_test_micro_error.txt
 
 # 1. Initialize Micromamba logic inside the subshell
 # (This ensures it works even if your ~/.bashrc isn't sourced)

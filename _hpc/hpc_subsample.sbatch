@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --time=2:00:00
-#SBATCH --output=subsample_%j.out
-#SBATCH --error=subsample_%j.err
+#SBATCH --output=_data/logs/subsample_%j.out
+#SBATCH --error=_data/logs/subsample_%j.err
 
 # hpc_subsample.sh
 # Run this on the HPC inside the directory containing 'data/drPhuong'

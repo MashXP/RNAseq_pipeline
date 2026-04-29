@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=32
 #SBATCH --mem=128G
 #SBATCH --time=48:00:00
-#SBATCH --output=hpc_run_log_%j.txt
-#SBATCH --error=hpc_run_error_%j.txt
+#SBATCH --output=_data/logs/hpc_run_log_%j.txt
+#SBATCH --error=_data/logs/hpc_run_error_%j.txt
 
 # 1. Initialize Micromamba (Safe method for batch shells)
 eval "$(micromamba shell hook --shell bash)"
