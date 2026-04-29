@@ -16,6 +16,7 @@ echo "Log file: $LOG_FILE"
 
 echo "========================================================="
 echo "   RNA-seq Pipeline - Pipeline Runner"
+echo "   Starting at: $(date)"
 echo "========================================================="
 
 # --- Resource Detection for Visibility ---
@@ -25,7 +26,7 @@ if [ -n "$SLURM_MEM_PER_NODE" ]; then
 else
     export MEM_GB=$(free -g 2>/dev/null | awk '/^Mem:/{print $2}' || echo 128)
 fi
-echo "System Resources: $THREADS threads, $MEM_GB GB RAM detected."
+echo "   Resources: $THREADS threads, $MEM_GB GB RAM detected."
 echo "---------------------------------------------------------"
 
 # 1. Environment Check
@@ -79,11 +80,12 @@ if [ "$RUN_UPSTREAM" = true ]; then
     # (set -e at the top ensures exit on any failure)
     (
         cd scripts_upstream/
-        bash 01_genome_prep.sh
-        bash 02_star_align.sh
+        # bash 01_genome_prep.sh
+        # bash 02_star_align.sh
         bash 03_alignment_qc.sh
         bash 04_quantification.sh
         bash 05_multiqc.sh
+        # bash 06_rmats_splicing.sh
     ) || { echo "Upstream pipeline failed at some step. Exiting."; exit 1; }
     
     echo "UPSTREAM COMPLETE."
@@ -135,6 +137,11 @@ if [ "$RUN_DOWNSTREAM" = true ]; then
         Rscript 04_12_ortholog_gene_overlap.R
         Rscript 04_13_ortholog_nes_overlap.R
 
+        echo "========================================================="
+        echo "Running Alternative Splicing Analysis"
+        echo "========================================================="
+        Rscript 05_01_rmats_summary.R
+
     ) || { echo "Downstream analysis failed at some step. Exiting."; exit 1; }
     
     echo "DOWNSTREAM COMPLETE."
@@ -143,4 +150,5 @@ fi
 
 echo "========================================================="
 echo "   All requested tasks completed successfully."
+echo "   Completed at: $(date)"
 echo "========================================================="

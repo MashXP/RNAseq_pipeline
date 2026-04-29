@@ -20,6 +20,7 @@ _data/genome/
 _data/index/
 _data/ensembl/
 _data/multiqc
+_data/rMATS-turbo
 
 # Ignore R intermediate data
 **/ .RData/
@@ -77,3 +78,5 @@ verify_discrepancy.R
 mentor
 _hpc/counts
 img
+
+_legacy

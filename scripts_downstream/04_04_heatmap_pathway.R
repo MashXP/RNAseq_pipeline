@@ -214,7 +214,7 @@ for (contrast in names(enrichment_results_all)) {
   )
   
   # 5. Create Custom Legends for Ordered Stacking
-  lgd_shorthand = Legend(labels = c("D = DMSO", "R = Romidepsin", "K = Kromastat"), 
+  lgd_shorthand = Legend(labels = c("D = DMSO (Control)", "R = Romidepsin", "K = Kromastat"), 
                          title = "Shorthand", 
                          graphics = list(function(x, y, w, h) {}, 
                                          function(x, y, w, h) {}, 
@@ -251,7 +251,7 @@ for (contrast in names(enrichment_results_all)) {
 }
 
 # --- Shared Legend Components (Reused Below) ---
-lgd_shorthand = Legend(labels = c("D = DMSO", "R = Romidepsin", "K = Kromastat"), 
+lgd_shorthand = Legend(labels = c("D = DMSO (Control)", "R = Romidepsin", "K = Kromastat"), 
                        title = "Shorthand", 
                        graphics = list(function(x, y, w, h) {}, 
                                        function(x, y, w, h) {}, 
