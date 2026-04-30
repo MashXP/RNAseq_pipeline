@@ -34,7 +34,7 @@ mkdir -p "$RESULTS_DIR" "$TMP_DIR" "$LOG_DIR"
 # ──────────────────────────────────────────────────────────────────────────────
 
 READ_LENGTH=150
-LIB_TYPE="fr-secondstrand"
+LIB_TYPE="fr-firststrand"
 READ_TYPE="paired"
 CSTAT=0.05
 ANCHOR_LENGTH=1

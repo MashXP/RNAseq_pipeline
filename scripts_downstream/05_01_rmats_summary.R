@@ -85,6 +85,8 @@ as_totals <- final_summary %>%
   summarize(total = sum(significant_events)) %>%
   deframe()
 
+total_n <- sum(final_summary$significant_events)
+
 # Updated palette with counts in labels
 as_labels <- setNames(
   paste0(names(as_palette), " = ", as_totals[names(as_palette)]),
@@ -108,7 +110,7 @@ p_main <- ggplot(final_summary, aes(x = comparison_short, y = significant_events
   ) +
   labs(
     title = "rMATS-turbo: Significant Splicing Events",
-    subtitle = "Filtering: FDR <= 0.05, |DeltaPSI| >= 0.1, Avg Counts >= 10",
+    subtitle = paste0("Filtering: FDR <= 0.05, |DeltaPSI| >= 0.1, Avg Counts >= 10 | Total N = ", total_n),
     x = "Comparison",
     y = "Number of Significant Events",
     fill = "AS Type"
@@ -117,7 +119,6 @@ p_main <- ggplot(final_summary, aes(x = comparison_short, y = significant_events
 # 2. Add Legend for Shortened names (using patchwork to combine)
 total_n <- sum(final_summary$significant_events)
 shorthand_text <- paste0(
-  "Total Significant Events: N = ", total_n, "\n",
   "Treatments: D = DMSO (Control) | R = Romidepsin | K = Kromastat\n",
   "Splicing Types:\n",
   "  SE   = Skipped Exon\n",
