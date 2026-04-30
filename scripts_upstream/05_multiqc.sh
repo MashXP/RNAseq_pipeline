@@ -13,7 +13,7 @@ MULTIQC_DIR="$DATA_DIR/multiqc"
 BAM_DIR="$DATA_DIR/bam"
 QC_DIR="$DATA_DIR/qc"
 QC_RAW_DIR="$DATA_DIR/qc_raw"
-COUNTS_DIR="$DATA_DIR/counts"
+COUNTS_DIR="$DATA_DIR/featurecounts"
 
 echo ""
 echo "================================================================================"
