@@ -92,26 +92,14 @@ However, after verifying the library preparation kit and switching to **`fr-firs
 | **Focus**                  | Finds common drug targets.                                  | Finds phenotype-specific mechanisms.                                |
 | **Presentation Narrative** | "This drug affects the human splicing machinery generally." | "This drug breaks the machinery specifically in aggressive cancer." |
 -> Should pick Cell-Line level.
-## Scripts
-> [!todo]
-> 
-> **Prompt:** "Write a Python script that parses a metadata CSV containing sample IDs, treatments, and cell lines. For each cell line (UL1, CNK89, H9, SUPM2), it should identify comparison pairs (e.g., Kromastat_6nM vs. DMSO_Kromastat). For each pair, it must generate two text files: `b1.txt` (Treatment) and `b2.txt` (Control).
-> 
-> Each text file must contain a single line of comma-separated paths to the BAM files. The BAM paths follow this pattern: `/RNAseq_pipeline/_data/bam/{ID}/{ID}_Aligned.sortedByCoord.out.bam`, where {ID} is the number at the start of the 'File1' column (e.g., '27'). The script should group the 3 biological replicates for each condition into their respective files."
-> 
+## Implementation
 
-> [!todo]
-> **Prompt:** "Write a 2 Bash script to execute an rMATS-turbo pipeline.
-> 1. First, call the Python metadata script to generate all `b1.txt` and `b2.txt` files for the 8 comparisons (4 cell lines x 2 drugs).   
-> 2. Then, loop through each comparison to run the **rMATS 'Prep' step** using the flag. It must use the correct species-specific GTF file (Human vs. Canine).
-> 3. Finally, run the **'Post' step** using the Post script.
->
-> Include these specific rMATS parameters:
->- **Statistical Filter**: FDR ≤0.01 and ∣Δψ∣≥0.05.
->- **Read Coverage**: Minimum average of 10 reads per group.
->- **Read Type**: Paired-end (`-t paired`).
->- **Library Type**: Stranded
+The practical implementation of the alternative splicing pipeline is documented in the project guides:
 
+- **Upstream Pipeline**: [06 — rMATS-turbo Alternative Splicing Pipeline](file:///mnt/22T/phongdinh/RNAseq_pipeline/docs/project/upstream/06_rmats_splicing.md)
+  - Covers BAM list generation, parallel job management, and the core rMATS execution.
+- **Downstream Analysis**: [05 — Alternative Splicing Analysis & Visualization](file:///mnt/22T/phongdinh/RNAseq_pipeline/docs/project/downstream/05_rmats_analysis.md)
+  - Covers results aggregation, candidate ranking, and Sashimi plot generation.
 
 # Analysis
 ## **The 5 Splicing Flavors**
@@ -128,7 +116,7 @@ Decoding the specific patterns rMATS-turbo detects, such as **Skipped Exons (SE)
 **HDAC inhibitors** like Romidepsin can cause the splicing machinery to "trip" over certain sequences. For example, if a drug causes a **Retained Intron**, it often introduces a "premature stop codon."
 
 ## **Functional Finish Line**
-Visualizing the data with **Sashimi plots** and connecting these splicing "crashes" to pathways like cell proliferation
+Visualizing the data with **Sashimi plots** and connecting these splicing "crashes" to pathways like cell proliferation. For instructions on generating these plots, see the [Downstream Analysis Guide](file:///mnt/22T/phongdinh/RNAseq_pipeline/docs/project/downstream/05_rmats_analysis.md).
 
 A **Sashimi plot** is the "gold standard" for visualizing alternative splicing because it shows two things at once:
 1. **Read Density** 🏔️: The height of the "mountains" tells us how much of an exon was actually expressed.

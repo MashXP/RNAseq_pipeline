@@ -36,5 +36,19 @@ f.write("# plot_type: 'bargraph'\n")
 
 ---
 
-## 3. Summary
+## 3. `generate_bam_lists.py`
+```python
+def parse_metadata(csv_path: Path) -> dict:
+    # Extracts Sample ID, Treatment, and Cell Line (Group)
+    # Maps IDs to: _data/bam/{id}/{id}_Aligned.sortedByCoord.out.bam
+    # Verifies file existence before adding to list
+```
+- **The Job**: Specifically designed for **rMATS-turbo**, this script creates the `b1.txt` and `b2.txt` files required for each comparison.
+- **The Reasoning**: 
+    - **Replicate Handling**: rMATS requires replicates to be comma-separated on a single line. This script automates the grouping of the 3 biological replicates for each condition.
+    - **Path Safety**: It performs a critical check (`os.path.exists`) for every BAM file. If a BAM is missing (e.g., due to a failed alignment), the script errors out early, preventing rMATS from running on incomplete data.
+
+---
+
+## 4. Summary
 These utilities ensure that the "Engine" (the Bash scripts) has the right fuel (clean metadata) and produces the right exhaust (readable reports). Without these "small" scripts, the large-scale pipeline would be much more difficult to debug.

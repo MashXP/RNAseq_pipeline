@@ -5,11 +5,13 @@
     - Might consider using a config file (e.g. YAML, JSON) to store these variables
     - Include options to add more complex comparision.
 - Allow swappable tool modules (e.g. STAR vs HISAT2, DESeq2 vs edgeR, etc.)
-- Add more analysis methods (Only do if client requires).
 - More thorough clean script.
-- Add more documentation.
-    - Results sample
-    - Project creation date
+
+## COMPLETED ✅
+- **Alternative Splicing Pipeline**: Integrated rMATS-turbo for upstream and downstream analysis.
+- **Documentation**: Added comprehensive guides for upstream/downstream AS analysis and updated theory notes.
+- **Standardization**: Standardized Romidepsin nomenclature and enhanced plot aesthetics across the pipeline.
+- **Canine Nomenclature**: Replaced all "DOG" instances with "Canine".
 
 ## URGENT - DONE
 - Align Dr VuHuynh scripts to current pipeline.
