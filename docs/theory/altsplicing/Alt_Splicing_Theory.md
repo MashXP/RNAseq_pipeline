@@ -74,6 +74,18 @@ In rMATS, you don't actually do individual 1-vs-1 comparisons (Replicate 1 vs R
 - **Drug vs. Control:** Tells you what each drug does to the cell.
 - **Drug A vs. Drug B:** Tells you the **difference in mechanism**. For example, if Romidepsin causes a specific splicing error that Kromastat doesn't, that might explain why Romidepsin is more effective in certain cell lines.
 
+### ⚠️ Lesson Learned: The Strandedness Trap (A Cautionary Tale)
+In rMATS-turbo, one of the most critical (and easily missed) parameters is **`--libType`**. Choosing the wrong strandedness will cause the software to look at the "wrong side" of the DNA, resulting in a massive loss of data.
+
+**The Real-World Example:**
+In this project, we initially ran the pipeline with `fr-secondstrand` (Forward Stranded).
+*   **Result**: The analysis only detected **~50 significant splicing events** across the entire project. This made it look like the drugs had almost no effect on splicing.
+
+However, after verifying the library preparation kit and switching to **`fr-firststrand`** (Reverse Stranded):
+*   **Result**: The analysis suddenly detected **6,000+ significant splicing events**. 
+
+**Conclusion**: If your rMATS results look surprisingly "empty" (e.g., only a few dozen hits for a powerful drug), **STOP** and re-verify your library type. In most modern Illumina kits (dUTP-based), `fr-firststrand` is the correct setting.
+
 | **Feature**                | **Species Pooling (Global)**                                | **Cell-Line Level (Specific)**                                      |
 | -------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------- |
 | **Statistical Power**      | Higher $n$ (more samples), but higher "noise."              | Lower $n$ (3 replicates), but very "clean" data.                    |

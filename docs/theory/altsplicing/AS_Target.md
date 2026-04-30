@@ -36,12 +36,12 @@ Based on the criteria above, the following events have been identified as high-p
 
 | Gene | Type | Cell Line | Comparison | ΔΨ | ID | Selection Rationale |
 | :--- | :--- | :--- | :--- | :---: | :--- | :--- |
-| **CD44** | SE | H9 | Romi vs DMSO | +0.82 | 10565 | Classic cancer marker; extreme 82% shift in isoform ratio. |
-| **CD44** | SE | SUPM2 | Romi vs DMSO | -0.80 | 10565 | Cross-cell line verification; opposite splicing polarity. |
-| **ALDOA** | SE | SUPM2 | Romi vs DMSO | +0.66 | 10581 | Key glycolytic enzyme; suggests metabolic reprogramming. |
-| **TRA2B** | SE | H9 | Romi vs Krom | -0.58 | 87531 | Splicing factor itself; indicator of global splicing shifts. |
-| **SEPTIN1** | SE | UL1 | Romi vs DMSO | +0.57 | 8405 | Top-tier **Canine** candidate for cross-species study. |
-| **CSNK1D** | RI | SUPM2 | Romi vs DMSO | +0.59 | 3884 | Strong Intron Retention; likely induces NMD/degradation. |
+| **CTSS** | SE | UL1 | Romi vs DMSO | -0.85 | 94880 | **Top Canine Target**: Massive effect size in canine study. |
+| **IL31RA** | SE | SUPM2 | Romi vs DMSO | -0.78 | 114255 | High magnitude switch in human lymphoma cells. |
+| **ARL4A** | SE | SUPM2 | Romi vs DMSO | +0.77 | 88115 | Strong inclusion signal; solid read depth. |
+| **ALDOA** | SE | SUPM2 | Romi vs DMSO | +0.74 | 159236 | **Best Visual Candidate**: Huge shift + >2000 reads! |
+| **SEMA4D** | SE | H9 | Romi vs DMSO | +0.74 | 218658 | Highly consistent target across multiple comparisons. |
+| **CTSB** | MXE | SUPM2 | Romi vs DMSO | +0.76 | 29982 | Best Mutually Exclusive Exon candidate. |
 
 ---
 *Last Updated: 2026-04-29*
