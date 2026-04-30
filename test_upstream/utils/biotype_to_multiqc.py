@@ -1,1 +1,0 @@
-../../scripts_upstream/utils/biotype_to_multiqc.py

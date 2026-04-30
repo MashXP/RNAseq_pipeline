@@ -26,7 +26,7 @@ micromamba activate cancer_rnaseq
 
 # Define script path
 PIPELINE_ROOT="${SLURM_SUBMIT_DIR:-$(dirname "$(realpath "$0")")}"
-SASHIMI_SCRIPT="$PIPELINE_ROOT/scripts_downstream/05_02_rmats_sashimi.sh"
+SASHIMI_SCRIPT="$PIPELINE_ROOT/02_dge_analysis/scripts/downstream/05_02_rmats_sashimi.sh"
 
 echo "========================================================="
 echo "   rMATS Sashimi Plot - Job Submission"

@@ -23,10 +23,9 @@ _data/multiqc
 _data/rMATS-turbo
 
 # Ignore R intermediate data
-**/ .RData/
-**/.Rhistory
-**/.RData*
-**/.Rapp.history
+*.RData
+.Rhistory
+.Rapp.history
 
 # Python cache
 __pycache__/

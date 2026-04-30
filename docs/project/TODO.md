@@ -1,5 +1,6 @@
 # TODO
 
+- [ ] **Test Suite Redesign**: Redo the test scripts to align with the new modular project structure (01_core, 02_dge, 03_as). Reference `docs/test_deviation.md` for historical logic overrides.
 - Refactor the code structure to centralize variables for more future pipelines with more csv. 
     - Reducing hardcodes (e.g. species, group names, etc.)
     - Might consider using a config file (e.g. YAML, JSON) to store these variables

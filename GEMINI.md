@@ -14,7 +14,7 @@ This file tracks the step-by-step collaborative work between Antigravity and the
 The following strict principles govern the maintenance, synchronization, and modification of scripts within this repository. 
 
 ### 1. Absolute Identicality (Line-by-Line)
-Test scripts **MUST** strictly mirror their corresponding production scripts (`scripts_upstream/`, `scripts_downstream/`) line-by-line. 
+Test scripts **MUST** strictly mirror their corresponding production scripts (located in `01_core_alignment/`, `02_dge_analysis/`, and `03_as_analysis/`) line-by-line. 
 - Do not alter the structure of `echo` statements, resource checks, conditional blocks, or native loops.
 - Do not append `[TEST]`, `(TEST)`, or any other custom tags to output messages.
 - The visual and structural output of a Git diff between the Test script and the Production script must be as minimal as possible.
@@ -44,3 +44,8 @@ Operating on the high-performance computing environment (HPC-01) requires extrem
 - **RESTRICTED ACCESS**: Strictly adhere to the authorized directories (`/mnt/22T/phongdinh`, `/mnt/22T/vuphong`, `/home/phongdinh`).
 - **Job Submission**: Use `sbatch` for substantial loads; negligible loads can use direct bash.
 - **Package Management**: Do not automate package installations. Notify the user if a dependency is missing.
+
+### 7. Documentation-First Integrity
+Whenever a script is being modified or created, you **MUST** refer to the corresponding documentation (located in the `docs/` subdirectory of each module) to maintain technical and logical integrity. 
+- Ensure the script implementation aligns exactly with the documented purpose, mathematical parameters, and workflow sequence.
+- If a modification creates a discrepancy with existing documentation, the documentation MUST be updated simultaneously to reflect the new truth.

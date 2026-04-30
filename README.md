@@ -1,120 +1,83 @@
 # RNA-seq Pipeline
 
-This directory contains the automated end-to-end pipeline for analyzing cancer RNA-seq data.
+This directory contains the automated end-to-end pipeline for analyzing cancer RNA-seq data, now organized into a modular, domain-specific architecture.
 
 ## Research Purpose
-The objective of this pipeline is to investigate transcriptomic responses (e.g., drug treatments across multiple doses) using high-throughput RNA-seq. The pipeline is designed to:
-1.  **Identify Differentially Expressed Genes (DEGs)** for each condition relative to a control baseline.
-2.  **Compare overlapping effects** across treatments using multi-way Venn Diagrams and UpSet plots.
-3.  **Perform Functional Enrichment (GSEA & ORA)** to identify activated and suppressed signaling pathways, Hallmark gene sets, and biological processes.
+The objective of this pipeline is to investigate transcriptomic responses (e.g., drug treatments) using high-throughput RNA-seq. The pipeline is designed to:
+1.  **Identify Differentially Expressed Genes (DEGs)** and Alternative Splicing events.
+2.  **Compare overlapping effects** across treatments and species.
+3.  **Perform Functional Enrichment (GSEA & ORA)** to identify activated and suppressed signaling pathways.
 
-## Directory Structure
+## Modular Architecture
+
+The repository is organized into three primary analysis modules, segregating Core Alignment, DGE, and Alternative Splicing (AS).
 
 ```text
 RNAseq_pipeline/
-├── _data/                       # Centralized Data Storage (git ignored)
-├── _hpc/                        # Cluster Environment Management (Slurm)
-├── scripts_upstream/            # Upstream Automation (BASH)
-├── scripts_downstream/          # Downstream Analysis Suite (R)
-├── test_upstream/               # Verification Suite: Upstream (Chr21)
-├── test_downstream/             # Verification Suite: Downstream (Mock)
-├── docs/                        # Project Documentation
-│   ├── project/                 # Project Management
-│   │   ├── upstream/            # Upstream script dissections
-│   │   ├── downstream/          # Downstream script dissections
-│   │   ├── research_plan.md
-│   │   └── TODO.md
-│   └── reports/                 # Generated Analysis Reports
-├── Sample_Data_Table.csv        # Metadata template for the study
-├── environment.yml              # Conda/Mamba environment definition
-├── setup_env.sh                 # Environment automation script
-├── run                          # Master Production Runner
-└── test                         # Master Verification Runner
+├── 01_core_alignment/     # Module: Genome Indexing, STAR Mapping, MultiQC
+├── 02_dge_analysis/       # Module: featureCounts, DESeq2, Enrichment, DGE Plots
+├── 03_as_analysis/        # Module: rMATS-turbo (Upstream & Downstream)
+├── utils/                 # Centralized Python/Bash/R utilities
+├── _data/                 # Centralized Data Storage (git ignored)
+│   └── _metadata/
+│       └── drPhuong_Sample_Data_Table.csv # STUDY METADATA
+├── results/               # Modular results (git ignored)
+│   ├── 01_core_alignment/
+│   ├── 02_dge_analysis/
+│   └── 03_as_analysis/
+├── docs/                  # Documentation
+│   └── test_deviation.md  # Historical log of test-suite overrides
+├── environment.yml        # Conda/Mamba environment definition
+└── run                    # Master Modular Runner
 ```
+
 
 ## Quick Start
 
-### 1. Upstream (Alignment & Quantification)
-Place raw FASTQ files in `_data/fastq/`. You can run only the upstream pipeline using:
+The master `run` script now targets modules directly.
+
+### 1. Execute Specific Module
 ```bash
-./run up
+./run core    # Alignment & QC
+./run dge     # Differential Expression analysis
+./run as      # Alternative Splicing analysis
 ```
 
-### 2. Downstream (Differential Expression)
-Run only the downstream R analysis using:
+### 2. Execute Full Pipeline
 ```bash
-./run down
+./run all     # Runs Core -> DGE -> AS in sequence
 ```
 
-### 3. Full Pipeline
-Run everything from start to finish:
-```bash
-./run all
-```
+## Pipeline Architecture
 
-## Verification & Testing (Local Run)
+### 01_core_alignment (Scripts)
+- `01_genome_prep.sh`: Indexing & Trimming (STAR, Trimmomatic)
+- `02_star_align.sh`: Mapping (Alignment) (STAR)
+- `03_alignment_qc.sh`: Health Check (Picard, QC Stats)
+- `04_multiqc.sh`: Final Reporting (MultiQC)
 
-For rapid verification of the pipeline logic on local hardware, a **Chromosome 21 Test Suite** is provided.
+### 02_dge_analysis (Scripts)
+- `upstream/01_quantification.sh`: Counting Genes (featureCounts)
+- `downstream/01_data_prep.R`: Clean & organize metadata
+- `downstream/02_deseq2_dge.R`: DGE Engine (DESeq2)
+- `downstream/03_enrichment.R`: Functional analysis (GSEA, ORA)
+- `downstream/04_pca.R`: Sample clustering / PCA
+- `downstream/05_volcano.R`: DEG significance (Volcano)
+- `downstream/06_venn.R`: Multi-contrast overlap (Venn)
+- `downstream/07_heatmap_pathway.R`: Top enriched pathways gene expression
+- `downstream/08_heatmap_variable.R`: Top 50 most variable genes
+- `downstream/09-13_...`: Modular plotting suite (NES, Dotplots, UpSet, Correlation)
+- `downstream/14-16_...`: Comparative engine (Alluvial, Ortholog Overlaps)
 
-| Mode | Target | STAR RAM | Time |
-| :--- | :--- | :--- | :--- |
-| **Production** | Full Genome | ~30GB | 8-10 Hours |
-| **Test** | Chr21 Only | ~1.5GB | ~10 Minutes |
+### 03_as_analysis (Scripts)
+- `upstream/01_rmats_splicing.sh`: Splicing detection (rMATS-turbo)
+- `downstream/01_rmats_summary.R`: Splicing event summaries
 
-```bash
-./test all      # Run entire verification (Upstream -> Downstream)
-```
+## Documentation
 
-## Pipeline Architecture & Documentation
+Full, line-by-line documentation for every script is located within the `docs/` subfolder of each module.
 
-The pipeline is split into an upstream BASH execution engine and a downstream R statistical suite. Full, line-by-line documentation for every script can be found in the `docs/` directory.
-
-### Upstream Pipeline Suite: The "Genome Engine"
-
-| Script | Biological Goal | Technical Focus | Documentation |
-| :--- | :--- | :--- | :--- |
-| `01_genome_prep.sh` | Indexing & Trimming | STAR, Trimmomatic | [Docs](docs/project/upstream/01_genome_prep.md) |
-| `02_star_align.sh` | Mapping (Alignment) | STAR | [Docs](docs/project/upstream/02_star_align.md) |
-| `03_alignment_qc.sh` | Health Check | Picard, QC Stats | [Docs](docs/project/upstream/03_alignment_qc.md) |
-| `04_quantification.sh` | Counting Genes | featureCounts | [Docs](docs/project/upstream/04_quantification.md) |
-| `05_multiqc.sh` | Final Reporting | MultiQC | [Docs](docs/project/upstream/05_multiqc.md) |
-
-**Shared Utilities (`scripts_upstream/utils/`)**:
-- `parse_samples.py`: The "Source of Truth" that maps your CSV to file paths.
-- `biotype_to_multiqc.py`: Transforms complex counts into visual reports for MultiQC.
-
-### Downstream Pipeline Suite: R Analysis
-
-| Script | Biological Goal | Technical Focus | Documentation |
-| :--- | :--- | :--- | :--- |
-| `01_data_prep.R` | Clean & organize | Metadata integration | [Docs](docs/project/downstream/01_data_prep.md) |
-| `02_deseq2_dge.R` | DGE Engine | DESeq2, apeglm | [Docs](docs/project/downstream/02_deseq2_dge.md) |
-| `03_enrichment.R` | Functional analysis | GSEA, GO, KEGG | [Docs](docs/project/downstream/03_enrichment.md) |
-
-**04.x Visualization Suite**: High-resolution modular plotting.
-- `04_01_pca.R`: Sample clustering / PCA. [Docs](docs/project/downstream/04_01_pca.md)
-- `04_02_volcano.R`: DEG significance (Volcano). [Docs](docs/project/downstream/04_02_volcano.md)
-- `04_03_venn.R`: Multi-contrast overlap (Venn). [Docs](docs/project/downstream/04_03_venn.md)
-- `04_04_heatmap_pathway.R`: Top enriched pathways gene expression. [Docs](docs/project/downstream/04_04_heatmap_pathway.md)
-- `04_05_heatmap_variable.R`: Top 50 most variable genes. [Docs](docs/project/downstream/04_05_heatmap_variable.md)
-- `04_06_enrichment_nes.R`: Hallmark enrichment scores. [Docs](docs/project/downstream/04_06_enrichment_nes.md)
-- `04_07_enrichment_dotplot.R`: GSEA Hallmark enrichment dots (Mirror Plot). [Docs](docs/project/downstream/04_07_enrichment_dotplot.md)
-- `04_08_ora_dotplot.R`: ORA GO enrichment dots. [Docs](docs/project/downstream/04_08_ora_dotplot.md)
-- `04_09_upset_consistency.R`: UpSet multi-way comparisons. [Docs](docs/project/downstream/04_09_upset_consistency.md)
-- `04_10_correlation_plots.R`: Correlation scatters with top gene labels. [Docs](docs/project/downstream/04_10_correlation_plots.md)
-- `04_11_alluvial_plot.R`: Unified Comparative Alluvial Engine. [Docs](docs/project/downstream/04_11_alluvial_plot.md)
-- `04_12_ortholog_gene_overlap.R`: Direct gene-level species comparison. [Docs](docs/project/downstream/04_12_ortholog_gene_overlap.md)
-- `04_13_ortholog_nes_overlap.R`: Cross-species pathway activity (NES) comparison. [Docs](docs/project/downstream/04_13_ortholog_nes_overlap.md)
-
-*(Note: See [docs/project/downstream/libraries.md](docs/project/downstream/libraries.md) for full library rationales).*
-
-## Requirements
-
-All core dependencies are managed via **Micromamba** or **Mamba**. Refer to `environment.yml` for exact pinned versions.
-Run `bash setup_env.sh` to automatically detect your package manager and install all requirements into the `cancer_rnaseq` environment.
+*(Note: The legacy verification test suite has been removed for redesign; see [docs/test_deviation.md](docs/test_deviation.md) for details on previous implementation logic).*
 
 ---
-
-## Inspiration & Related Projects
-
-This pipeline draws inspiration from and builds upon methodological patterns established in the [YeastAnalysis](https://github.com/MashXP/YeastAnalysis) project, reflecting a shared focus on robust, automated bioinformatic workflows.
+*This pipeline builds upon methodological patterns established in the [YeastAnalysis](https://github.com/MashXP/YeastAnalysis) project.*

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# [[scripts_upstream/00_download_data.sh]]
+# [[01_core_alignment/scripts/00_download_data.sh]]
 # This script downloads raw FASTQ files and metadata from Google Drive using rclone
 # and performs extensive data integrity checks.
 
